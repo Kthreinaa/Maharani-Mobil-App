@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manajemen Pesanan | Marketing</title>
+  <meta name="description" content="Kelola pesanan customer dan status pembayaran."/>
+  <script src="/assets/tailwind.config.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700&display=swap" rel="stylesheet"/>
+  <link href="/assets/app.css" rel="stylesheet"/>
+</head>
+<body class="bg-surface text-on-surface">
+  <aside class="h-screen w-64 fixed left-0 top-0 border-r border-slate-100 bg-white font-body text-sm flex flex-col p-4 z-50">
+    <div class="mb-10 px-4">
+      <a class="text-xl font-bold text-[#1A2B4C]" href="/dashboard-marketing">Maharani Mobil</a>
+    </div>
+    <nav class="flex-1 space-y-2">
+      <a class="text-slate-500 hover:bg-slate-50 px-4 py-3 flex items-center gap-3 rounded-lg" href="/dashboard-marketing"><span class="material-symbols-outlined">dashboard</span>Dashboard</a>
+      <a class="text-slate-500 hover:bg-slate-50 px-4 py-3 flex items-center gap-3 rounded-lg" href="/marketing-products"><span class="material-symbols-outlined">directions_car</span>Manajemen Produk</a>
+      <a class="bg-slate-100 text-[#1A2B4C] font-semibold rounded-lg px-4 py-3 flex items-center gap-3" href="/marketing-orders"><span class="material-symbols-outlined">leaderboard</span>Manajemen Pesanan</a>
+      <a class="text-slate-500 hover:bg-slate-50 px-4 py-3 flex items-center gap-3 rounded-lg" href="/marketing-offers"><span class="material-symbols-outlined">sell</span>Manajemen Penawaran</a>
+      <a class="text-slate-500 hover:bg-slate-50 px-4 py-3 flex items-center gap-3 rounded-lg" href="/marketing-upload"><span class="material-symbols-outlined">upload</span>Upload Produk</a>
+    </nav>
+    <div class="mt-auto pt-6 border-t border-slate-100">
+      <a class="text-slate-500 hover:bg-slate-50 px-4 py-2 flex items-center gap-3 rounded-lg" href="/login"><span class="material-symbols-outlined">logout</span>Logout</a>
+    </div>
+  </aside>
+
+  <main class="ml-64 min-h-screen p-8">
+    <header class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="text-3xl font-extrabold text-primary">Manajemen Pesanan</h1>
+        <p class="text-on-surface-variant">Pantau status pesanan, pembayaran, dan verifikasi.</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button class="px-4 py-2 rounded-full border border-outline-variant text-sm font-semibold">Export CSV</button>
+        <button class="px-4 py-2 rounded-full bg-primary text-white text-sm font-semibold">New Order</button>
+      </div>
+    </header>
+
+    <!-- API: GET /api/orders -->
+    <section class="bg-white rounded-2xl shadow-xl shadow-blue-900/5 overflow-hidden">
+      <div class="px-8 py-6 border-b border-slate-50 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-primary">search</span>
+          <input class="border-none focus:ring-0 text-sm" placeholder="Cari nama customer atau nomor order" type="text"/>
+        </div>
+        <select class="rounded-full border border-outline-variant px-4 py-2 text-sm">
+          <option>All Status</option>
+          <option>Pending</option>
+          <option>Verified</option>
+          <option>Completed</option>
+        </select>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="text-on-surface-variant text-xs font-black uppercase tracking-widest">
+              <th class="px-8 py-4">Order ID</th>
+              <th class="px-8 py-4">Customer</th>
+              <th class="px-8 py-4">Unit</th>
+              <th class="px-8 py-4">Total</th>
+              <th class="px-8 py-4">Status</th>
+              <th class="px-8 py-4 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-50">
+            <tr class="hover:bg-slate-50 transition-colors">
+              <td class="px-8 py-5 font-semibold text-primary">#MM-0241</td>
+              <td class="px-8 py-5">Rina Aulia</td>
+              <td class="px-8 py-5">Toyota Camry 2022</td>
+              <td class="px-8 py-5">Rp 545.000.000</td>
+              <td class="px-8 py-5"><span class="bg-secondary-fixed text-on-secondary-fixed px-3 py-1 rounded-full text-xs font-bold">Pending</span></td>
+              <td class="px-8 py-5 text-right"><button class="px-3 py-1 rounded-lg border border-outline-variant text-xs font-bold">Detail</button></td>
+            </tr>
+            <tr class="hover:bg-slate-50 transition-colors">
+              <td class="px-8 py-5 font-semibold text-primary">#MM-0240</td>
+              <td class="px-8 py-5">Ahmad Firman</td>
+              <td class="px-8 py-5">Honda HR-V 2021</td>
+              <td class="px-8 py-5">Rp 295.000.000</td>
+              <td class="px-8 py-5"><span class="bg-tertiary-fixed text-on-tertiary-fixed px-3 py-1 rounded-full text-xs font-bold">Verified</span></td>
+              <td class="px-8 py-5 text-right"><button class="px-3 py-1 rounded-lg border border-outline-variant text-xs font-bold">Detail</button></td>
+            </tr>
+            <tr class="hover:bg-slate-50 transition-colors">
+              <td class="px-8 py-5 font-semibold text-primary">#MM-0239</td>
+              <td class="px-8 py-5">Dedi Nugroho</td>
+              <td class="px-8 py-5">Pajero Dakar 2018</td>
+              <td class="px-8 py-5">Rp 415.000.000</td>
+              <td class="px-8 py-5"><span class="bg-primary-fixed text-on-primary-fixed-variant px-3 py-1 rounded-full text-xs font-bold">Completed</span></td>
+              <td class="px-8 py-5 text-right"><button class="px-3 py-1 rounded-lg border border-outline-variant text-xs font-bold">Detail</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="p-6 text-sm text-on-surface-variant">Next: Verifikasi pembayaran di dashboard Supervisor.</div>
+    </section>
+  </main>
+</body>
+</html>
+
+

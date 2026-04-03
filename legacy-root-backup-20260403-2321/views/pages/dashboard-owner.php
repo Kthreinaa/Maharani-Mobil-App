@@ -1,0 +1,73 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Owner Dashboard | Maharani Mobil</title>
+  <meta name="description" content="Dashboard owner: revenue, sales, dan performa bisnis."/>
+  <script src="/assets/tailwind.config.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700&display=swap" rel="stylesheet"/>
+  <link href="/assets/app.css" rel="stylesheet"/>
+</head>
+<body class="bg-surface text-on-surface">
+  <aside class="h-screen w-64 fixed left-0 top-0 border-r border-slate-100 bg-white font-body text-sm flex flex-col p-4 z-50">
+    <div class="mb-10 px-4">
+      <a class="text-xl font-bold text-[#1A2B4C]" href="dashboard-owner.html">Maharani Mobil</a>
+    </div>
+    <nav class="flex-1 space-y-2">
+      <a class="bg-slate-100 text-[#1A2B4C] font-semibold rounded-lg px-4 py-3 flex items-center gap-3" href="dashboard-owner.html"><span class="material-symbols-outlined">dashboard</span>Dashboard</a>
+      <a class="text-slate-500 hover:bg-slate-50 px-4 py-3 flex items-center gap-3 rounded-lg" href="owner-sales.html"><span class="material-symbols-outlined">bar_chart</span>Laporan Penjualan</a>
+      <a class="text-slate-500 hover:bg-slate-50 px-4 py-3 flex items-center gap-3 rounded-lg" href="owner-revenue.html"><span class="material-symbols-outlined">payments</span>Grafik Pendapatan</a>
+      <a class="text-slate-500 hover:bg-slate-50 px-4 py-3 flex items-center gap-3 rounded-lg" href="owner-performance.html"><span class="material-symbols-outlined">insights</span>Analisis Performa</a>
+    </nav>
+    <div class="mt-auto pt-6 border-t border-slate-100">
+      <a class="text-slate-500 hover:bg-slate-50 px-4 py-2 flex items-center gap-3 rounded-lg" href="login.html"><span class="material-symbols-outlined">logout</span>Logout</a>
+    </div>
+  </aside>
+
+  <main class="ml-64 min-h-screen p-8">
+    <header class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="text-3xl font-extrabold text-primary">Owner Dashboard</h1>
+        <p class="text-on-surface-variant">Ringkasan performa penjualan dan pendapatan.</p>
+      </div>
+      <button class="px-4 py-2 rounded-full border border-outline-variant text-sm font-semibold">Export PDF</button>
+    </header>
+
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="bg-primary p-6 rounded-2xl text-white">
+        <p class="text-xs uppercase tracking-widest text-blue-200">Total Revenue</p>
+        <p class="text-4xl font-black mt-4">Rp 12.8B</p>
+      </div>
+      <div class="bg-white p-6 rounded-2xl shadow-xl shadow-blue-900/5">
+        <p class="text-xs uppercase tracking-widest text-on-surface-variant">Units Sold</p>
+        <p class="text-4xl font-black text-primary mt-4">238</p>
+      </div>
+      <div class="bg-secondary-container p-6 rounded-2xl text-on-secondary-fixed">
+        <p class="text-xs uppercase tracking-widest">MoM Growth</p>
+        <p class="text-4xl font-black text-primary mt-4">+18%</p>
+      </div>
+    </section>
+
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-white rounded-2xl shadow-xl shadow-blue-900/5 p-6">
+        <h2 class="text-xl font-bold text-primary mb-4">Revenue Trend</h2>
+        <div class="h-56 bg-surface-container-low rounded-xl flex items-center justify-center text-on-surface-variant">Chart Placeholder</div>
+        <a class="inline-block mt-4 text-secondary font-bold" href="owner-revenue.html">Lihat detail pendapatan</a>
+      </div>
+      <div class="bg-white rounded-2xl shadow-xl shadow-blue-900/5 p-6">
+        <h2 class="text-xl font-bold text-primary mb-4">Top Selling Units</h2>
+        <ul class="space-y-3 text-sm text-on-surface-variant">
+          <li>Toyota Fortuner 2022 • 28 unit</li>
+          <li>Honda HR-V 2021 • 22 unit</li>
+          <li>Mitsubishi Pajero 2019 • 16 unit</li>
+        </ul>
+        <a class="inline-block mt-4 text-secondary font-bold" href="owner-performance.html">Analisis performa</a>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
+

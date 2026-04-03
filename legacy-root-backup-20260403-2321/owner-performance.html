@@ -1,0 +1,51 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Analisis Performa | Owner</title>
+  <meta name="description" content="Analisis performa dan top cars Maharani Mobil."/>
+  <script src="assets/tailwind.config.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700&display=swap" rel="stylesheet"/>
+  <link href="assets/app.css" rel="stylesheet"/>
+</head>
+<body class="bg-surface text-on-surface">
+  <aside class="h-screen w-64 fixed left-0 top-0 border-r border-slate-100 bg-white font-body text-sm flex flex-col p-4 z-50">
+    <div class="mb-10 px-4"><a class="text-xl font-bold text-[#1A2B4C]" href="dashboard-owner.html">Maharani Mobil</a></div>
+    <nav class="flex-1 space-y-2">
+      <a class="text-slate-500 hover:bg-slate-50 px-4 py-3 flex items-center gap-3 rounded-lg" href="dashboard-owner.html"><span class="material-symbols-outlined">dashboard</span>Dashboard</a>
+      <a class="text-slate-500 hover:bg-slate-50 px-4 py-3 flex items-center gap-3 rounded-lg" href="owner-sales.html"><span class="material-symbols-outlined">bar_chart</span>Laporan Penjualan</a>
+      <a class="text-slate-500 hover:bg-slate-50 px-4 py-3 flex items-center gap-3 rounded-lg" href="owner-revenue.html"><span class="material-symbols-outlined">payments</span>Grafik Pendapatan</a>
+      <a class="bg-slate-100 text-[#1A2B4C] font-semibold rounded-lg px-4 py-3 flex items-center gap-3" href="owner-performance.html"><span class="material-symbols-outlined">insights</span>Analisis Performa</a>
+    </nav>
+  </aside>
+
+  <main class="ml-64 min-h-screen p-8">
+    <h1 class="text-3xl font-extrabold text-primary mb-6">Analisis Performa</h1>
+    <!-- API: GET /api/reports/top-cars -->
+    <section class="bg-white rounded-2xl shadow-xl shadow-blue-900/5 p-6">
+      <h2 class="text-xl font-bold text-primary mb-4">Top Product Chart</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-surface-container-low rounded-xl p-4">
+          <p class="font-bold text-primary">Toyota Fortuner 2022</p>
+          <p class="text-sm text-on-surface-variant">28 unit terjual • Rp 4.2B</p>
+        </div>
+        <div class="bg-surface-container-low rounded-xl p-4">
+          <p class="font-bold text-primary">Honda HR-V 2021</p>
+          <p class="text-sm text-on-surface-variant">22 unit terjual • Rp 2.9B</p>
+        </div>
+        <div class="bg-surface-container-low rounded-xl p-4">
+          <p class="font-bold text-primary">Mitsubishi Pajero 2019</p>
+          <p class="text-sm text-on-surface-variant">16 unit terjual • Rp 2.4B</p>
+        </div>
+        <div class="bg-surface-container-low rounded-xl p-4">
+          <p class="font-bold text-primary">Toyota Avanza 2020</p>
+          <p class="text-sm text-on-surface-variant">14 unit terjual • Rp 1.6B</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

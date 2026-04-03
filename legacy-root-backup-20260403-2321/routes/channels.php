@@ -1,0 +1,3 @@
+﻿<?php
+
+// Broadcast channels placeholder

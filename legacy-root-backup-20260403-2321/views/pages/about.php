@@ -1,0 +1,232 @@
+﻿<!DOCTYPE html>
+<html class="scroll-smooth" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>About Us | Maharani Mobil Pekanbaru</title>
+  <meta name="description" content="Kenali visi, filosofi, dan standar inspeksi 175-point Maharani Mobil Pekanbaru."/>
+  <script src="/assets/tailwind.config.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700&display=swap" rel="stylesheet"/>
+  <link href="/assets/app.css" rel="stylesheet"/>
+</head>
+<body class="bg-surface font-body text-on-surface">
+  <!-- TopNavBar -->
+  <header class="bg-slate-50/70 dark:bg-slate-950/70 backdrop-blur-xl docked full-width top-0 sticky z-50">
+    <nav class="flex justify-between items-center w-full px-8 py-4 max-w-screen-2xl mx-auto">
+      <a class="text-2xl font-black text-[#1A2B4C] dark:text-white tracking-tighter font-headline" href="index.html">Maharani Mobil</a>
+      <div class="hidden md:flex items-center gap-10">
+        <a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#F5A623] transition-colors duration-300 font-headline tracking-tight" href="catalog.html">Catalog</a>
+        <a class="text-[#1A2B4C] font-bold border-b-2 border-[#F5A623] pb-1 hover:text-[#F5A623] transition-colors duration-300 font-headline tracking-tight" href="about.html">About Us</a>
+        <a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#F5A623] transition-colors duration-300 font-headline tracking-tight" href="financing.html">Financing</a>
+      </div>
+      <div class="flex items-center gap-6">
+        <div class="hidden lg:flex items-center bg-surface-container px-4 py-2 rounded-full border-none">
+          <span class="material-symbols-outlined text-outline text-sm">search</span>
+          <input class="bg-transparent border-none focus:ring-0 text-sm font-body ml-2 w-48" placeholder="Search inventory..." type="text"/>
+        </div>
+        <a class="text-[#1A2B4C] font-semibold hover:text-[#F5A623] transition-colors" href="login.html">Login</a>
+        <a class="bg-primary-container text-on-primary px-6 py-2 rounded-full font-bold hover:bg-primary transition-all active:scale-95" href="register.html">Register</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="relative min-h-[819px] flex items-center overflow-hidden bg-surface">
+      <div class="container mx-auto px-8 relative z-10 flex flex-col md:flex-row items-center gap-12">
+        <div class="w-full md:w-1/2">
+          <h1 class="font-headline text-6xl md:text-8xl font-extrabold text-primary leading-[0.9] tracking-tighter mb-8">
+            The Digital <br/><span class="text-secondary italic">Concierge.</span>
+          </h1>
+          <p class="text-on-surface-variant text-xl max-w-lg leading-relaxed font-body mb-10">
+            Maharani Mobil Pekanbaru isn't just a dealership. We are your premium automotive curator, blending 20 years of Pekanbaru heritage with a future-forward digital experience.
+          </p>
+          <div class="flex items-center gap-4">
+            <div class="h-[1px] w-12 bg-outline-variant"></div>
+            <span class="font-label text-xs uppercase tracking-[0.3em] font-bold text-primary">Est. 2006 — Pekanbaru</span>
+          </div>
+        </div>
+        <div class="w-full md:w-1/2 relative">
+          <div class="aspect-[4/5] rounded-xl overflow-hidden shadow-2xl transform md:rotate-2 hover:rotate-0 transition-transform duration-700">
+            <img alt="Luxury automotive showroom" class="w-full h-full object-cover" data-alt="Interior of a luxury automotive showroom with polished floors, warm spotlights, and high-end sedans reflecting minimalist architecture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCajH9fBsdT9EEGErtgqNZlx5qY_ivS27LzXKq6B-JcCGRT1aquxy-0NXCHGBkH3dOOZoagzpLrxvG4azHN2y4FeY-2McqY2GCsxpbGpAvu1XqzNamSr0F4j-9A7lnKyeb_MiLteuiSSEvMlF4M6rO4Dhw8oLX-FIQG9Orj6zZx0FvYuJ8C5j5GvV0RtBEL0FX_vEIDsHbwyqwsSFOArZ2nG8YlaBlD6sLpwafgQOjv_wzqTcLKq7C-zH8fFxukbfgLO0ncIIS1qc"/>
+          </div>
+          <div class="absolute -bottom-8 -left-8 bg-white p-8 rounded-xl shadow-xl max-w-xs hidden lg:block">
+            <p class="font-headline font-bold text-3xl text-primary mb-2">175-Point</p>
+            <p class="text-sm text-on-surface-variant font-body">Rigorous inspection guarantee on every single vehicle in our curated collection.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="py-24 bg-surface-container-low">
+      <div class="container mx-auto px-8">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+          <div class="md:col-span-7 bg-white p-12 rounded-2xl shadow-sm flex flex-col justify-center">
+            <span class="text-secondary font-bold font-label tracking-widest text-xs uppercase mb-6 block">Our Vision</span>
+            <h2 class="font-headline text-4xl font-bold text-primary mb-8 tracking-tight">Redefining Ownership through Trust & Transparency.</h2>
+            <p class="text-on-surface-variant text-lg leading-relaxed mb-8">
+              We believe buying a car should be as seamless as a high-end hotel check-in. Our "Digital Concierge" service handles everything from personalized virtual tours to door-step delivery, ensuring your time remains yours.
+            </p>
+            <div class="grid grid-cols-3 gap-8 border-t border-slate-100 pt-8">
+              <div>
+                <p class="text-3xl font-black text-primary font-headline">4.9/5</p>
+                <p class="text-xs text-on-surface-variant uppercase font-bold tracking-tighter">Customer Rating</p>
+              </div>
+              <div>
+                <p class="text-3xl font-black text-primary font-headline">12k+</p>
+                <p class="text-xs text-on-surface-variant uppercase font-bold tracking-tighter">Cars Delivered</p>
+              </div>
+              <div>
+                <p class="text-3xl font-black text-primary font-headline">100%</p>
+                <p class="text-xs text-on-surface-variant uppercase font-bold tracking-tighter">Certified</p>
+              </div>
+            </div>
+          </div>
+          <div class="md:col-span-5 relative group h-[500px]">
+            <img alt="Classic car heritage" class="w-full h-full object-cover rounded-2xl" data-alt="A cinematic close-up of a vintage Porsche steering wheel with soft morning light hitting the leather and wood grain texture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWdsoZHBii2ASivAspTLr4E3FtdVAc0rTNNE4MJEBz23sw8wj_IdqLv5C1LihwSU7LNVBvjQC_mlc643cZEW3T3xXrTLWfo5CqoOT1QbQL_shCEsxuFQ0BN71HJDR699lHtYo_ntBG-pcHoOq5y8--tXwxL2ohFh_OqE5ZJFKSIK6uzcY76SSEKEseVnqLDOCsayrGGCh9gU1hJ5koX3HadNtjWH6ihB2ysB5F2y81u4mw1nOxXSAUdPmIgXmDACQi2baNOJ8f_PA"/>
+            <div class="absolute inset-0 bg-primary/20 group-hover:bg-transparent transition-all duration-500 rounded-2xl"></div>
+            <div class="absolute bottom-6 left-6 text-white">
+              <p class="font-headline font-bold text-2xl">Legacy of Quality</p>
+              <p class="font-body text-sm opacity-80">Serving Riau since 2006</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="py-24 bg-primary text-white relative overflow-hidden">
+      <div class="absolute top-0 right-0 w-1/2 h-full opacity-10 pointer-events-none">
+        <svg class="w-full h-full" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="200" cy="200" fill="none" r="150" stroke="white" stroke-width="0.5"></circle>
+          <circle cx="200" cy="200" fill="none" r="100" stroke="white" stroke-width="1"></circle>
+          <path d="M200 50 L200 350 M50 200 L350 200" stroke="white" stroke-width="0.5"></path>
+        </svg>
+      </div>
+      <div class="container mx-auto px-8 relative z-10">
+        <div class="max-w-3xl">
+          <h2 class="font-headline text-5xl font-extrabold mb-8 tracking-tighter">The Maharani Standard:<br/>175-Point Guarantee</h2>
+          <p class="text-slate-300 text-lg mb-12 font-body">Every vehicle passes through the hands of our master technicians. From the precision of the engine block to the stitching of the leather, no detail is too small for our 175-point inspection protocol.</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-8">
+            <div class="flex gap-4">
+              <span class="material-symbols-outlined text-secondary text-3xl">verified</span>
+              <div>
+                <h4 class="font-headline font-bold text-xl mb-1">Engine Integrity</h4>
+                <p class="text-slate-400 text-sm">Deep diagnostic testing of all mechanical propulsion systems.</p>
+              </div>
+            </div>
+            <div class="flex gap-4">
+              <span class="material-symbols-outlined text-secondary text-3xl">shield</span>
+              <div>
+                <h4 class="font-headline font-bold text-xl mb-1">Safety Systems</h4>
+                <p class="text-slate-400 text-sm">Comprehensive review of braking, airbags, and structural points.</p>
+              </div>
+            </div>
+            <div class="flex gap-4">
+              <span class="material-symbols-outlined text-secondary text-3xl">auto_fix</span>
+              <div>
+                <h4 class="font-headline font-bold text-xl mb-1">Aesthetic Perfection</h4>
+                <p class="text-slate-400 text-sm">Multi-stage paint correction and premium interior detailing.</p>
+              </div>
+            </div>
+            <div class="flex gap-4">
+              <span class="material-symbols-outlined text-secondary text-3xl">history_edu</span>
+              <div>
+                <h4 class="font-headline font-bold text-xl mb-1">Full Provenance</h4>
+                <p class="text-slate-400 text-sm">Documented history search for legal and maintenance clarity.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="py-24 bg-surface">
+      <div class="container mx-auto px-8">
+        <div class="text-center mb-20">
+          <span class="text-secondary font-bold font-label tracking-widest text-xs uppercase mb-4 block">Our Experts</span>
+          <h2 class="font-headline text-5xl font-bold text-primary tracking-tight">The Minds Behind the Concierge.</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+          <div class="flex flex-col">
+            <div class="aspect-square rounded-xl overflow-hidden mb-6 bg-surface-container-high">
+              <img alt="Budi Santoso" class="w-full h-full object-cover" data-alt="Professional portrait of a mature Indonesian man in a tailored navy suit, smiling confidently against a soft gray background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnbiJY_4WhxNz-H05ZunYyXv7rUm64emRkBkZ3k75kYCbSpRITIISf73Ku_FYwngJ3gFgP75YACvaTpGGexXooNOhPhVtW-kjsv647fTOrG9Ry4k1c71SSiDvf_dPvoq_wWvq3_YMg0WN37EdNTTlJ6hZpEUvSEFZ6tmbXQKq2uW6jHMrtp9Yxjw6gw_M_nQ-6UziLT6eMlnDXl6rWva-Y0l-dvF42LuIJR4GHi4gd4B3NEak65ve_W0mpG8ByFwmst9EYSyaIh6U"/>
+            </div>
+            <h3 class="font-headline font-bold text-2xl text-primary mb-1">Budi Santoso</h3>
+            <p class="text-secondary font-label font-semibold text-sm uppercase tracking-wider mb-4">Senior Supervisor</p>
+            <p class="text-on-surface-variant font-body leading-relaxed">A veteran of the automotive industry with over 25 years of experience in luxury fleet management.</p>
+          </div>
+          <div class="flex flex-col translate-y-12">
+            <div class="aspect-square rounded-xl overflow-hidden mb-6 bg-surface-container-high">
+              <img alt="Maya Maharani" class="w-full h-full object-cover" data-alt="Elegant professional woman in business attire, looking poised and welcoming in a modern office setting with natural light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBToJLqvpwMmPf5ECLnoE3RdXG6H4uBojIcyGC6C_X4DGXs-JAuXBD2pW5ii_d2GWfqk9o3JV7pn5KjmOzCq4rpIfJ8zaRY3odeVhJlABpvWU9pweQBQlFCWw7RQPBlp35E-kP-3QC7euzHPJsZmefzUErqctHf2JTASkdjLFxny8FyBoMAGDm8G8Ar-oSO8BrVNPGNEh9y4l6czLtX5SnPTTL0yGXHZGyZ9-H5wWv8wS5TN_Ec1uqpBpeTOVxMgA9sRq5xF6zg0k"/>
+            </div>
+            <h3 class="font-headline font-bold text-2xl text-primary mb-1">Maya Maharani</h3>
+            <p class="text-secondary font-label font-semibold text-sm uppercase tracking-wider mb-4">Chief Experience Officer</p>
+            <p class="text-on-surface-variant font-body leading-relaxed">Architect of the "Digital Concierge" journey, ensuring every client interaction is world-class.</p>
+          </div>
+          <div class="flex flex-col">
+            <div class="aspect-square rounded-xl overflow-hidden mb-6 bg-surface-container-high">
+              <img alt="Rian Pratama" class="w-full h-full object-cover" data-alt="Young professional man in smart casual clothing, standing in a brightly lit car showroom with high-tech vibes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7GA38NlwZEiCqCOc6-M0YAvRxcNrIasYZXeRE3gw3a00Nm1PnRA5Qh2ZIgt7g-DniZFPoi6D9uKW7wJ0ZTrZjw583Stt3SheXEU4MYfo7SRoFtt00A_LO-_MoSGHydEtLvyqHRtEt_75NIGnndP1RKYckixM8OEExtkbMVsxAU9NZmhHiP-svqcE6009gFuvK4I9Q1mTlBO8Q-A9_WNhyPGgI29U-MaS3s8Acys3rwiIuprUoEFaf8gYG-njt7z0-tTRHmH-7d-g"/>
+            </div>
+            <h3 class="font-headline font-bold text-2xl text-primary mb-1">Rian Pratama</h3>
+            <p class="text-secondary font-label font-semibold text-sm uppercase tracking-wider mb-4">Head of Digital Inspection</p>
+            <p class="text-on-surface-variant font-body leading-relaxed">Leading our technical team to maintain the rigorous 175-point certification standard.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="container mx-auto px-8 mb-24">
+      <div class="bg-secondary-container rounded-3xl p-16 flex flex-col items-center text-center relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none">
+          <div class="w-full h-full" style="background-image: radial-gradient(circle, #000 1px, transparent 1px); background-size: 30px 30px;"></div>
+        </div>
+        <h2 class="font-headline text-5xl font-black text-on-secondary-fixed mb-6 max-w-2xl tracking-tighter">Ready to experience the future of automotive shopping?</h2>
+        <p class="text-on-secondary-fixed-variant text-lg mb-10 max-w-xl font-body">Browse our latest certified inventory or schedule a private consultation with our Digital Concierge team today.</p>
+        <div class="flex flex-col sm:flex-row gap-4">
+          <a class="bg-primary text-white px-10 py-4 rounded-full font-bold text-lg hover:shadow-xl transition-all active:scale-95" href="catalog.html">Explore Catalog</a>
+          <a class="bg-white/30 backdrop-blur-md text-on-secondary-fixed border border-white/50 px-10 py-4 rounded-full font-bold text-lg hover:bg-white/50 transition-all active:scale-95" href="test-drive.html">Contact Concierge</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bg-[#031636] dark:bg-black w-full py-12 mt-auto">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8 px-12 w-full max-w-screen-2xl mx-auto">
+      <div class="flex flex-col gap-4">
+        <div class="text-white font-black italic text-xl">Maharani Mobil</div>
+        <p class="text-slate-400 font-body text-sm leading-relaxed">The premier digital concierge for certified pre-owned vehicles in Pekanbaru, Riau. Since 2006.</p>
+      </div>
+      <div class="flex flex-col gap-4">
+        <h5 class="text-white font-label text-xs uppercase tracking-widest font-bold">Quick Links</h5>
+        <nav class="flex flex-col gap-2">
+          <a class="text-slate-400 hover:text-white underline transition-all font-label text-xs uppercase tracking-widest" href="catalog.html">Inventory Catalog</a>
+          <a class="text-slate-400 hover:text-white underline transition-all font-label text-xs uppercase tracking-widest" href="financing.html">Finance Options</a>
+          <a class="text-slate-400 hover:text-white underline transition-all font-label text-xs uppercase tracking-widest" href="reviews.html">Reviews</a>
+        </nav>
+      </div>
+      <div class="flex flex-col gap-4">
+        <h5 class="text-white font-label text-xs uppercase tracking-widest font-bold">Legal</h5>
+        <nav class="flex flex-col gap-2">
+          <a class="text-slate-400 hover:text-white underline transition-all font-label text-xs uppercase tracking-widest" href="privacy.html">Privacy Policy</a>
+          <a class="text-slate-400 hover:text-white underline transition-all font-label text-xs uppercase tracking-widest" href="terms.html">Terms of Service</a>
+          <a class="text-slate-400 hover:text-white underline transition-all font-label text-xs uppercase tracking-widest" href="faq.html">Cookie Settings</a>
+        </nav>
+      </div>
+      <div class="flex flex-col gap-4">
+        <h5 class="text-white font-label text-xs uppercase tracking-widest font-bold">Connect</h5>
+        <p class="text-slate-400 font-body text-sm">Pekanbaru, Riau, Indonesia</p>
+        <div class="flex gap-4">
+          <span class="material-symbols-outlined text-white cursor-pointer hover:text-secondary-container">language</span>
+          <span class="material-symbols-outlined text-white cursor-pointer hover:text-secondary-container">share</span>
+          <span class="material-symbols-outlined text-white cursor-pointer hover:text-secondary-container">mail</span>
+        </div>
+      </div>
+    </div>
+    <div class="mt-12 pt-8 border-t border-white/10 text-center px-12">
+      <p class="text-slate-400 font-label text-xs uppercase tracking-widest">© 2026 Maharani Mobil Pekanbaru. The Digital Concierge.</p>
+    </div>
+  </footer>
+</body>
+</html>
+

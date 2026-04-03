@@ -1,0 +1,5 @@
+﻿#!/usr/bin/env php
+<?php
+// Minimal artisan stub (placeholder)
+
+echo "Maharani Mobil Artisan (stub)\n";

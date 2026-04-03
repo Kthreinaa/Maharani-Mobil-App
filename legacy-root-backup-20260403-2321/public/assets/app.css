@@ -1,0 +1,55 @@
+﻿:root {
+  color-scheme: light;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  background: #f8f9fa;
+  color: #191c1d;
+}
+
+h1, h2, h3, .font-headline {
+  font-family: "Plus Jakarta Sans", sans-serif;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+.glass-panel {
+  background: rgba(248, 249, 250, 0.7);
+  backdrop-filter: blur(24px);
+}
+
+.glass-nav {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.editorial-shadow {
+  box-shadow: 0 10px 40px -10px rgba(7, 27, 59, 0.06);
+}
+
+.status-available {
+  background: #a3f69c;
+  color: #002204;
+}
+
+.status-reserved {
+  background: #ffddb4;
+  color: #291800;
+}
+
+.status-sold {
+  background: #ffdad6;
+  color: #93000a;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
