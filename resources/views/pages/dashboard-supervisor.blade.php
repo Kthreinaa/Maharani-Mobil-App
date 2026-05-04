@@ -1,92 +1,183 @@
-﻿<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Supervisor Dashboard | Maharani Mobil</title>
-  <meta name="description" content="Dashboard supervisor: verifikasi pembayaran, validasi data, dan monitoring aktivitas."/>
-  <script src="/assets/tailwind.config.js"></script>
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700&display=swap" rel="stylesheet"/>
-  <link href="/assets/app.css" rel="stylesheet"/>
-</head>
-<body class="bg-surface text-on-surface">
-  <aside class="h-screen w-64 fixed left-0 top-0 border-r border-slate-100 bg-white font-body text-sm flex flex-col p-4 z-50">
-    <div class="mb-10 px-4">
-      <a class="text-xl font-bold text-[#1A2B4C]" href="/dashboard-supervisor">Maharani Mobil</a>
+@extends('layouts.supervisor')
+
+@php
+  $title = 'Supervisor Dashboard';
+  $pageTitle = 'Dashboard Overview';
+@endphp
+
+@section('content')
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+    <div class="rounded-xl bg-white p-5 shadow-sm border border-slate-200">
+      <p class="text-xs uppercase text-slate-500">Total Mobil Tersedia</p>
+      <div class="text-2xl font-bold mt-2">{{ $totalAvailableCars }}</div>
     </div>
-    <nav class="flex-1 space-y-2">
-      <a class="bg-slate-100 text-[#1A2B4C] font-semibold rounded-lg px-4 py-3 flex items-center gap-3" href="/dashboard-supervisor"><span class="material-symbols-outlined">dashboard</span>Dashboard</a>
-      <a class="text-slate-500 hover:bg-slate-50 px-4 py-3 flex items-center gap-3 rounded-lg" href="/supervisor-payments"><span class="material-symbols-outlined">verified</span>Verifikasi Pembayaran</a>
-      <a class="text-slate-500 hover:bg-slate-50 px-4 py-3 flex items-center gap-3 rounded-lg" href="/supervisor-transactions"><span class="material-symbols-outlined">receipt_long</span>Manajemen Transaksi</a>
-      <a class="text-slate-500 hover:bg-slate-50 px-4 py-3 flex items-center gap-3 rounded-lg" href="/supervisor-users"><span class="material-symbols-outlined">group</span>Manajemen User</a>
-      <a class="text-slate-500 hover:bg-slate-50 px-4 py-3 flex items-center gap-3 rounded-lg" href="/supervisor-activity"><span class="material-symbols-outlined">timeline</span>Monitoring Aktivitas</a>
-    </nav>
-    <div class="mt-auto pt-6 border-t border-slate-100">
-      <a class="text-slate-500 hover:bg-slate-50 px-4 py-2 flex items-center gap-3 rounded-lg" href="/login"><span class="material-symbols-outlined">logout</span>Logout</a>
+    <div class="rounded-xl bg-white p-5 shadow-sm border border-slate-200">
+      <p class="text-xs uppercase text-slate-500">Total Mobil Terjual</p>
+      <div class="text-2xl font-bold mt-2">{{ $totalSold }}</div>
     </div>
-  </aside>
+    <div class="rounded-xl bg-white p-5 shadow-sm border border-slate-200">
+      <p class="text-xs uppercase text-slate-500">Total Pesanan</p>
+      <div class="text-2xl font-bold mt-2">{{ $totalOrders }}</div>
+    </div>
+    <div class="rounded-xl bg-white p-5 shadow-sm border border-slate-200">
+      <p class="text-xs uppercase text-slate-500">Total Customer</p>
+      <div class="text-2xl font-bold mt-2">{{ $totalCustomers }}</div>
+    </div>
+    <div class="rounded-xl bg-white p-5 shadow-sm border border-slate-200">
+      <p class="text-xs uppercase text-slate-500">Transaksi Pending</p>
+      <div class="text-2xl font-bold mt-2">{{ $pendingPayments }}</div>
+    </div>
+    <div class="rounded-xl bg-white p-5 shadow-sm border border-slate-200">
+      <p class="text-xs uppercase text-slate-500">Transaksi Verified</p>
+      <div class="text-2xl font-bold mt-2">{{ $verifiedPayments }}</div>
+    </div>
+    <div class="rounded-xl bg-white p-5 shadow-sm border border-slate-200">
+      <p class="text-xs uppercase text-slate-500">Booking Test Drive</p>
+      <div class="text-2xl font-bold mt-2">{{ $totalTestDrives }}</div>
+    </div>
+    <div class="rounded-xl bg-white p-5 shadow-sm border border-slate-200">
+      <p class="text-xs uppercase text-slate-500">Penawaran Masuk</p>
+      <div class="text-2xl font-bold mt-2">{{ $totalOffers }}</div>
+    </div>
+  </div>
 
-  <main class="ml-64 min-h-screen p-8">
-    <header class="flex justify-between items-center mb-8">
-      <div>
-        <h1 class="text-3xl font-extrabold text-primary">Supervisor Dashboard</h1>
-        <p class="text-on-surface-variant">Kontrol kualitas data, verifikasi transaksi, dan aktivitas harian.</p>
+  <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
+    <div class="col-span-2 rounded-xl bg-white p-6 shadow-sm border border-slate-200">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold">Tren Penjualan (Unit)</h2>
+        <span class="text-xs text-slate-500">Tahun {{ now()->year }}</span>
       </div>
-      <div class="flex items-center gap-3">
-        <button class="px-4 py-2 rounded-full border border-outline-variant text-sm font-semibold">Export</button>
-        <button class="px-4 py-2 rounded-full bg-primary text-white text-sm font-semibold">New Alert</button>
+      <canvas id="salesChart" height="120"></canvas>
+    </div>
+    <div class="rounded-xl bg-white p-6 shadow-sm border border-slate-200">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold">Status Transaksi</h2>
       </div>
-    </header>
+      <canvas id="paymentChart" height="140"></canvas>
+    </div>
+  </div>
 
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      <div class="bg-primary p-6 rounded-2xl text-white">
-        <p class="text-xs uppercase tracking-widest text-blue-200">Pending Verification</p>
-        <p class="text-4xl font-black mt-4">18</p>
-      </div>
-      <div class="bg-white p-6 rounded-2xl shadow-xl shadow-blue-900/5">
-        <p class="text-xs uppercase tracking-widest text-on-surface-variant">Active Transactions</p>
-        <p class="text-4xl font-black text-primary mt-4">42</p>
-      </div>
-      <div class="bg-secondary-container p-6 rounded-2xl text-on-secondary-fixed">
-        <p class="text-xs uppercase tracking-widest">Data Issues</p>
-        <p class="text-4xl font-black text-primary mt-4">6</p>
-      </div>
-    </section>
+  <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
+    <div class="rounded-xl bg-white p-6 shadow-sm border border-slate-200">
+      <h2 class="text-lg font-bold mb-4">Pendapatan Bulanan</h2>
+      <canvas id="revenueChart" height="160"></canvas>
+    </div>
+    <div class="rounded-xl bg-white p-6 shadow-sm border border-slate-200 col-span-2">
+      <h2 class="text-lg font-bold mb-4">Mobil Paling Laku</h2>
+      <canvas id="topCarsChart" height="160"></canvas>
+    </div>
+  </div>
 
-    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div class="bg-white rounded-2xl shadow-xl shadow-blue-900/5 p-6">
-        <h2 class="text-xl font-bold text-primary mb-4">Verifikasi Pembayaran Terbaru</h2>
-        <div class="space-y-4">
-          <div class="flex items-center justify-between border border-outline-variant/40 rounded-xl p-4">
-            <div>
-              <p class="font-bold text-primary">#MM-0241</p>
-              <p class="text-sm text-on-surface-variant">Toyota Camry 2022 • Rp 546.5jt</p>
-            </div>
-            <a class="px-4 py-2 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-semibold" href="/supervisor-payments">Review</a>
-          </div>
-          <div class="flex items-center justify-between border border-outline-variant/40 rounded-xl p-4">
-            <div>
-              <p class="font-bold text-primary">#MM-0240</p>
-              <p class="text-sm text-on-surface-variant">Honda HR-V 2021 • Rp 295jt</p>
-            </div>
-            <a class="px-4 py-2 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-semibold" href="/supervisor-payments">Review</a>
-          </div>
-        </div>
+  <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
+    <div class="rounded-xl bg-white p-6 shadow-sm border border-slate-200">
+      <h2 class="text-lg font-bold mb-4">Quick Actions</h2>
+      <div class="grid grid-cols-2 gap-3 text-sm">
+        <a href="{{ route('supervisor.cars.create') }}" class="rounded-lg bg-slate-900 text-white px-4 py-2 text-center">Tambah Mobil</a>
+        <a href="{{ route('supervisor.users.create') }}" class="rounded-lg bg-slate-900 text-white px-4 py-2 text-center">Tambah User</a>
+        <a href="{{ route('supervisor.orders.index') }}" class="rounded-lg bg-slate-100 px-4 py-2 text-center">Lihat Pesanan</a>
+        <a href="{{ route('supervisor.payments.index') }}" class="rounded-lg bg-slate-100 px-4 py-2 text-center">Verifikasi</a>
+        <a href="{{ route('supervisor.reports.exportPdf') }}" class="rounded-lg bg-slate-100 px-4 py-2 text-center">Export PDF</a>
+        <a href="{{ route('supervisor.reports.exportExcel') }}" class="rounded-lg bg-slate-100 px-4 py-2 text-center">Export Excel</a>
       </div>
-      <div class="bg-white rounded-2xl shadow-xl shadow-blue-900/5 p-6">
-        <h2 class="text-xl font-bold text-primary mb-4">Monitoring Aktivitas</h2>
-        <ul class="space-y-3 text-sm text-on-surface-variant">
-          <li>Marketing menambahkan unit baru: Toyota Fortuner 2022.</li>
-          <li>User baru mendaftar: Angga H.</li>
-          <li>Offer masuk untuk Honda Civic RS.</li>
-        </ul>
-        <a class="inline-block mt-4 text-secondary font-bold" href="/supervisor-activity">Lihat semua aktivitas</a>
+    </div>
+    <div class="rounded-xl bg-white p-6 shadow-sm border border-slate-200 col-span-2">
+      <h2 class="text-lg font-bold mb-4">Aktivitas Terbaru</h2>
+      <ul class="space-y-3 text-sm">
+        @forelse($activity as $item)
+          <li class="flex items-center justify-between">
+            <span class="text-slate-700">{{ $item['label'] }} � {{ $item['detail'] }}</span>
+            <span class="text-xs text-slate-500">{{ $item['time']->diffForHumans() }}</span>
+          </li>
+        @empty
+          <li class="text-slate-500">Belum ada aktivitas terbaru.</li>
+        @endforelse
+      </ul>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+    <div class="rounded-xl bg-white p-6 shadow-sm border border-slate-200 col-span-2">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold">Pesanan Terbaru</h2>
+        <a class="text-sm text-slate-500 hover:underline" href="{{ route('supervisor.orders.index') }}">Lihat Semua</a>
       </div>
-    </section>
-  </main>
-</body>
-</html>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="text-xs uppercase text-slate-500">
+            <tr>
+              <th class="py-2 text-left">Kode</th>
+              <th class="py-2 text-left">Customer</th>
+              <th class="py-2 text-left">Mobil</th>
+              <th class="py-2 text-left">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y">
+            @forelse($recentOrders as $order)
+              <tr>
+                <td class="py-2">#{{ $order->id }}</td>
+                <td class="py-2">{{ $order->user?->name }}</td>
+                <td class="py-2">{{ $order->car?->merk }} {{ $order->car?->tipe }}</td>
+                <td class="py-2">{{ $order->status }}</td>
+              </tr>
+            @empty
+              <tr><td class="py-3 text-slate-500" colspan="4">Belum ada pesanan.</td></tr>
+            @endforelse
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="rounded-xl bg-white p-6 shadow-sm border border-slate-200">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold">Pembayaran Terbaru</h2>
+        <a class="text-sm text-slate-500 hover:underline" href="{{ route('supervisor.payments.index') }}">Lihat Semua</a>
+      </div>
+      <ul class="space-y-3 text-sm">
+        @forelse($recentPayments as $payment)
+          <li class="flex items-center justify-between">
+            <span>{{ $payment->order?->user?->name }}</span>
+            <span class="text-xs text-slate-500">{{ $payment->status }}</span>
+          </li>
+        @empty
+          <li class="text-slate-500">Belum ada pembayaran.</li>
+        @endforelse
+      </ul>
+    </div>
+  </div>
+@endsection
 
+@push('scripts')
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const salesLabels = @json($monthlySales->pluck('month'));
+    const salesData = @json($monthlySales->pluck('total'));
+    new Chart(document.getElementById('salesChart'), {
+      type: 'line',
+      data: { labels: salesLabels, datasets: [{ label: 'Unit Terjual', data: salesData, borderColor: '#111827', tension: .35 }] },
+      options: { plugins: { legend: { display: false } } }
+    });
 
+    const revenueLabels = @json($monthlyRevenue->pluck('month'));
+    const revenueData = @json($monthlyRevenue->pluck('total'));
+    new Chart(document.getElementById('revenueChart'), {
+      type: 'bar',
+      data: { labels: revenueLabels, datasets: [{ label: 'Pendapatan', data: revenueData, backgroundColor: '#0f172a' }] },
+      options: { plugins: { legend: { display: false } } }
+    });
+
+    const paymentLabels = @json($paymentStatus->pluck('status'));
+    const paymentData = @json($paymentStatus->pluck('total'));
+    new Chart(document.getElementById('paymentChart'), {
+      type: 'doughnut',
+      data: { labels: paymentLabels, datasets: [{ data: paymentData, backgroundColor: ['#f59e0b','#10b981','#ef4444'] }] },
+      options: { plugins: { legend: { position: 'bottom' } } }
+    });
+
+    const topCarLabels = @json($topCars->map(fn($row) => $row->car?->merk . ' ' . $row->car?->tipe));
+    const topCarData = @json($topCars->pluck('total'));
+    new Chart(document.getElementById('topCarsChart'), {
+      type: 'bar',
+      data: { labels: topCarLabels, datasets: [{ label: 'Total Terjual', data: topCarData, backgroundColor: '#1f2937' }] },
+      options: { indexAxis: 'y', plugins: { legend: { display: false } } }
+    });
+  </script>
+@endpush

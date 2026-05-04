@@ -1,0 +1,42 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\TestDrive;
+use Illuminate\Http\Request;
+
+class TestDriveController extends Controller
+{
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'car_id' => ['required', 'exists:cars,id'],
+            'booking_date' => ['required', 'date', 'after_or_equal:today'],
+            'booking_time' => ['required', 'date_format:H:i'],
+            'location' => ['nullable', 'string', 'max:255'],
+            'notes' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $notesParts = [];
+        if (!empty($validated['location'])) {
+            $notesParts[] = 'Lokasi: ' . $validated['location'];
+        }
+        if (!empty($validated['notes'])) {
+            $notesParts[] = 'Catatan: ' . $validated['notes'];
+        }
+        $finalNotes = count($notesParts) ? implode("\n", $notesParts) : null;
+
+        TestDrive::create([
+            'user_id' => $request->user()->id,
+            'car_id' => $validated['car_id'],
+            'booking_date' => $validated['booking_date'],
+            'booking_time' => $validated['booking_time'],
+            'status' => 'pending',
+            'notes' => $finalNotes,
+        ]);
+
+        return redirect()
+            ->route('home.public')
+            ->with('success', 'Janji test drive telah di booking.');
+    }
+}

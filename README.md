@@ -7,6 +7,21 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## Quick Run (Windows)
+
+Untuk menjalankan project tanpa ribet:
+
+1. Double click `run-dev.bat`
+2. Atau lewat terminal:
+   - `.\run-dev.ps1`
+   - `.\run-dev.ps1 -Port 8000`
+   - `.\run-dev.ps1 -NoBrowser`
+
+Script ini otomatis:
+- Clear cache Laravel
+- Build cache Blade
+- Menjalankan `php artisan serve`
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:

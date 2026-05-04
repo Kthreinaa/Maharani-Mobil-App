@@ -22,9 +22,10 @@
         <div class="mb-8">
           <span class="text-secondary-container font-headline font-bold tracking-widest text-xs uppercase block mb-4">The Digital Concierge</span>
           <h2 class="text-5xl font-black font-headline tracking-tighter leading-none mb-6">Experience Automotive Elegance.</h2>
-          <p class="text-on-primary-container text-lg leading-relaxed font-body">Access your personalized dashboard, manage your dream inventory, and connect with our elite concierge service.</p>
+          <p class="text-on-primary-container text-lg leading-relaxed font-body">Selamat Datang di Maharani Mobil, Temukan Mobil Impian Anda dengan kemudahan dalam setiap langkah.</p>
         </div>
         <div class="grid grid-cols-2 gap-6 pt-8 border-t border-white/10">
+          
           <div>
             <div class="text-secondary-container font-headline font-extrabold text-2xl tracking-tight">500+</div>
             <div class="text-on-primary-container text-xs font-label tracking-widest uppercase">Premium Cars</div>

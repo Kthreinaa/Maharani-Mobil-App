@@ -1,398 +1,311 @@
-﻿<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Toyota Camry 2.5 V Hybrid 2022 | Maharani Mobil</title>
-  <meta name="description" content="Detail lengkap Toyota Camry 2.5 V Hybrid 2022: kondisi, spesifikasi, harga, dan booking test drive."/>
-  <meta name="robots" content="index,follow"/>
-  <link rel="canonical" href="/toyota-camry-2-5-v-hybrid-2022"/>
-  <script src="/assets/tailwind.config.js"></script>
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700&display=swap" rel="stylesheet"/>
-  <link href="/assets/app.css" rel="stylesheet"/>
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "Vehicle",
-    "name": "Toyota Camry 2.5 V Hybrid 2022",
-    "brand": "Toyota",
-    "model": "Camry 2.5 V Hybrid",
-    "vehicleModelDate": "2022",
-    "vehicleConfiguration": "Automatic",
-    "mileageFromOdometer": {
-      "@type": "QuantitativeValue",
-      "value": 12450,
-      "unitCode": "KMT"
-    },
-    "offers": {
-      "@type": "Offer",
-      "priceCurrency": "IDR",
-      "price": 545000000,
-      "availability": "https://schema.org/InStock"
+@php
+    /**
+     * Halaman detail mobil dinamis.
+     * Menampilkan galeri foto, ringkasan unit, spesifikasi, serta CTA utama.
+     */
+    $carName = trim(($car->merk ?? '') . ' ' . ($car->tipe ?? '') . ' ' . ($car->tahun ?? ''));
+    $pageTitle = ($carName !== '' ? $carName . ' | ' : '') . 'Detail Mobil | Maharani Mobil';
+
+    $photoPaths = collect($car->photos ?? [])
+        ->filter(fn ($path) => filled($path))
+        ->map(fn ($path) => asset('storage/' . ltrim((string) $path, '/')))
+        ->values();
+
+    if ($photoPaths->isEmpty()) {
+        $photoPaths = collect([
+            'https://images.unsplash.com/photo-1542282088-fe8426682b8f?q=80&w=1600&auto=format&fit=crop',
+            'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?q=80&w=1400&auto=format&fit=crop',
+            'https://images.unsplash.com/photo-1493238792000-8113da705763?q=80&w=1400&auto=format&fit=crop',
+        ]);
     }
-  }
-  </script>
+
+    $mainPhoto = $photoPaths->first();
+
+    $statusKey = strtolower((string) ($car->status ?? 'available'));
+    $statusLabelMap = [
+        'available' => 'Available',
+        'reserved' => 'Reserved',
+        'sold' => 'Sold',
+    ];
+    $statusClassMap = [
+        'available' => 'bg-emerald-100 text-emerald-700 border border-emerald-200',
+        'reserved' => 'bg-amber-100 text-amber-700 border border-amber-200',
+        'sold' => 'bg-rose-100 text-rose-700 border border-rose-200',
+    ];
+    $statusLabel = $statusLabelMap[$statusKey] ?? 'Available';
+    $statusClass = $statusClassMap[$statusKey] ?? $statusClassMap['available'];
+
+    $priceLabel = 'Rp ' . number_format((float) ($car->harga ?? 0), 0, ',', '.');
+    $kmLabel = number_format((int) ($car->kilometer ?? 0), 0, ',', '.') . ' KM';
+@endphp
+
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>{{ $pageTitle }}</title>
+    <meta name="description" content="Detail lengkap {{ $carName !== '' ? $carName : 'unit mobil' }} di Maharani Mobil: foto, harga, spesifikasi, dan aksi booking test drive."/>
+    <meta name="robots" content="index,follow"/>
+    <link rel="canonical" href="{{ request()->url() }}"/>
+    @include('components.ui-system-head')
+    <script src="{{ asset('assets/tailwind.config.js') }}?v={{ filemtime(public_path('assets/tailwind.config.js')) }}"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700&display=swap" rel="stylesheet"/>
+    <link href="{{ asset('assets/app.css') }}?v={{ filemtime(public_path('assets/app.css')) }}" rel="stylesheet"/>
 </head>
 <body class="bg-background text-on-background min-h-screen flex flex-col">
-  <header class="bg-slate-50/70 dark:bg-slate-950/70 backdrop-blur-xl docked full-width top-0 sticky z-50">
-    <div class="flex justify-between items-center w-full px-8 py-4 max-w-screen-2xl mx-auto font-headline tracking-tight">
-      <a class="text-2xl font-black text-[#1A2B4C] dark:text-white tracking-tighter" href="/">Maharani Mobil</a>
-      <nav class="hidden md:flex items-center gap-8">
-        <a class="text-[#1A2B4C] font-bold border-b-2 border-[#F5A623] pb-1" href="/catalog">Catalog</a>
-        <a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#F5A623] transition-colors duration-300" href="/about">About Us</a>
-        <a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#F5A623] transition-colors duration-300" href="/financing">Financing</a>
-      </nav>
-      <div class="flex items-center gap-4">
-        <a class="px-6 py-2 rounded-full font-semibold text-slate-500 hover:text-[#1A2B4C] transition-all" href="/login">Login</a>
-        <a class="px-6 py-2 rounded-full font-bold bg-primary-container text-white hover:scale-95 transition-all" href="/register">Register</a>
-      </div>
-    </div>
-  </header>
-
-  <main class="max-w-screen-2xl mx-auto px-6 md:px-12 py-8 w-full flex-grow">
-    <!-- Breadcrumbs -->
-    <nav class="flex items-center gap-2 text-on-surface-variant text-sm mb-6 font-medium" aria-label="Breadcrumb">
-      <a class="hover:text-primary" href="/">Home</a>
-      <span class="material-symbols-outlined text-xs">chevron_right</span>
-      <a class="hover:text-primary" href="/catalog">Inventory</a>
-      <span class="material-symbols-outlined text-xs">chevron_right</span>
-      <span class="text-primary font-bold">Toyota Camry 2.5 V Hybrid</span>
-    </nav>
-
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
-      <div class="space-y-2">
-        <div class="flex items-center gap-3">
-          <span class="status-available px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Unit Tersedia</span>
-          <span class="text-on-surface-variant text-sm flex items-center gap-1">
-            <span class="material-symbols-outlined text-sm">visibility</span> 1,284 Views
-          </span>
+    <header class="bg-slate-50/70 dark:bg-slate-950/70 backdrop-blur-xl docked full-width top-0 sticky z-50">
+        <div class="flex justify-between items-center w-full px-8 py-4 max-w-screen-2xl mx-auto">
+            <a class="text-2xl font-black text-[#1A2B4C] dark:text-white tracking-tighter font-headline" href="/">Maharani Mobil</a>
+            <nav class="hidden md:flex items-center space-x-8 font-headline tracking-tight">
+                <a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#F5A623] transition-colors duration-300" href="/home">{{ __('Home') }}</a>
+                <a class="text-[#1A2B4C] font-bold border-b-2 border-[#F5A623] pb-1" href="/catalog">{{ __('Catalog') }}</a>
+                <a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#F5A623] transition-colors duration-300" href="/about">{{ __('About Us') }}</a>
+                <a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#F5A623] transition-colors duration-300" href="/financing">{{ __('Financing') }}</a>
+            </nav>
+            <div class="flex items-center space-x-4">
+                @include('components.nav-tools')
+                @auth
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="text-slate-500 font-medium px-4 py-2 hover:text-[#1A2B4C] transition-colors">Logout</button>
+                    </form>
+                @else
+                    <a class="text-slate-500 font-medium px-4 py-2 hover:text-[#1A2B4C] transition-colors" href="{{ route('login') }}">{{ __('Login') }}</a>
+                    <a class="bg-primary text-white font-bold px-6 py-2 rounded-lg hover:scale-95 transition-transform duration-200" href="{{ route('register') }}">{{ __('Register') }}</a>
+                @endauth
+            </div>
         </div>
-        <h1 class="text-4xl md:text-5xl font-extrabold text-primary tracking-tighter">Toyota Camry 2.5 V Hybrid 2022</h1>
-        <p class="text-on-surface-variant text-lg">Pekanbaru, Riau • Plat BM Ganjil</p>
-      </div>
-      <div class="text-left md:text-right">
-        <p class="text-on-surface-variant text-sm font-semibold uppercase tracking-widest mb-1">Harga Tunai</p>
-        <p class="text-4xl md:text-5xl font-black text-secondary-container">Rp 545.000.000</p>
-      </div>
-    </div>
+    </header>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
-      <div class="lg:col-span-8 space-y-8">
-        <!-- API: GET /api/cars/{id} -->
-        <!-- API: GET /api/cars/{id}/images -->
-        <div class="relative group">
-          <div class="aspect-[16/9] w-full overflow-hidden rounded-xl bg-surface-container shadow-2xl">
-            <img class="w-full h-full object-cover" data-alt="luxury white sedan parked in a clean minimalist showroom with soft studio lighting and architectural shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqpa-9vFSQn1mJuQq2vGh12zAllpQNwqaENPHPY1fXH2SaBkpTL82at4NrhLq8KKVbmZETBD8XXmvA2V5YlETKM6d-OGPgVo_tm7twSejZEHKdTJTUXEwKcBsuyH_YbToPCVfx_rGOGvpFG27m1vtKFA9O8u_D9zCahxfno-9i39BnnTZI-ZWHoyRCvklqBvobHAk97nqHb590I9PpMQEjvKfMp6TZ0Yel6_HqloVB-Dqqi1t-mPXf3dIrN01RtOI2HiIEc7Hx9EY"/>
-          </div>
-          <div class="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button class="bg-white/90 p-3 rounded-full shadow-lg hover:scale-110 transition-transform" aria-label="Previous">
-              <span class="material-symbols-outlined">chevron_left</span>
-            </button>
-            <button class="bg-white/90 p-3 rounded-full shadow-lg hover:scale-110 transition-transform" aria-label="Next">
-              <span class="material-symbols-outlined">chevron_right</span>
-            </button>
-          </div>
-          <div class="grid grid-cols-4 gap-4 mt-4">
-            <div class="aspect-square rounded-lg overflow-hidden border-2 border-secondary-container">
-              <img class="w-full h-full object-cover" data-alt="close up front view of a white toyota camry showing modern LED headlights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8CGggbFaW9KxpCD5XTAltDXA4sihntGuypCOSy7abzIh-v5E92YxWARtt41C1doTKKSQl-Z_BgsZBELHnPTSID5NjkYNUqvQQVDG2o8ck8UwNpkkwrfmJyE__mBuMjVEDeaX4gUqqrMD1b_AEof6pN1RsK-vOjcr09nkXBfnRlII_rLSq3gtGwHaQC8Oc-hEk7qCGYZAcsgFtgNGIHGZMWzaFg1oJxSn16IQ1fJhR4VCByPu6jYpr8FA-BnLg7pN-U2ogVZWR9zk"/>
-            </div>
-            <div class="aspect-square rounded-lg overflow-hidden hover:opacity-80 transition-all cursor-pointer">
-              <img class="w-full h-full object-cover" data-alt="interior view of a luxury car dashboard with leather steering wheel and digital screens" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoSN1R_IVYYixaOsEDTshozEdeJiVOGOLsCpgZkuyYAUzz98o37f1CMBUWp3F6ebFr2i8EVGPxRo0l-n1va5OWK1i4h0O6lfsOt4cxFkLABm0kS6ELUfmyR8FBcPG0Jz7pVmQqPCohcn-yN_DeBmwxbmBEA6L1u3eAZwuwKVZ5A0sPJG5ydWCaMxaPKO-cGeU6JWAoTanLo7PDW16L4T8Ou1bnd5_-KDoU8UjHA0SwgkzX7E5-naO67pbManpf2VpBv6YdocGEBsA"/>
-            </div>
-            <div class="aspect-square rounded-lg overflow-hidden hover:opacity-80 transition-all cursor-pointer">
-              <img class="w-full h-full object-cover" data-alt="rear view of white sedan parked in an urban setting during golden hour" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBN276oZs9-bpBE225fUbpq2zOt4vPJOHfMNxTTyB9B96W9nI5JVMVrUEwZqfY50n_Wo9BJc4BCm0R6RjGjyM4uv6sCtRQvFUN3C7TJds_KmToRLUKFkORcl3yMPl2atNaBaihQMUVOpeUUBh1UxWhGDw9eFgGewF-Xep64RdM67QwtqbGnsYh72-pzcGsE4ZBYn1cllhnKLaSHD-RLaS6TGWkPadD3T2wYnPFrqVEWg755u86UEtcIkGPFbRdUvUG_DRGIDjc18vE"/>
-            </div>
-            <div class="relative aspect-square rounded-lg overflow-hidden hover:opacity-80 transition-all cursor-pointer bg-black/60 flex items-center justify-center">
-              <img class="w-full h-full object-cover opacity-40" data-alt="close up of premium car leather seating with diamond stitching pattern" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAabxJl7gZdDhn9bnokCDxKaTQsADtj6gPM4_mmNDgkBVWSWOzqSmva_PjhBfYKoXZCwbWzLVGWj6FQUi_ZnBIbiu1GEPNZ5C_AFcJRH6LX31dTCu1OuTTWAZ5rbrsWmJI_I-uuVG-lDezUDCRshsm33ErlP7bx2cd7PAIr_4Uy86qhihNCXcSl09UqrPExXxsy0ZhIYIF4tANpe3WO9n7twXfNLpGymT0MJ77-LbSuf67O4fL3AX9lJ6n45VaUcUh7V4VVyH453c0"/>
-              <div class="absolute text-white text-center">
-                <span class="material-symbols-outlined block text-3xl">play_circle</span>
-                <span class="text-xs font-bold">VIDEO</span>
-              </div>
-            </div>
-          </div>
+    <main class="max-w-screen-2xl mx-auto w-full px-6 md:px-8 py-8 flex-grow">
+        <nav aria-label="Breadcrumb" class="flex mb-6 text-sm font-medium text-on-surface-variant">
+            <ol class="flex items-center gap-2">
+                <li><a class="hover:text-primary transition-colors" href="/home">Beranda</a></li>
+                <li><span class="material-symbols-outlined text-sm">chevron_right</span></li>
+                <li><a class="hover:text-primary transition-colors" href="/catalog">Katalog</a></li>
+                <li><span class="material-symbols-outlined text-sm">chevron_right</span></li>
+                <li class="text-primary font-semibold truncate max-w-[260px] md:max-w-none">{{ $carName !== '' ? $carName : 'Detail Mobil' }}</li>
+            </ol>
+        </nav>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <section class="lg:col-span-8 space-y-6">
+                <article class="rounded-2xl border border-outline-variant bg-surface p-4 md:p-5">
+                    <div class="aspect-[16/9] rounded-xl overflow-hidden bg-surface-container">
+                        <img
+                            id="detail-main-photo"
+                            src="{{ $mainPhoto }}"
+                            alt="{{ $carName !== '' ? $carName : 'Foto mobil' }}"
+                            class="w-full h-full object-cover"
+                        />
+                    </div>
+
+                    <div class="mt-4 grid grid-cols-4 sm:grid-cols-5 gap-2">
+                        @foreach ($photoPaths as $index => $photo)
+                            <button
+                                type="button"
+                                class="detail-thumb-btn group relative overflow-hidden rounded-lg border {{ $index === 0 ? 'border-[#f5a623]' : 'border-outline-variant' }} aspect-[4/3]"
+                                data-photo-src="{{ $photo }}"
+                                aria-label="Foto {{ $index + 1 }}"
+                            >
+                                <img src="{{ $photo }}" alt="Thumbnail {{ $index + 1 }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform"/>
+                            </button>
+                        @endforeach
+                    </div>
+                </article>
+
+                <article class="rounded-2xl border border-outline-variant bg-surface p-5 md:p-6">
+                    <h2 class="text-xl font-bold text-primary mb-3">Spesifikasi & Kondisi</h2>
+                    <p class="text-sm text-on-surface-variant mb-4">
+                        {{ ($car->transmisi ?? '-') }} • {{ $kmLabel }} • {{ ($car->bahan_bakar ?? '-') }} • {{ ($car->warna ?? '-') }} • {{ ($car->tahun ?? '-') }}
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">Mesin OK</span>
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">Body OK</span>
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">Interior OK</span>
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">Dokumen OK</span>
+                    </div>
+
+                    <div class="mt-5 pt-5 border-t border-outline-variant/70">
+                        <h3 class="text-sm font-semibold uppercase tracking-wider text-on-surface-variant mb-2">Deskripsi Unit</h3>
+                        <p class="text-sm leading-relaxed text-on-surface-variant">
+                            {{ $car->deskripsi ?: 'Belum ada deskripsi detail untuk unit ini. Silakan hubungi tim Maharani Mobil untuk mendapatkan informasi tambahan dan jadwalkan test drive.' }}
+                        </p>
+                    </div>
+                </article>
+            </section>
+
+            <aside class="lg:col-span-4 space-y-4">
+                <article class="rounded-2xl border border-outline-variant bg-surface p-5 md:p-6">
+                    <h2 class="text-2xl font-extrabold text-primary leading-tight">{{ $carName !== '' ? $carName : 'Detail Unit' }}</h2>
+                    <p class="mt-2 text-sm text-on-surface-variant">Kode Unit: {{ $car->kode_unit ?: '-' }}</p>
+                    <p class="mt-1 text-sm">
+                        <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold {{ $statusClass }}">
+                            Status: {{ strtoupper($statusLabel) }}
+                        </span>
+                    </p>
+
+                    <div class="mt-5 space-y-1">
+                        <p class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant">Harga</p>
+                        <p class="text-3xl font-extrabold text-primary">{{ $priceLabel }}</p>
+                    </div>
+
+                    <div class="mt-5 grid grid-cols-2 gap-3 text-sm">
+                        <div class="rounded-lg border border-outline-variant p-3">
+                            <p class="text-xs text-on-surface-variant">Kilometer</p>
+                            <p class="font-semibold text-primary">{{ $kmLabel }}</p>
+                        </div>
+                        <div class="rounded-lg border border-outline-variant p-3">
+                            <p class="text-xs text-on-surface-variant">Transmisi</p>
+                            <p class="font-semibold text-primary">{{ $car->transmisi ?: '-' }}</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 space-y-3">
+                        @auth
+                            <a class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#0b1a40] px-4 py-3 font-semibold text-white hover:brightness-110 transition" href="{{ route('test-drive.form', ['car_id' => $car->id]) }}">
+                                <span class="material-symbols-outlined text-[19px]">event</span>
+                                Buat Janji Test Drive
+                            </a>
+                        @else
+                            <a class="js-login-required inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#0b1a40] px-4 py-3 font-semibold text-white hover:brightness-110 transition" href="{{ route('login') }}" data-popup-message="{{ __('Please login first') }}">
+                                <span class="material-symbols-outlined text-[19px]">event</span>
+                                Buat Janji Test Drive
+                            </a>
+                        @endauth
+
+                        @auth
+                            <a class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#f5a623] px-4 py-3 font-semibold text-[#0b1a40] hover:brightness-105 transition" href="{{ route('offers.page') }}">
+                                <span class="material-symbols-outlined text-[19px]">payments</span>
+                                Ajukan Penawaran
+                            </a>
+                        @else
+                            <a class="js-login-required inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#f5a623] px-4 py-3 font-semibold text-[#0b1a40] hover:brightness-105 transition" href="{{ route('login') }}" data-popup-message="{{ __('Please login first') }}">
+                                <span class="material-symbols-outlined text-[19px]">payments</span>
+                                Ajukan Penawaran
+                            </a>
+                        @endauth
+
+                        @if (auth()->check() && auth()->user()->role === 'customer')
+                            <form method="POST" action="{{ route('customer.favorites.store', $car->id) }}">
+                                @csrf
+                                <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-outline-variant px-4 py-3 font-semibold text-primary hover:bg-surface-container-low transition">
+                                    <span class="material-symbols-outlined text-[19px]">favorite</span>
+                                    Simpan Favorit
+                                </button>
+                            </form>
+                        @elseif (!auth()->check())
+                            <a class="js-login-required inline-flex w-full items-center justify-center gap-2 rounded-lg border border-outline-variant px-4 py-3 font-semibold text-primary hover:bg-surface-container-low transition" href="{{ route('login') }}" data-popup-message="{{ __('Please login first') }}">
+                                <span class="material-symbols-outlined text-[19px]">favorite</span>
+                                Simpan Favorit
+                            </a>
+                        @endif
+                    </div>
+                </article>
+
+                <article class="rounded-2xl border border-outline-variant bg-surface p-5 md:p-6">
+                    <h3 class="text-lg font-bold text-primary">Review Singkat & Bagikan</h3>
+                    <p class="mt-1 text-sm text-on-surface-variant">Rating 4.8/5 • 52 ulasan</p>
+                    <div class="mt-4 grid grid-cols-3 gap-2">
+                        <button type="button" class="rounded-lg bg-surface-container-low px-3 py-2 text-xs font-semibold text-primary">Lihat Ulasan</button>
+                        <button type="button" class="rounded-lg bg-surface-container-low px-3 py-2 text-xs font-semibold text-primary">Facebook</button>
+                        <button type="button" class="rounded-lg bg-surface-container-low px-3 py-2 text-xs font-semibold text-primary">TikTok</button>
+                    </div>
+                </article>
+            </aside>
         </div>
 
-        <div class="bg-surface-container-lowest p-8 rounded-xl shadow-xl shadow-primary/5 border border-outline-variant/10">
-          <div class="flex items-center gap-3 mb-8">
-            <span class="material-symbols-outlined text-secondary-container text-3xl" data-weight="fill">verified_user</span>
-            <h2 class="text-2xl font-bold text-primary">Kondisi Terverifikasi Maharani</h2>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        @if (($relatedCars ?? collect())->isNotEmpty())
+            <section class="mt-12">
+                <div class="mb-5 flex items-center justify-between">
+                    <h2 class="text-2xl font-extrabold text-primary">Unit Serupa</h2>
+                    <a class="text-sm font-semibold text-primary hover:text-[#f5a623] transition-colors" href="{{ route('catalog') }}">Lihat semua katalog</a>
+                </div>
+                <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+                    @foreach ($relatedCars as $index => $relatedCar)
+                        @php
+                            $relatedPhoto = (is_array($relatedCar->photos) && !empty($relatedCar->photos[0]))
+                                ? asset('storage/' . $relatedCar->photos[0])
+                                : $photoPaths[$index % $photoPaths->count()];
+                        @endphp
+                        <div class="h-full">
+                            @include('partials.car-card', [
+                                'car' => $relatedCar,
+                                'imageUrl' => $relatedPhoto,
+                                'showFavorite' => true,
+                            ])
+                        </div>
+                    @endforeach
+                </div>
+            </section>
+        @endif
+    </main>
+
+    <footer class="bg-[#031636] dark:bg-[#03163f] w-full py-12 mt-auto">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 px-12 w-full max-w-screen-2xl mx-auto">
             <div class="space-y-4">
-              <h3 class="font-bold flex items-center gap-2 text-primary">
-                <span class="material-symbols-outlined text-secondary">earth_engine</span> Mesin & Transmisi
-              </h3>
-              <ul class="space-y-3">
-                <li class="flex items-center gap-3 text-on-surface-variant">
-                  <span class="material-symbols-outlined text-green-600 text-sm">check_circle</span>
-                  <span>Bebas kebocoran oli & radiator</span>
-                </li>
-                <li class="flex items-center gap-3 text-on-surface-variant">
-                  <span class="material-symbols-outlined text-green-600 text-sm">check_circle</span>
-                  <span>Transmisi halus tanpa entakan</span>
-                </li>
-                <li class="flex items-center gap-3 text-on-surface-variant">
-                  <span class="material-symbols-outlined text-green-600 text-sm">check_circle</span>
-                  <span>Baterai Hybrid kapasitas 92%</span>
-                </li>
-              </ul>
+                <div class="text-white font-black italic text-2xl tracking-tighter">Maharani Mobil</div>
+                <p class="text-slate-400 text-xs uppercase tracking-widest leading-loose font-label">© 2026 Maharani Mobil Pekanbaru.<br/>The Digital Concierge.</p>
             </div>
             <div class="space-y-4">
-              <h3 class="font-bold flex items-center gap-2 text-primary">
-                <span class="material-symbols-outlined text-secondary">directions_car</span> Body & Eksterior
-              </h3>
-              <ul class="space-y-3">
-                <li class="flex items-center gap-3 text-on-surface-variant">
-                  <span class="material-symbols-outlined text-green-600 text-sm">check_circle</span>
-                  <span>Cat original 90% (Bebas banjir/tabrakan)</span>
-                </li>
-                <li class="flex items-center gap-3 text-on-surface-variant">
-                  <span class="material-symbols-outlined text-green-600 text-sm">check_circle</span>
-                  <span>Kaki-kaki senyap, ban tebal 85%</span>
-                </li>
-                <li class="flex items-center gap-3 text-on-surface-variant">
-                  <span class="material-symbols-outlined text-green-600 text-sm">check_circle</span>
-                  <span>Lampu & kelistrikan berfungsi normal</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div class="space-y-6">
-          <h2 class="text-2xl font-bold text-primary">Deskripsi Jujur Concierge</h2>
-          <div class="bg-surface-container-low p-8 rounded-xl space-y-6 leading-relaxed text-on-surface-variant">
-            <p>Unit tangan pertama dari baru, service record lengkap di bengkel resmi Toyota. Kondisi sangat istimewa, jarang dipakai dengan kilometer rendah (low mileage). Interior bau baru dan semua fitur elektronik berjalan 100%.</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
-              <div class="bg-white/50 p-6 rounded-lg border-l-4 border-green-500">
-                <h4 class="font-bold text-primary mb-2 flex items-center gap-2">
-                  <span class="material-symbols-outlined text-green-600">thumb_up</span> Kelebihan (Plus)
-                </h4>
-                <ul class="text-sm space-y-2 list-disc pl-4">
-                  <li>Pajak sangat panjang sampai Oktober 2026</li>
-                  <li>Konsumsi BBM Hybrid sangat irit (22km/L)</li>
-                  <li>Coating ceramic 3 layer by Gyeon</li>
+                <h5 class="text-white font-bold text-sm tracking-widest uppercase">Navigation</h5>
+                <ul class="space-y-2 text-xs font-label uppercase tracking-widest">
+                    <li><a class="text-slate-400 hover:text-white transition-all underline" href="/catalog">Catalog</a></li>
+                    <li><a class="text-slate-400 hover:text-white transition-all underline" href="/financing">Financing</a></li>
+                    <li><a class="text-slate-400 hover:text-white transition-all underline" href="/about">About Us</a></li>
+                    <li><a class="text-slate-400 hover:text-white transition-all underline" href="/test-drive">Contact</a></li>
                 </ul>
-              </div>
-              <div class="bg-white/50 p-6 rounded-lg border-l-4 border-amber-500">
-                <h4 class="font-bold text-primary mb-2 flex items-center gap-2">
-                  <span class="material-symbols-outlined text-amber-600">info</span> Catatan (Minus)
-                </h4>
-                <ul class="text-sm space-y-2 list-disc pl-4">
-                  <li>Baret halus pemakaian di velg kiri belakang</li>
-                  <li>Kunci cadangan sedang dalam proses pengiriman</li>
+            </div>
+            <div class="space-y-4">
+                <h5 class="text-white font-bold text-sm tracking-widest uppercase">Support</h5>
+                <ul class="space-y-2 text-xs font-label uppercase tracking-widest">
+                    <li><a class="text-slate-400 hover:text-white transition-all underline" href="/privacy">Privacy Policy</a></li>
+                    <li><a class="text-slate-400 hover:text-white transition-all underline" href="/terms">Terms of Service</a></li>
+                    <li><a class="text-slate-400 hover:text-white transition-all underline" href="/faq">Cookie Settings</a></li>
+                    <li><a class="text-slate-400 hover:text-white transition-all underline" href="/test-drive">Contact Support</a></li>
                 </ul>
-              </div>
             </div>
-          </div>
+            <div class="space-y-4">
+                <h5 class="text-white font-bold text-sm tracking-widest uppercase">Location</h5>
+                <p class="text-slate-400 text-sm normal-case tracking-normal">Jl. Soekarno - Hatta No. 88<br/>Marpoyan Damai, Pekanbaru<br/>Riau 28282</p>
+            </div>
         </div>
-      </div>
+    </footer>
 
-      <div class="lg:col-span-4">
-        <div class="sticky top-24 space-y-6">
-          <div class="bg-primary p-8 rounded-2xl text-white shadow-2xl">
-            <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
-              <span class="material-symbols-outlined text-secondary-container">speed</span> Ringkasan Unit
-            </h3>
-            <div class="grid grid-cols-2 gap-y-6 gap-x-4">
-              <div>
-                <p class="text-on-primary-container text-xs uppercase font-bold tracking-widest mb-1">Odometer</p>
-                <p class="text-lg font-semibold">12.450 KM</p>
-              </div>
-              <div>
-                <p class="text-on-primary-container text-xs uppercase font-bold tracking-widest mb-1">Transmisi</p>
-                <p class="text-lg font-semibold">Automatic</p>
-              </div>
-              <div>
-                <p class="text-on-primary-container text-xs uppercase font-bold tracking-widest mb-1">Bahan Bakar</p>
-                <p class="text-lg font-semibold">Hybrid / Bensin</p>
-              </div>
-              <div>
-                <p class="text-on-primary-container text-xs uppercase font-bold tracking-widest mb-1">Tahun</p>
-                <p class="text-lg font-semibold">2022</p>
-              </div>
-            </div>
-          </div>
+    @include('components.whatsapp-float', ['message' => 'Halo Maharani Mobil, saya tertarik dengan unit ' . ($car->merk ?? 'mobil') . ' ' . ($car->tipe ?? '') . ' ' . ($car->tahun ?? '') . '.'])
+    @include('components.ui-system-footer')
 
-          <div class="bg-white p-6 rounded-2xl shadow-xl shadow-primary/5 border border-surface-container space-y-4">
-            <!-- API: POST /api/offers -->
-            <!-- API: POST /api/test-drive -->
-            <a class="w-full bg-[#25D366] hover:bg-[#20bd5c] text-white py-4 rounded-xl font-bold flex items-center justify-center gap-3 transition-transform hover:-translate-y-1 shadow-lg shadow-green-500/10" href="https://wa.me/6280000000000" target="_blank" rel="noreferrer">
-              <span class="material-symbols-outlined" data-weight="fill">chat</span>
-              Hubungi WhatsApp
-            </a>
-            <a class="w-full bg-secondary-container hover:bg-secondary text-on-secondary-fixed py-4 rounded-xl font-bold flex items-center justify-center gap-3 transition-transform hover:-translate-y-1 shadow-lg shadow-secondary/10" href="/test-drive">
-              <span class="material-symbols-outlined">event</span>
-              Buat Janji Test Drive
-            </a>
-            <a class="w-full bg-surface-container-low hover:bg-surface-container-high text-primary py-4 rounded-xl font-bold flex items-center justify-center gap-3 transition-all" href="/offers">
-              <span class="material-symbols-outlined">payments</span>
-              Ajukan Penawaran
-            </a>
-            <div class="pt-4 border-t border-outline-variant/30 flex items-center gap-4">
-              <div class="h-12 w-12 rounded-full overflow-hidden bg-surface-container">
-                <img class="w-full h-full object-cover" data-alt="portrait of a professional automotive sales consultant in a business suit smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRcFUhAP-TWAPE_b2_ZN9oxzKkWJABRThqS53tV_PvjTxNBTsVL81NCd4WAUW1oIwYGg8uvVIx1s9bnFqqIQFPf_Tcqugify6sIXfzhvokexAi8yX3pqvPvLxsvo4JkSlWp4R-uV37Lrmg0vGX7bskt3FSrRzNOlDQyzkEcL0tRqWqH9t2THIefH6QUhrrJLKNUBW-3M2TkKuJH2ejHFvAiRxrTFEeO8o6hSvNX09R2A-RazwyFFROxl7nWdKSPRWcAphidSYxJi4"/>
-              </div>
-              <div>
-                <p class="text-xs text-on-surface-variant font-medium">Melayani Anda:</p>
-                <p class="font-bold text-primary">Budi Santoso</p>
-                <p class="text-[10px] text-green-600 font-bold uppercase tracking-tighter flex items-center gap-1">
-                  <span class="h-2 w-2 rounded-full bg-green-500"></span> Online Sekarang
-                </p>
-              </div>
-            </div>
-          </div>
+    <script>
+        (() => {
+            const mainPhoto = document.getElementById('detail-main-photo');
+            const thumbButtons = document.querySelectorAll('.detail-thumb-btn');
 
-          <div class="bg-surface-container-low p-6 rounded-2xl border border-dashed border-outline">
-            <p class="text-sm font-bold text-primary mb-3">Estimasi Cicilan</p>
-            <div class="flex items-baseline gap-1 mb-1">
-              <span class="text-lg font-black text-primary">Rp 9,8 Jt</span>
-              <span class="text-xs text-on-surface-variant">/ bulan</span>
-            </div>
-            <p class="text-[10px] text-on-surface-variant mb-4">DP mulai dari Rp 85 Juta • Tenor hingga 5 Tahun</p>
-            <a class="text-xs font-bold text-secondary-container hover:underline flex items-center gap-1" href="/financing">
-              Hitung Simulasi Kredit <span class="material-symbols-outlined text-xs">arrow_forward</span>
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
+            if (!mainPhoto || !thumbButtons.length) {
+                return;
+            }
 
-    <div class="mt-16 pt-16 border-t border-surface-container">
-      <h2 class="text-3xl font-extrabold text-primary mb-10 tracking-tight">Spesifikasi Lengkap</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-        <div class="space-y-4">
-          <h4 class="text-secondary font-black uppercase tracking-widest text-xs">Performa & Mesin</h4>
-          <div class="space-y-3">
-            <div class="flex justify-between border-b border-surface-container pb-2">
-              <span class="text-on-surface-variant text-sm">Kapasitas Mesin</span>
-              <span class="font-bold text-sm">2,487 cc</span>
-            </div>
-            <div class="flex justify-between border-b border-surface-container pb-2">
-              <span class="text-on-surface-variant text-sm">Tipe Mesin</span>
-              <span class="font-bold text-sm">A25A-FXS I4 Hybrid</span>
-            </div>
-            <div class="flex justify-between border-b border-surface-container pb-2">
-              <span class="text-on-surface-variant text-sm">Tenaga Maksimum</span>
-              <span class="font-bold text-sm">178 PS / 5,700 rpm</span>
-            </div>
-          </div>
-        </div>
-        <div class="space-y-4">
-          <h4 class="text-secondary font-black uppercase tracking-widest text-xs">Dimensi & Kapasitas</h4>
-          <div class="space-y-3">
-            <div class="flex justify-between border-b border-surface-container pb-2">
-              <span class="text-on-surface-variant text-sm">Panjang</span>
-              <span class="font-bold text-sm">4,885 mm</span>
-            </div>
-            <div class="flex justify-between border-b border-surface-container pb-2">
-              <span class="text-on-surface-variant text-sm">Kapasitas Tangki</span>
-              <span class="font-bold text-sm">50 Liter</span>
-            </div>
-            <div class="flex justify-between border-b border-surface-container pb-2">
-              <span class="text-on-surface-variant text-sm">Kapasitas Penumpang</span>
-              <span class="font-bold text-sm">5 Orang</span>
-            </div>
-          </div>
-        </div>
-        <div class="space-y-4">
-          <h4 class="text-secondary font-black uppercase tracking-widest text-xs">Fitur Keamanan</h4>
-          <ul class="grid grid-cols-1 gap-2">
-            <li class="flex items-center gap-2 text-sm text-on-surface-variant">
-              <span class="material-symbols-outlined text-xs text-secondary-container">check_circle</span> Toyota Safety Sense
-            </li>
-            <li class="flex items-center gap-2 text-sm text-on-surface-variant">
-              <span class="material-symbols-outlined text-xs text-secondary-container">check_circle</span> 7 SRS Airbags
-            </li>
-            <li class="flex items-center gap-2 text-sm text-on-surface-variant">
-              <span class="material-symbols-outlined text-xs text-secondary-container">check_circle</span> Blind Spot Monitor
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
+            thumbButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    const nextSrc = button.getAttribute('data-photo-src');
+                    if (!nextSrc) {
+                        return;
+                    }
 
-    <div class="mt-20">
-      <div class="flex items-end justify-between mb-8">
-        <div>
-          <p class="text-secondary font-bold uppercase tracking-widest text-xs mb-2">Kurasi Pilihan</p>
-          <h2 class="text-3xl font-extrabold text-primary tracking-tight">Unit Serupa Untuk Anda</h2>
-        </div>
-        <a class="font-bold text-primary flex items-center gap-1 hover:text-secondary-container transition-colors" href="/catalog">
-          Lihat Semua Katalog <span class="material-symbols-outlined">arrow_right_alt</span>
-        </a>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="group bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500">
-          <div class="aspect-[16/9] overflow-hidden">
-            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="black premium sedan parked on a luxury driveway at twilight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA12oBJs5D4ew_MoeiNOenw1_dr24EZ2dqH1JBQuVyLBfRO7BS5jrtXYdt4k-dS24mH8deGcajUKDDnHK659Al9J6nLC8V2muP8sj8z32ZqzOYXI-Q_FkX-_10g15YiNXMFukd6Haw9WBXFpm7Sa08k1ZDi7zPM54Ear3Svcnh7IhXgJAd_qaq5Dwtq-ImtAFAP2OVm3fcE6KJ7C2xXjELtUo9GzMwjPcIqTG3Klp2Fb_pHsEz2471jjq6sPamA4JpcJs48A9BtSC0"/>
-          </div>
-          <div class="p-6">
-            <h4 class="font-bold text-primary text-lg mb-1">Toyota Camry 2.5 V 2021</h4>
-            <p class="text-on-surface-variant text-sm mb-4">Silver Met • 34k KM</p>
-            <p class="text-secondary-container font-black text-xl">Rp 485.000.000</p>
-          </div>
-        </div>
-        <div class="group bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500">
-          <div class="aspect-[16/9] overflow-hidden">
-            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="modern luxury sedan interior with ambient lighting and premium leather details" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZ1wiFx4Rd3HcHNkSMINT5dsDhc8B5Y1PAt0w0k5yxCvsP51fUgm-iNznu0cIHkDIvZZXvAIVIlWLIjnDEa07VSERqfgvhNzs31t-GGgkUXPzAgobACLw4jdk1TB2cMUZPaqyqJ7KEnY5XxI5LvhybcfDrlM3Z0Ac1T6xJuRIP0foTj8TQK2Z-Dd1CcvfLiC1jlk4LIB_p8IZ57Eu9grUIgBd-vk5VenLQRGN1ty4qjrak47aevw7orJW4zCY23xhsiRKyNuhnPt4"/>
-          </div>
-          <div class="p-6">
-            <h4 class="font-bold text-primary text-lg mb-1">Honda Accord 1.5 Turbo</h4>
-            <p class="text-on-surface-variant text-sm mb-4">White Pearl • 18k KM</p>
-            <p class="text-secondary-container font-black text-xl">Rp 510.000.000</p>
-          </div>
-        </div>
-        <div class="group bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500">
-          <div class="aspect-[16/9] overflow-hidden">
-            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="blue executive sedan parked in a city financial district" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRuoAl53bY91mPVt78w2XAoFtgUUsoZynt3GUfePXPJnp5UCC_IyIp0kNb4UnD9rbP2rz4DKpcaijYULNaO0RttX_boQVbmdZLk6zemAJ95_4KuoKEana9YuzDALw8tmtW5Cxfvev4Es_oRyvxnOYpNC-4apHP-Rsa11vclJkYD9Ncivzwja8s9Y-EBZ7fNaEezWOLPwJXKTxp8Rq3ey8PLd_oMYE1fIHkXAdWVgQZw9uWZ5PY3PzyNuIFPMwXj_WAGB4b7mG5qx8"/>
-          </div>
-          <div class="p-6">
-            <h4 class="font-bold text-primary text-lg mb-1">Mazda 6 Elite Sedan 2022</h4>
-            <p class="text-on-surface-variant text-sm mb-4">Soul Red • 8k KM</p>
-            <p class="text-secondary-container font-black text-xl">Rp 585.000.000</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </main>
+                    mainPhoto.setAttribute('src', nextSrc);
 
-  <footer class="bg-[#031636] dark:bg-black w-full py-12 mt-auto text-white font-body text-xs uppercase tracking-widest">
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-8 px-12 w-full max-w-screen-2xl mx-auto">
-      <div class="space-y-4">
-        <div class="text-white font-black italic text-xl">MAHARANI MOBIL</div>
-        <p class="normal-case tracking-normal text-slate-400">Pusat jual beli mobil premium berkualitas dengan standar inspeksi tertinggi di Pekanbaru.</p>
-      </div>
-      <div class="space-y-4">
-        <h5 class="font-bold text-white mb-2">Information</h5>
-        <ul class="space-y-2">
-          <li><a class="text-slate-400 hover:text-white underline transition-all" href="/privacy">Privacy Policy</a></li>
-          <li><a class="text-slate-400 hover:text-white underline transition-all" href="/terms">Terms of Service</a></li>
-        </ul>
-      </div>
-      <div class="space-y-4">
-        <h5 class="font-bold text-white mb-2">Customer Care</h5>
-        <ul class="space-y-2">
-          <li><a class="text-slate-400 hover:text-white underline transition-all" href="/faq">Cookie Settings</a></li>
-          <li><a class="text-slate-400 hover:text-white underline transition-all" href="/test-drive">Contact Support</a></li>
-        </ul>
-      </div>
-      <div class="space-y-4">
-        <h5 class="font-bold text-white mb-2">Location</h5>
-        <p class="normal-case tracking-normal text-slate-400">Jl. Soekarno - Hatta No. 128<br/>Pekanbaru, Riau</p>
-        <div class="flex gap-4 mt-2">
-          <span class="material-symbols-outlined text-slate-400 hover:text-[#F5A623] cursor-pointer">share</span>
-          <span class="material-symbols-outlined text-slate-400 hover:text-[#F5A623] cursor-pointer">location_on</span>
-        </div>
-      </div>
-    </div>
-    <div class="border-t border-white/10 mt-12 pt-8 text-center px-12">
-      <p class="text-slate-500">© 2026 Maharani Mobil Pekanbaru. The Digital Concierge.</p>
-    </div>
-  </footer>
+                    thumbButtons.forEach((item) => {
+                        item.classList.remove('border-[#f5a623]');
+                        item.classList.add('border-outline-variant');
+                    });
+
+                    button.classList.add('border-[#f5a623]');
+                    button.classList.remove('border-outline-variant');
+                });
+            });
+        })();
+    </script>
 </body>
 </html>
-
-

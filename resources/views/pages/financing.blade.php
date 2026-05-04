@@ -1,28 +1,37 @@
 ﻿<!DOCTYPE html>
-<html class="light" lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Financing | Maharani Mobil</title>
   <meta name="description" content="Simulasi kredit mobil bekas Maharani Mobil. Transparan, cepat, dan terverifikasi."/>
-  <script src="/assets/tailwind.config.js"></script>
+  @include('components.ui-system-head')
+  <script src="{{ asset('assets/tailwind.config.js') }}?v={{ filemtime(public_path('assets/tailwind.config.js')) }}"></script>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700&display=swap" rel="stylesheet"/>
-  <link href="/assets/app.css" rel="stylesheet"/>
+  <link href="{{ asset('assets/app.css') }}?v={{ filemtime(public_path('assets/app.css')) }}" rel="stylesheet"/>
 </head>
 <body class="bg-surface font-body text-on-surface">
   <nav class="bg-slate-50/70 dark:bg-slate-950/70 backdrop-blur-xl docked full-width top-0 sticky z-50 transition-all duration-300">
     <div class="flex justify-between items-center w-full px-8 py-4 max-w-screen-2xl mx-auto">
       <a class="text-2xl font-black text-[#1A2B4C] dark:text-white tracking-tighter font-headline" href="/">Maharani Mobil</a>
       <div class="hidden md:flex items-center space-x-8 font-headline tracking-tight">
-        <a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#F5A623] transition-colors duration-300" href="/catalog">Catalog</a>
-        <a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#F5A623] transition-colors duration-300" href="/about">About Us</a>
+        <a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#F5A623] transition-colors duration-300" href="/catalog">{{ __('Catalog') }}</a>
+        <a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#F5A623] transition-colors duration-300" href="/about">{{ __('About Us') }}</a>
         <a class="text-[#1A2B4C] font-bold border-b-2 border-[#F5A623] pb-1" href="/financing">Financing</a>
       </div>
       <div class="flex items-center space-x-4">
-        <a class="px-6 py-2 rounded-full font-semibold text-slate-500 hover:text-primary transition-all" href="/login">Login</a>
-        <a class="px-6 py-2 rounded-full font-bold bg-primary text-on-primary shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all" href="/register">Register</a>
+        @include('components.nav-tools')
+        @auth
+          <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="px-6 py-2 rounded-full font-semibold text-slate-500 hover:text-primary transition-all">Logout</button>
+          </form>
+        @else
+          <a class="px-6 py-2 rounded-full font-semibold text-slate-500 hover:text-primary transition-all" href="{{ route('login') }}">{{ __('Login') }}</a>
+          <a class="px-6 py-2 rounded-full font-bold bg-primary text-on-primary shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all" href="{{ route('register') }}">{{ __('Register') }}</a>
+        @endauth
       </div>
     </div>
   </nav>
@@ -41,7 +50,7 @@
           <p class="text-lg text-slate-300 font-medium max-w-lg mb-8">Experience the most transparent automotive financing in Pekanbaru. Tailored loan structures designed for your lifestyle.</p>
           <div class="flex gap-4">
             <a class="px-8 py-4 rounded-xl bg-secondary-container text-on-secondary-fixed font-bold hover:shadow-xl hover:shadow-secondary-container/20 transition-all" href="#simulator">Calculate Installment</a>
-            <button class="px-8 py-4 rounded-xl glass-panel text-white border border-white/20 font-bold hover:bg-white/10 transition-all flex items-center gap-2">
+            <button class="px-8 py-4 rounded-xl glass-panel text-[#0b1a40] border border-slate-200/70 font-bold hover:bg-white/60 transition-all flex items-center gap-2">
               <span class="material-symbols-outlined">description</span>
               View Requirements
             </button>
@@ -192,7 +201,7 @@
     </section>
   </main>
 
-  <footer class="bg-[#031636] dark:bg-black w-full py-12 mt-auto">
+  <footer class="bg-[#031636] dark:bg-[#03163f] w-full py-12 mt-auto">
     <div class="grid grid-cols-1 md:grid-cols-4 gap-8 px-12 w-full max-w-screen-2xl mx-auto">
       <div class="md:col-span-1">
         <div class="text-white font-black italic text-xl mb-4 uppercase">Maharani Mobil</div>
@@ -218,7 +227,11 @@
       </div>
     </div>
   </footer>
+
+  @include('components.whatsapp-float', ['message' => 'Halo Maharani Mobil, saya tertarik dengan mobil yang ada di website.'])
+  @include('components.ui-system-footer')
 </body>
 </html>
+
 
 

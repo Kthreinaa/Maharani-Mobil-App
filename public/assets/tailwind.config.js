@@ -1,5 +1,6 @@
-﻿/* Shared Tailwind config for Maharani Mobil UI */
-tailwind.config = {
+/* Shared Tailwind config for Maharani Mobil UI */
+window.tailwind = window.tailwind || {};
+window.tailwind.config = {
   darkMode: "class",
   theme: {
     extend: {
@@ -72,3 +73,4 @@ tailwind.config = {
     }
   }
 };
+

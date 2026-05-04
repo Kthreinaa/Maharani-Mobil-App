@@ -123,4 +123,16 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Internal Domains (Optional)
+    |--------------------------------------------------------------------------
+    |
+    | Digunakan untuk membatasi pembuatan akun internal via social login.
+    | Contoh: INTERNAL_DOMAINS=maharani.com,maharani.id
+    |
+    */
+
+    'internal_domains' => array_filter(array_map('trim', explode(',', env('INTERNAL_DOMAINS', '')))),
+
 ];

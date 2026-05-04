@@ -1,407 +1,398 @@
 ﻿<!DOCTYPE html>
-<html lang="id">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Maharani Mobil Pekanbaru | The Digital Concierge</title>
-  <meta name="description" content="Marketplace mobil bekas terpercaya di Pekanbaru. Unit terverifikasi, transparan, dan proses test drive hingga serah terima yang jelas."/>
-  <script src="/assets/tailwind.config.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ __('Landing Meta Title') }}</title>
+  <meta name="description" content="{{ __('Landing Meta Description') }}" />
+  @include('components.ui-system-head')
+  <script src="{{ asset('assets/tailwind.config.js') }}?v={{ filemtime(public_path('assets/tailwind.config.js')) }}"></script>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700&display=swap" rel="stylesheet"/>
-  <link href="/assets/app.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700" rel="stylesheet" />
+  <link href="{{ asset('assets/app.css') }}?v={{ filemtime(public_path('assets/app.css')) }}" rel="stylesheet" />
 </head>
-<body class="bg-surface font-body text-on-surface">
-  <!-- TopNavBar -->
-  <header class="bg-slate-50/70 dark:bg-slate-950/70 backdrop-blur-xl docked full-width top-0 sticky z-50">
-    <nav class="flex justify-between items-center w-full px-8 py-4 max-w-screen-2xl mx-auto font-headline tracking-tight">
-      <a class="text-2xl font-black text-[#1A2B4C] dark:text-white tracking-tighter" href="/">Maharani Mobil</a>
-      <div class="hidden md:flex items-center space-x-8">
-        <a class="text-[#1A2B4C] font-bold border-b-2 border-[#F5A623] pb-1" href="/catalog">Catalog</a>
-        <a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#F5A623] transition-colors duration-300" href="/about">About Us</a>
-        <a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#F5A623] transition-colors duration-300" href="/financing">Financing</a>
+<body class="bg-white text-slate-900 dark:bg-[#020617] dark:text-slate-100">
+  <header class="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur dark:border-white/10 dark:bg-[#020617]/95">
+    <nav class="mx-auto flex w-full max-w-[1280px] items-center justify-between px-4 py-4 md:px-6">
+      <a class="font-headline text-[22px] font-extrabold tracking-tight text-[#111827] dark:text-white" href="/">MaharaniMobil</a>
+
+      <div class="hidden items-center gap-8 text-[13px] font-medium md:flex">
+        <a class="border-b-2 border-[#f5a623] pb-1 text-[#111827] dark:text-white" href="/">{{ __('Home') }}</a>
+        <a class="text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white" href="/about">{{ __('About Us') }}</a>
+        <a class="text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white" href="/financing">{{ __('Financing') }}</a>
       </div>
-      <div class="flex items-center gap-4">
-        <a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#F5A623] transition-colors duration-300 px-4 py-2" href="/login">Login</a>
-        <a class="bg-primary text-white px-6 py-2 rounded-full font-bold hover:scale-95 transition-transform duration-300" href="/register">Register</a>
+
+      <div class="flex items-center gap-3">
+        @include('components.nav-tools')
+
+        @auth
+          @php
+            $dashboardUrl = match(auth()->user()->role) {
+              'supervisor' => '/supervisor/dashboard',
+              'marketing' => '/marketing/dashboard',
+              'owner' => '/owner/dashboard',
+              default => '/home',
+            };
+          @endphp
+          <a class="hidden text-[13px] font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white sm:inline" href="{{ $dashboardUrl }}">Dashboard</a>
+          <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="rounded-full border border-slate-300 px-4 py-1.5 text-[12px] font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800">Logout</button>
+          </form>
+        @else
+          <a class="text-[13px] font-medium text-slate-600 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white" href="{{ route('login') }}">{{ __('Login') }}</a>
+          <a class="rounded-full bg-[#071b47] px-4 py-1.5 text-[12px] font-bold text-white transition hover:bg-[#0e2d72] dark:bg-[#f5a623] dark:text-[#091226] dark:hover:bg-[#f7bf55]" href="{{ route('register') }}">{{ __('Register') }}</a>
+        @endauth
       </div>
     </nav>
   </header>
 
   <main>
-    <!-- Hero Section -->
-    <section class="relative h-[870px] min-h-[700px] flex items-center overflow-hidden">
-      <div class="absolute inset-0 z-0">
-        <img alt="Hero Luxury Car" class="w-full h-full object-cover" data-alt="Modern luxury silver sedan parked in a minimalist architectural setting with clean lines and soft cinematic morning lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuConvadsWmAfnzAS-tDjrVGZjidZ5WAJe781pgk4_JhUv6Al3fcdH8X61ruFfznCZ1yjaaNyqfDxWwTt4I2-4QrqW2T_ueXdY-JAt4XFHt-m8n7rZa5K23IskvQInwW-dHTSs4SK_7578w-KFFZnozG6kQAh86ZC6kXT_M8iJqehQyT4BJnwYfiWHMLuJxx0y4qK_BE8nJps46Ony3UTSEpLgcyWzn_9Y2zxlAYVjE9hoglSjq01GFjEWH-1Kl0Eh4OZnKMryjly5A"/>
-        <div class="absolute inset-0 bg-gradient-to-r from-primary/90 via-primary/40 to-transparent"></div>
+    <section class="landing-hero-surface relative min-h-[650px] overflow-hidden lg:min-h-[760px]">
+      <div class="absolute inset-0">
+        <img alt="Hero Car" class="h-full w-full object-cover" src="{{ asset('assets/landing-hero.jpg') }}?v={{ filemtime(public_path('assets/landing-hero.jpg')) }}" />
+        <div class="landing-hero-overlay absolute inset-0"></div>
       </div>
-      <div class="container mx-auto px-8 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+
+      <div class="relative mx-auto grid min-h-[650px] w-full max-w-[1280px] content-center grid-cols-1 gap-10 px-4 py-16 md:px-6 lg:min-h-[760px] lg:grid-cols-12 lg:items-center lg:py-20">
         <div class="lg:col-span-7">
-          <h1 class="font-headline text-5xl md:text-7xl font-extrabold text-white leading-tight tracking-tighter mb-6">
-            The Digital <br/><span class="text-secondary-container">Concierge</span> For Your Next Drive.
+          <h1 class="font-headline text-[48px] font-extrabold leading-[0.95] tracking-tight text-white sm:text-[64px] lg:text-[72px]">
+            {{ __('The Digital') }}<br />
+            <span class="text-[#f5a623]">{{ __('Concierge') }}</span> {{ __('For Your') }}<br />
+            {{ __('Next Drive.') }}
           </h1>
-          <p class="text-white/80 text-xl max-w-xl mb-10 font-light leading-relaxed">
-            Elevate your journey with hand-picked premium automobiles in Pekanbaru. Curated for performance, verified for peace of mind.
+
+          <p class="mt-5 max-w-[560px] text-[16px] leading-relaxed text-slate-200">
+            {{ __('Landing Hero Subtitle') }}
           </p>
-          <div class="flex flex-wrap gap-4">
-            <a class="bg-secondary-container text-on-secondary-fixed px-10 py-5 rounded-xl font-bold text-lg shadow-xl shadow-secondary/20 hover:scale-105 transition-transform" href="/catalog">
-              Lihat Katalog
-            </a>
-            <a class="bg-white/10 backdrop-blur-md border border-white/20 text-white px-10 py-5 rounded-xl font-bold text-lg hover:bg-white/20 transition-all" href="/test-drive">
-              Hubungi Konsultan
-            </a>
+
+          <div class="mt-8 flex flex-wrap gap-4">
+            <a class="inline-flex items-center rounded-xl bg-[#f5a623] px-7 py-3 text-[13px] font-bold text-[#121826] transition hover:brightness-105" href="/catalog">{{ __('See Catalog') }}</a>
+            @auth
+              <a class="inline-flex items-center rounded-xl border border-white/25 bg-white/10 px-7 py-3 text-[13px] font-bold text-white transition hover:bg-white/20" href="/test-drive">{{ __('Contact Consultant') }}</a>
+            @else
+              <a class="js-login-required inline-flex items-center rounded-xl border border-white/25 bg-white/10 px-7 py-3 text-[13px] font-bold text-white transition hover:bg-white/20" href="{{ route('login') }}" data-popup-message="{{ __('Please login first') }}">{{ __('Contact Consultant') }}</a>
+            @endauth
           </div>
-          <div class="mt-16 flex flex-wrap gap-8">
-            <div class="flex items-center gap-3 text-white">
-              <span class="material-symbols-outlined text-secondary-container" style="font-variation-settings: 'FILL' 1;">verified</span>
-              <span class="font-medium">Unit Terverifikasi</span>
+
+          <div class="mt-10 flex flex-wrap gap-6 text-[12px] font-semibold text-white/95">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[18px] text-[#f5a623]" style="font-variation-settings: 'FILL' 1;">verified</span>
+              <span>{{ __('Unit Terverifikasi') }}</span>
             </div>
-            <div class="flex items-center gap-3 text-white">
-              <span class="material-symbols-outlined text-secondary-container" style="font-variation-settings: 'FILL' 1;">history</span>
-              <span class="font-medium">Berpengalaman 10+ Tahun</span>
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[18px] text-[#f5a623]" style="font-variation-settings: 'FILL' 1;">history</span>
+              <span>{{ __('Berpengalaman 10+ Tahun') }}</span>
             </div>
-            <div class="flex items-center gap-3 text-white">
-              <span class="material-symbols-outlined text-secondary-container" style="font-variation-settings: 'FILL' 1;">support_agent</span>
-              <span class="font-medium">Layanan Purna Jual</span>
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[18px] text-[#f5a623]" style="font-variation-settings: 'FILL' 1;">support_agent</span>
+              <span>{{ __('Layanan Purna Jual') }}</span>
             </div>
           </div>
         </div>
-        <div class="lg:col-span-5">
-          <div class="glass-panel p-8 rounded-[2rem] editorial-shadow border border-white/40">
-            <h3 class="font-headline text-2xl font-bold text-primary mb-6">Cari Kendaraan Anda</h3>
-            <div class="space-y-4">
+
+        <div class="hero-search-column lg:col-span-5" style="background: transparent !important;">
+          <div class="hero-search-card w-full editorial-shadow rounded-[2rem] border border-white/20 p-7 md:p-9 dark:border-white/10">
+            <h3 class="font-headline text-[30px] font-extrabold text-[#0b1a40] dark:text-white">{{ __('Cari Kendaraan Anda') }}</h3>
+
+            <form method="GET" action="{{ route('catalog') }}" class="mt-6 space-y-5 text-[12px]">
               <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Brand</label>
-                <select class="w-full bg-white border-none rounded-xl p-4 text-primary font-medium focus:ring-2 focus:ring-secondary-container">
-                  <option>Semua Merek</option>
-                  <option>Toyota</option>
-                  <option>Honda</option>
-                  <option>Mitsubishi</option>
-                  <option>BMW</option>
+                <label class="mb-2 block text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-300">{{ __('Brand') }}</label>
+                <select name="brand" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-medium text-slate-700 focus:border-[#f5a623] focus:ring-[#f5a623] dark:border-slate-700 dark:bg-[#071538] dark:text-slate-100">
+                  <option value="all">{{ __('Semua Merek') }}</option>
+                  @foreach(($brandOptions ?? collect()) as $merk)
+                    <option value="{{ $merk }}">{{ $merk }}</option>
+                  @endforeach
                 </select>
               </div>
+
               <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Model</label>
-                  <input class="w-full bg-white border-none rounded-xl p-4 text-primary placeholder-slate-400 focus:ring-2 focus:ring-secondary-container" placeholder="e.g. Fortuner" type="text"/>
+                  <label class="mb-2 block text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-300">{{ __('Model') }}</label>
+                  <input name="q" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-medium text-slate-700 placeholder:text-slate-400 focus:border-[#f5a623] focus:ring-[#f5a623] dark:border-slate-700 dark:bg-[#071538] dark:text-slate-100 dark:placeholder:text-slate-500" placeholder="e.g. Fortuner" />
                 </div>
                 <div>
-                  <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tahun</label>
-                  <select class="w-full bg-white border-none rounded-xl p-4 text-primary font-medium focus:ring-2 focus:ring-secondary-container">
-                    <option>2020+</option>
-                    <option>2022+</option>
-                    <option>2024+</option>
-                  </select>
+                  <label class="mb-2 block text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-300">{{ __('Tahun (Min 2010)') }}</label>
+                  <input name="year_min" min="2010" inputmode="numeric" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-medium text-slate-700 placeholder:text-slate-400 focus:border-[#f5a623] focus:ring-[#f5a623] dark:border-slate-700 dark:bg-[#071538] dark:text-slate-100 dark:placeholder:text-slate-500" placeholder="2020" />
                 </div>
               </div>
+
               <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Range Harga (Juta)</label>
-                <div class="flex items-center gap-4">
-                  <input class="w-full bg-white border-none rounded-xl p-4 text-primary placeholder-slate-400 focus:ring-2 focus:ring-secondary-container" placeholder="Min" type="number"/>
-                  <span class="text-slate-400">—</span>
-                  <input class="w-full bg-white border-none rounded-xl p-4 text-primary placeholder-slate-400 focus:ring-2 focus:ring-secondary-container" placeholder="Max" type="number"/>
+                <label class="mb-2 block text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-300">{{ __('Kilometer & Harga') }}</label>
+                <div class="grid grid-cols-2 gap-4">
+                  <input name="kilometer" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-medium text-slate-700 placeholder:text-slate-400 focus:border-[#f5a623] focus:ring-[#f5a623] dark:border-slate-700 dark:bg-[#071538] dark:text-slate-100 dark:placeholder:text-slate-500" placeholder="{{ __('Kilometer') }}" inputmode="numeric" />
+                  <input name="price_target" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-medium text-slate-700 placeholder:text-slate-400 focus:border-[#f5a623] focus:ring-[#f5a623] dark:border-slate-700 dark:bg-[#071538] dark:text-slate-100 dark:placeholder:text-slate-500" placeholder="{{ __('Harga (contoh: 250 juta)') }}" inputmode="numeric" />
                 </div>
               </div>
-              <a class="w-full bg-primary text-white py-5 rounded-xl font-bold text-lg mt-4 shadow-lg hover:brightness-110 transition-all flex items-center justify-center gap-2" href="/catalog">
-                <span class="material-symbols-outlined">search</span>
-                Temukan Unit
-              </a>
-            </div>
+
+              <button class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#071b47] py-3.5 text-[13px] font-bold text-white transition hover:bg-[#0e2d72] dark:bg-[#f5a623] dark:text-[#111827] dark:hover:bg-[#f7bf55]" type="submit">
+                <span class="material-symbols-outlined text-[18px]">search</span>
+                {{ __('Temukan Unit') }}
+              </button>
+            </form>
           </div>
         </div>
       </div>
+
+      <a class="absolute bottom-6 right-6 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#f5a623] text-[#0a1736] shadow-xl transition hover:scale-105" href="/catalog" data-open-search-modal aria-label="Search">
+        <span class="material-symbols-outlined">search</span>
+      </a>
     </section>
 
-    <!-- API: GET /api/cars?limit=6 -->
-    <!-- API: GET /api/cars/popular -->
-    <!-- Unit Terbaru Section -->
-    <section class="py-24 bg-surface">
-      <div class="container mx-auto px-8">
-        <div class="flex justify-between items-end mb-16">
+    <section class="landing-surface-inventory pt-16 pb-10 md:pt-20 md:pb-12">
+      <div class="mx-auto w-full max-w-[1280px] px-4 md:px-6">
+        <div class="mb-12 flex items-end justify-between gap-4">
           <div>
-            <span class="text-secondary font-bold tracking-[0.2em] uppercase text-sm mb-4 block">Our Inventory</span>
-            <h2 class="font-headline text-4xl font-extrabold text-primary">Unit Terbaru Pekanbaru</h2>
+            <p class="text-[10px] font-bold uppercase tracking-[0.26em] text-[#f5a623]">{{ __('Our Inventory') }}</p>
+            <h2 class="landing-light-heading mt-2 font-headline text-[38px] font-extrabold leading-tight text-slate-900 dark:text-white sm:text-[48px]">{{ __('Unit Terbaru Pekanbaru') }}</h2>
           </div>
-          <a class="text-primary font-bold flex items-center gap-2 hover:gap-4 transition-all group" href="/catalog">
-            Lihat Semua Koleksi
-            <span class="material-symbols-outlined group-hover:text-secondary-container transition-colors">arrow_right_alt</span>
+          <a class="inline-flex items-center gap-2 text-[12px] font-semibold text-slate-500 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white" href="/catalog">
+            {{ __('Lihat Semua Koleksi') }}
+            <span class="material-symbols-outlined text-[17px] text-[#f5a623]">arrow_right_alt</span>
           </a>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-          <div class="group bg-surface-container-lowest rounded-[1.5rem] overflow-hidden editorial-shadow hover:-translate-y-2 transition-transform duration-500">
-            <div class="relative aspect-[16/9] overflow-hidden">
-              <img alt="Toyota Alphard" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="Front profile of a white luxury MPV with sleek chrome accents parked in a bright studio environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB36HJqCR3wyD7bTSSQoSLk9jp_Xayq9466uxS8Ulwp5bicKy9CIRhnt3cDu5yQFtY2faDMQLEVBKvnP-20zlfBb2Gf6MHy6mHBjQfr4853HXkFu6tLmOoGvNbYy8QQx6gXxGdn6iVJUPEpjn-sN-r-SBXj-nWQ6kjUc8gY4As78a7q-TSHFd3bB3IEzsTWuZWsfU6LV36LQJ7-QowQXXQQF0vjJeT72f1LJk-4i-Ng94WLB3VT-u8U8QHVnH3rHVy4Fcj3BiNXt4c"/>
-              <div class="absolute top-4 left-4">
-                <span class="status-available text-xs font-bold px-3 py-1 rounded-full backdrop-blur-md bg-opacity-90">Available</span>
-              </div>
+
+        <div class="inventory-grid-clean grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3" style="background: transparent !important;">
+          @php
+            $newestCars = $newestCars ?? collect();
+            $fallbackImages = [
+              'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?q=80&w=1000&auto=format&fit=crop',
+              'https://images.unsplash.com/photo-1632245889029-e406faaa34cd?q=80&w=1000&auto=format&fit=crop',
+              'https://images.unsplash.com/photo-1549924231-f129b911e442?q=80&w=1000&auto=format&fit=crop',
+              'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1200&auto=format&fit=crop',
+            ];
+
+            $formatLandingPrice = function ($value) {
+              $price = (float) $value;
+              if ($price >= 1000000000) {
+                return 'Rp ' . number_format($price / 1000000000, 3, '.', '') . 'M';
+              }
+              if ($price >= 1000000) {
+                return 'Rp ' . number_format($price / 1000000, 0, ',', '.') . 'jt';
+              }
+              return 'Rp ' . number_format($price, 0, ',', '.');
+            };
+          @endphp
+
+          @if ($newestCars->isEmpty())
+            <div class="rounded-[1.4rem] border border-slate-200 bg-white p-8 text-slate-600 dark:border-white/10 dark:bg-[#0b1120] dark:text-slate-200 md:col-span-2 xl:col-span-3">
+              Belum ada unit terbaru yang tersedia. Tambahkan unit dari dashboard supervisor/marketing agar tampil di sini.
             </div>
-            <div class="p-8">
-              <div class="flex justify-between items-start mb-4">
-                <div>
-                  <h3 class="font-headline text-2xl font-extrabold text-primary">Toyota Alphard 2.5 G</h3>
-                  <p class="text-slate-400 font-medium">Automatic • White Pearl</p>
+          @else
+            @foreach ($newestCars as $index => $car)
+              @php
+                $statusKey = strtolower((string) ($car->status ?? 'available'));
+                $badgeText = $statusKey === 'reserved' ? 'Reserved' : 'Available';
+                $badgeClass = $statusKey === 'reserved'
+                  ? 'bg-[#f5a623] text-[#121826]'
+                  : 'bg-emerald-400 text-emerald-950';
+
+                $title = trim(($car->merk ?? '') . ' ' . ($car->tipe ?? ''));
+                $subtitleParts = array_values(array_filter([
+                  $car->transmisi ?? null,
+                  $car->warna ?? null,
+                ]));
+                $subtitle = count($subtitleParts) ? implode(' • ', $subtitleParts) : 'Lihat detail spesifikasi unit';
+
+                $image = (is_array($car->photos) && !empty($car->photos[0]))
+                  ? asset('storage/' . $car->photos[0])
+                  : $fallbackImages[$index % count($fallbackImages)];
+
+                $isCustomer = auth()->check() && auth()->user()->role === 'customer';
+              @endphp
+
+              <article class="landing-inventory-card group overflow-hidden rounded-[1.4rem] border border-slate-200 bg-white editorial-shadow transition duration-500 hover:-translate-y-1 dark:border-white/10 dark:bg-[#0b1120]">
+                <div class="relative aspect-[16/9] overflow-hidden">
+                  <img alt="{{ $title !== '' ? $title : 'Unit mobil' }}" class="h-full w-full object-cover transition duration-700 group-hover:scale-110" src="{{ $image }}" />
+                  <span class="absolute left-4 top-4 rounded-full px-3 py-1 text-[10px] font-bold {{ $badgeClass }}">{{ $badgeText }}</span>
                 </div>
-                <span class="bg-surface-container-low p-2 rounded-lg">
-                  <span class="material-symbols-outlined text-primary">favorite</span>
-                </span>
-              </div>
-              <div class="grid grid-cols-2 gap-4 py-4 border-y border-outline-variant/15 mb-6">
-                <div class="flex items-center gap-2 text-slate-500">
-                  <span class="material-symbols-outlined text-sm">calendar_today</span>
-                  <span class="text-sm font-semibold">2022</span>
+
+                <div class="p-7">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                      <h3 class="landing-inventory-title truncate font-headline text-[22px] font-extrabold leading-[1.15] text-slate-900 dark:text-white sm:text-[26px]">{{ $title !== '' ? $title : ('Unit #' . $car->id) }}</h3>
+                      <p class="landing-inventory-meta mt-1 truncate text-[12px] text-slate-500 dark:text-slate-300">{{ $subtitle }}</p>
+                    </div>
+
+                    @if ($isCustomer)
+                      <form method="POST" action="{{ route('customer.favorites.store', $car->id) }}">
+                        @csrf
+                        <button type="submit" class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-700 transition hover:bg-slate-200 dark:bg-[#1a376f] dark:text-slate-200" title="Favorit" aria-label="Favorit">
+                          <span class="material-symbols-outlined text-[18px]">favorite</span>
+                        </button>
+                      </form>
+                    @elseif(!auth()->check())
+                      <a class="js-login-required inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-700 transition hover:bg-slate-200 dark:bg-[#1a376f] dark:text-slate-200" href="{{ route('login') }}" data-popup-message="{{ __('Please login first') }}" title="Favorit" aria-label="Login untuk favorit">
+                        <span class="material-symbols-outlined text-[18px]">favorite</span>
+                      </a>
+                    @endif
+                  </div>
+
+                  <div class="landing-inventory-divider landing-inventory-meta mt-4 grid grid-cols-2 gap-3 border-y border-slate-200 py-3 text-[11px] text-slate-500 dark:border-white/10 dark:text-slate-300">
+                    <span class="inline-flex items-center gap-1.5 truncate">
+                      <span class="material-symbols-outlined text-[14px]">calendar_today</span>{{ $car->tahun ?? '-' }}
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 truncate">
+                      <span class="material-symbols-outlined text-[14px]">speed</span>{{ number_format((int) ($car->kilometer ?? 0), 0, ',', '.') }} KM
+                    </span>
+                  </div>
+
+                  <div class="mt-5 flex items-end justify-between gap-3">
+                    <div class="min-w-0">
+                      <p class="landing-inventory-otr text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">HARGA OTR</p>
+                      <p class="landing-inventory-price truncate font-headline text-[22px] font-extrabold leading-none text-slate-900 dark:text-white sm:text-[26px]">{{ $formatLandingPrice($car->harga ?? 0) }}</p>
+                    </div>
+                    <a class="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#f5a623] text-[#121826] transition hover:scale-110" href="{{ route('cars.show', $car->id) }}" aria-label="Lihat detail">
+                      <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                    </a>
+                  </div>
                 </div>
-                <div class="flex items-center gap-2 text-slate-500">
-                  <span class="material-symbols-outlined text-sm">speed</span>
-                  <span class="text-sm font-semibold">12,400 KM</span>
-                </div>
-              </div>
-              <div class="flex justify-between items-center">
-                <div>
-                  <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Harga OTR</p>
-                  <p class="text-2xl font-black text-primary">Rp 1.150M</p>
-                </div>
-                <a class="bg-secondary-container text-on-secondary-fixed w-12 h-12 rounded-full flex items-center justify-center hover:scale-110 transition-transform" href="/car-detail">
-                  <span class="material-symbols-outlined">arrow_forward</span>
-                </a>
-              </div>
-            </div>
-          </div>
-          <div class="group bg-surface-container-lowest rounded-[1.5rem] overflow-hidden editorial-shadow hover:-translate-y-2 transition-transform duration-500">
-            <div class="relative aspect-[16/9] overflow-hidden">
-              <img alt="Mitsubishi Pajero" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="Side profile of a black robust SUV standing on a high-end showroom floor with polished reflections" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-XQJDRAiht3jmmKlm03BD8d8fkgdRLKKVuVoo9XK2ncsmiR5ElEMj_lTdRbdC9Hf5ABOnHCVnDBnx7vlta4kcEOIeznNW0Ez0L-FuaQabOpkXFLl0yDbHQP-gIJdP0F4mhoV9a_6Vjd1XYqj7Fl3Y-3I9meK4X-DIkTETybpZJb63w0kt-LAkuuV6dYIto14uGMO7d1Mbd9yAkQGBfw9WgGTxwD86KauPENfiFyjQyuk7ZV938YjqEsG_8Az-m4wgyxVl3k6wE6g"/>
-              <div class="absolute top-4 left-4">
-                <span class="status-reserved text-xs font-bold px-3 py-1 rounded-full">Reserved</span>
-              </div>
-            </div>
-            <div class="p-8">
-              <div class="flex justify-between items-start mb-4">
-                <div>
-                  <h3 class="font-headline text-2xl font-extrabold text-primary">Mitsubishi Pajero Dakar</h3>
-                  <p class="text-slate-400 font-medium">4x2 • Jet Black</p>
-                </div>
-                <span class="bg-surface-container-low p-2 rounded-lg">
-                  <span class="material-symbols-outlined text-primary">favorite</span>
-                </span>
-              </div>
-              <div class="grid grid-cols-2 gap-4 py-4 border-y border-outline-variant/15 mb-6">
-                <div class="flex items-center gap-2 text-slate-500">
-                  <span class="material-symbols-outlined text-sm">calendar_today</span>
-                  <span class="text-sm font-semibold">2021</span>
-                </div>
-                <div class="flex items-center gap-2 text-slate-500">
-                  <span class="material-symbols-outlined text-sm">speed</span>
-                  <span class="text-sm font-semibold">35,000 KM</span>
-                </div>
-              </div>
-              <div class="flex justify-between items-center">
-                <div>
-                  <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Harga OTR</p>
-                  <p class="text-2xl font-black text-primary">Rp 545jt</p>
-                </div>
-                <a class="bg-secondary-container text-on-secondary-fixed w-12 h-12 rounded-full flex items-center justify-center hover:scale-110 transition-transform" href="/car-detail">
-                  <span class="material-symbols-outlined">arrow_forward</span>
-                </a>
-              </div>
-            </div>
-          </div>
-          <div class="group bg-surface-container-lowest rounded-[1.5rem] overflow-hidden editorial-shadow hover:-translate-y-2 transition-transform duration-500">
-            <div class="relative aspect-[16/9] overflow-hidden">
-              <img alt="Honda Civic RS" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="Sleek red sports sedan captured in a high-contrast urban night setting with glowing city lights in background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJWY7D72T0YnbrV7D2n-6KfDmwMocsfTyDthwraZt3spp2IM1JjG_pWptdLbGc-vaH42NWoZslEq8CLQ0N39GaWA_-3EAF762tRGUxcNeFwbHmqXsiln7hEIpbjWkKxzrdXcw5SInqe1JxKze0moIYLz2f-NhDaYM5YUuC1Vzc1qS7792dLv3P1gqnwX3-AAezA7Y_MVrTZ8VlRGgV_uLk5KMaoN7WbFg1ON97mmRbRlW536dLH2ACDLQRAPvQ_EPXRXfWkygBgpk"/>
-              <div class="absolute top-4 left-4">
-                <span class="status-available text-xs font-bold px-3 py-1 rounded-full">Available</span>
-              </div>
-            </div>
-            <div class="p-8">
-              <div class="flex justify-between items-start mb-4">
-                <div>
-                  <h3 class="font-headline text-2xl font-extrabold text-primary">Honda Civic RS</h3>
-                  <p class="text-slate-400 font-medium">Turbo • Ignite Red</p>
-                </div>
-                <span class="bg-surface-container-low p-2 rounded-lg">
-                  <span class="material-symbols-outlined text-primary">favorite</span>
-                </span>
-              </div>
-              <div class="grid grid-cols-2 gap-4 py-4 border-y border-outline-variant/15 mb-6">
-                <div class="flex items-center gap-2 text-slate-500">
-                  <span class="material-symbols-outlined text-sm">calendar_today</span>
-                  <span class="text-sm font-semibold">2023</span>
-                </div>
-                <div class="flex items-center gap-2 text-slate-500">
-                  <span class="material-symbols-outlined text-sm">speed</span>
-                  <span class="text-sm font-semibold">8,200 KM</span>
-                </div>
-              </div>
-              <div class="flex justify-between items-center">
-                <div>
-                  <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Harga OTR</p>
-                  <p class="text-2xl font-black text-primary">Rp 480jt</p>
-                </div>
-                <a class="bg-secondary-container text-on-secondary-fixed w-12 h-12 rounded-full flex items-center justify-center hover:scale-110 transition-transform" href="/car-detail">
-                  <span class="material-symbols-outlined">arrow_forward</span>
-                </a>
-              </div>
-            </div>
-          </div>
+              </article>
+            @endforeach
+          @endif
         </div>
       </div>
     </section>
 
-    <!-- Why Choose Us Bento Section -->
-    <section class="py-24 bg-surface-container-low overflow-hidden">
-      <div class="container mx-auto px-8">
-        <div class="text-center max-w-2xl mx-auto mb-20">
-          <span class="text-secondary font-bold tracking-[0.2em] uppercase text-sm mb-4 block">The Maharani Difference</span>
-          <h2 class="font-headline text-4xl md:text-5xl font-extrabold text-primary">Mengapa Pilih Maharani Mobil?</h2>
+    <section class="landing-surface-main pt-10 pb-16 md:pt-12 md:pb-20">
+      <div class="mx-auto w-full max-w-[1280px] px-4 md:px-6">
+        <div class="mx-auto max-w-[720px] text-center">
+          <p class="text-[10px] font-bold uppercase tracking-[0.26em] text-[#f5a623]">{{ __('The Maharani Difference') }}</p>
+          <h2 class="landing-light-heading mt-3 font-headline text-[40px] font-extrabold leading-tight text-slate-900 dark:text-white sm:text-[52px]">{{ __('Mengapa Pilih Maharani Mobil?') }}</h2>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 h-auto md:h-[600px]">
-          <div class="md:col-span-8 bg-primary rounded-[2rem] p-12 text-white relative overflow-hidden flex flex-col justify-end">
-            <div class="absolute top-0 right-0 w-1/2 h-full opacity-20 pointer-events-none">
-              <img alt="Engine Detail" class="w-full h-full object-cover" data-alt="Extreme close-up of a high-performance car engine with intricate metallic details and industrial aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBs-Zr7O1QV49IUiefHLjvjdPtQ7QD8UG7wpTS-cyVOs2UqWZdk4pf_RmNWpzlPvOdI6VNtjouyR21H9FRLcgORXyN9Sv7nxmvCkJtgCIfTsecVkO4ewev7-LdXHDKXiiim3d38uOYmG1XupxrnpEkU5vzOI_b_2PtrFZ9LLCMCUg9ThzALgxO0WpwnDJ1f-LxYuMHXRmovN3Ng_zRIJpqS-mlM_MJspBrFoSfbHrxKo6x5c-zL0C7xG13kr4yD83lOHAHozNLduCQ"/>
+
+        <div class="mt-10 grid grid-cols-1 gap-5 md:grid-cols-12">
+          <article class="relative overflow-hidden rounded-[1.4rem] bg-[#e8eef8] p-8 text-[#0b1a40] dark:bg-[#0f172a] dark:text-white md:col-span-8 md:p-10">
+            <img alt="Engine" class="absolute inset-0 h-full w-full object-cover opacity-20" src="https://images.unsplash.com/photo-1487754180451-c456f719a1fc?q=80&w=1200&auto=format&fit=crop" />
+            <div class="relative">
+              <span class="material-symbols-outlined text-[38px] text-[#f5a623]" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+              <h3 class="mt-3 font-headline text-[36px] font-extrabold leading-tight">{{ __('Garansi & Keamanan Unit') }}</h3>
+              <p class="mt-4 max-w-[540px] text-[14px] leading-relaxed text-slate-700 dark:text-slate-200">{{ __('Setiap unit melalui 175 titik inspeksi ketat. Kami memberikan jaminan bebas banjir dan bebas tabrak untuk setiap kilometer yang Anda tempuh.') }}</p>
             </div>
-            <span class="material-symbols-outlined text-5xl text-secondary-container mb-6" style="font-variation-settings: 'FILL' 1;">verified_user</span>
-            <h3 class="text-3xl font-extrabold mb-4">Garansi & Keamanan Unit</h3>
-            <p class="text-white/70 text-lg max-w-md leading-relaxed">
-              Setiap unit melalui 175 titik inspeksi ketat. Kami memberikan jaminan bebas banjir dan bebas tabrak untuk setiap kilometer yang Anda tempuh.
-            </p>
-          </div>
-          <div class="md:col-span-4 bg-white rounded-[2rem] p-12 flex flex-col justify-center editorial-shadow">
-            <span class="material-symbols-outlined text-5xl text-primary mb-6">visibility</span>
-            <h3 class="text-2xl font-extrabold text-primary mb-4">Transparansi Harga</h3>
-            <p class="text-slate-500 leading-relaxed">Tidak ada biaya tersembunyi. Semua riwayat servis dan dokumen kendaraan tersedia untuk Anda tinjau kapan saja.</p>
-          </div>
-          <div class="md:col-span-5 bg-secondary-container rounded-[2rem] p-12 flex flex-col justify-center">
-            <span class="material-symbols-outlined text-5xl text-on-secondary-fixed mb-6" style="font-variation-settings: 'FILL' 1;">electric_bolt</span>
-            <h3 class="text-2xl font-extrabold text-on-secondary-fixed mb-4">Proses Cepat & Mudah</h3>
-            <p class="text-on-secondary-fixed/80 leading-relaxed">Persetujuan kredit dalam hitungan jam. Kami mengurus semua dokumen dari awal hingga unit terparkir di garasi Anda.</p>
-          </div>
-          <div class="md:col-span-7 bg-surface-container-high rounded-[2rem] p-12 flex items-center justify-between group overflow-hidden">
-            <div class="max-w-[60%]">
-              <h3 class="text-2xl font-extrabold text-primary mb-4">Layanan Home Test Drive</h3>
-              <p class="text-slate-500 leading-relaxed">Sibuk? Biarkan kami membawa unit impian langsung ke depan pintu rumah Anda di area Pekanbaru.</p>
-            </div>
-            <span class="material-symbols-outlined text-7xl text-primary/10 group-hover:text-primary/20 transition-colors group-hover:scale-125 duration-500 transform -rotate-12">directions_car</span>
-          </div>
+          </article>
+
+          <article class="rounded-[1.4rem] border border-slate-200 bg-white p-8 dark:border-white/10 dark:bg-[#0b1120] md:col-span-4 md:p-10">
+            <span class="material-symbols-outlined text-[38px] text-[#f5a623]">visibility</span>
+            <h3 class="mt-3 font-headline text-[34px] font-extrabold leading-tight text-slate-900 dark:text-white">{{ __('Transparansi Harga') }}</h3>
+            <p class="mt-4 text-[14px] leading-relaxed text-slate-500 dark:text-slate-300">{{ __('Tidak ada biaya tersembunyi. Semua riwayat servis dan dokumen kendaraan tersedia untuk Anda tinjau kapan saja.') }}</p>
+          </article>
+
+          <article class="rounded-[1.4rem] bg-[#f5a623] p-8 md:col-span-5 md:p-10">
+            <span class="material-symbols-outlined text-[38px] text-[#111827]" style="font-variation-settings: 'FILL' 1;">electric_bolt</span>
+            <h3 class="mt-3 font-headline text-[34px] font-extrabold leading-tight text-[#111827]">{{ __('Proses Cepat & Mudah') }}</h3>
+            <p class="mt-4 text-[14px] leading-relaxed text-[#1f2937]">{{ __('Persetujuan kredit dalam hitungan jam. Kami mengurus semua dokumen dari awal hingga unit terparkir di garasi Anda.') }}</p>
+          </article>
+
+          <article class="rounded-[1.4rem] bg-[#e5e7eb] p-8 dark:bg-[#17346d] md:col-span-7 md:p-10">
+            <span class="material-symbols-outlined text-[38px] text-slate-400 dark:text-slate-500">directions_car</span>
+            <h3 class="mt-3 font-headline text-[34px] font-extrabold leading-tight text-slate-900 dark:text-white">{{ __('Layanan Home Test Drive') }}</h3>
+            <p class="mt-4 text-[14px] leading-relaxed text-slate-600 dark:text-slate-300">{{ __('Sibuk? Biarkan kami membawa unit impian langsung ke depan pintu rumah Anda di area Pekanbaru.') }}</p>
+          </article>
         </div>
       </div>
     </section>
 
-    <!-- API: GET /api/reviews -->
-    <!-- Testimonial Section -->
-    <section class="py-24 bg-surface">
-      <div class="container mx-auto px-8">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-          <div>
-            <span class="text-secondary font-bold tracking-[0.2em] uppercase text-sm mb-4 block">Testimonials</span>
-            <h2 class="font-headline text-5xl font-extrabold text-primary mb-8 leading-tight">Apa Kata Pemilik Kendaraan Maharani?</h2>
-            <div class="flex gap-4 items-center">
-              <div class="flex -space-x-4">
-                <img alt="User 1" class="w-12 h-12 rounded-full border-4 border-white" data-alt="Portrait of a smiling professional man in business casual attire" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDq-M9x09txwet4TJM0yapiyeh_F_6BB9V3FAcuF6btTG6LcMQWq2TTdBbeWTkAJ0mILv5Qjx0tCKp9BJSSU9FEouIpHUZLied_68dZZqdorlG8JnKiYIXxeD43PmgAzUJyV8tULiE1rSk0x9uhwwC1ro_9GN585FZGz_c3OYRlF2Ro-PvBSpWag0s_dR_rkbrkBP1T1ZYVV-30Ru4FKOYpVtPLJFrDMHP3rndj4jfKZQFCVXggi8Loeq--dc0ytb4-ShLOZulytTk"/>
-                <img alt="User 2" class="w-12 h-12 rounded-full border-4 border-white" data-alt="Portrait of a friendly young woman with a warm smile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8ImN22jvXuhr98Bi5aXuequHSMZ9cMnvrCaZtdLEq64ViNbqpJmtHy4_m1lGF9wil4qUO1gGGx4iHkssxWvJcHmQcYyUcIKaqMg35DyF1Aa-cruh6XK-GPfNvNplcDaYqpkuUUpX3I-B5yUWgEvYEdbhHrkIfpgvJpaMK0vyZcKdZHhu4xQECBNN4D4C1DYl_wpygtNDaD_U1ooy9CAEo6CTHou_jIaLEy8czuXg03hzdZeM5jJ3tI8ZJhelqoMSvi76o8pnS9JU"/>
-                <img alt="User 3" class="w-12 h-12 rounded-full border-4 border-white" data-alt="Portrait of a confident middle-aged man with short hair" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC85KKPqkko2hjS8iblfAevjhA_Z_Qyg94Ovx2GosUZ1oi4QgtQP_PObcYtbWQ2uDd6yzRzg9C1a2-tUSbvFiFlBBLdjUEnMT3VQL4FhAnqNfnBoxMBWTcMLifRviL8UmRcMJzx4B9b6BQPS2un9f1MvzANnLo7e3YpU2IpAlvgGD0GQqapaP5LgbVfHUZqhbivUmL2pg2VYlhJOB-gvAN93UYQ7QmVRchjTehQH6DOrSrqKj_Mbn4e5HIzaparNAttD5Tleb9JPSE"/>
-              </div>
-              <p class="text-slate-500 font-medium">Bergabunglah dengan 5,000+ pelanggan puas kami.</p>
+    <section class="landing-surface-testimonials pt-10 pb-20 md:pt-12 md:pb-20">
+      <div class="mx-auto grid w-full max-w-[1280px] grid-cols-1 gap-10 px-4 md:px-6 lg:grid-cols-12 lg:items-center">
+        <div class="lg:col-span-6">
+          <p class="text-[10px] font-bold uppercase tracking-[0.26em] text-[#f5a623]">{{ __('Testimonials') }}</p>
+          <h2 class="landing-light-heading mt-3 font-headline text-[42px] font-extrabold leading-tight text-slate-900 dark:text-white sm:text-[52px]">{{ __('Apa Kata Pemilik Kendaraan Maharani?') }}</h2>
+
+          <div class="mt-6 flex items-center gap-4">
+            <div class="flex -space-x-2">
+              <img class="h-8 w-8 rounded-full border-2 border-white object-cover dark:border-[#020617]" src="https://i.pravatar.cc/80?img=11" alt="Client 1" />
+              <img class="h-8 w-8 rounded-full border-2 border-white object-cover dark:border-[#020617]" src="https://i.pravatar.cc/80?img=22" alt="Client 2" />
+              <img class="h-8 w-8 rounded-full border-2 border-white object-cover dark:border-[#020617]" src="https://i.pravatar.cc/80?img=33" alt="Client 3" />
             </div>
+            <p class="landing-light-copy text-[12px] text-slate-500 dark:text-slate-300">{{ __('Bergabunglah dengan 5,000+ pelanggan puas kami.') }}</p>
           </div>
-          <div class="relative">
-            <div class="bg-white p-12 rounded-[2.5rem] editorial-shadow relative z-10">
-              <span class="material-symbols-outlined text-6xl text-secondary-container/30 absolute top-8 right-12">format_quote</span>
-              <div class="flex gap-1 mb-6">
-                <span class="material-symbols-outlined text-secondary-container" style="font-variation-settings: 'FILL' 1;">star</span>
-                <span class="material-symbols-outlined text-secondary-container" style="font-variation-settings: 'FILL' 1;">star</span>
-                <span class="material-symbols-outlined text-secondary-container" style="font-variation-settings: 'FILL' 1;">star</span>
-                <span class="material-symbols-outlined text-secondary-container" style="font-variation-settings: 'FILL' 1;">star</span>
-                <span class="material-symbols-outlined text-secondary-container" style="font-variation-settings: 'FILL' 1;">star</span>
-              </div>
-              <p class="text-xl text-primary leading-relaxed font-medium mb-8">
-                "Pengalaman membeli mobil bekas yang paling berkelas di Pekanbaru. Sales person sangat informatif dan tidak memaksa. Unit diantar dalam kondisi sangat bersih seperti baru."
-              </p>
-              <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-full bg-slate-200 overflow-hidden">
-                  <img alt="Client" class="w-full h-full object-cover" data-alt="Close up portrait of a satisfied male client with a professional look" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9uhyOaZM5HsnZV1UO9EyYZzSePuCpZqm4Er_-mIEMJI3fmwKgMZ9KRNKlwOSfzsauZkv1kyyDagYMJ5GW4XlVchLuRBMkbAW0Unv8ewi0fkicG5w0lCTZLe_DMFlx05oeA6Ce_42YS5iuvq5KIQU8hh7gzkmCooQoCgbtn3QuCOMNKAprcgb-XTOs5aDnQ1QH4yWx6HyL8VtK5rcTU7tByGaqjGc9V8Zg9KlJ7YizNthZJHugyiFO4iyZ8c8A5ate563Zy83pztg"/>
-                </div>
-                <div>
-                  <h4 class="font-bold text-primary">Dr. Andi Wijaya</h4>
-                  <p class="text-sm text-slate-500">Pemilik Toyota Land Cruiser</p>
-                </div>
+        </div>
+
+        <div class="relative lg:col-span-6">
+          <article class="relative z-10 rounded-[2rem] border border-slate-200 bg-white p-8 dark:border-white/10 dark:bg-[#0b1120] md:p-10">
+            <span class="material-symbols-outlined absolute right-8 top-6 text-[52px] text-[#f5a623]/25">format_quote</span>
+
+            <div class="mb-5 flex gap-0.5 text-[#f5a623]">
+              <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+              <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+              <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+              <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+              <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+            </div>
+
+            <p class="text-[17px] leading-relaxed text-slate-700 dark:text-slate-100">{{ __('Pengalaman membeli mobil bekas yang paling berkelas di Pekanbaru. Sales person sangat informatif dan tidak memaksa. Unit diantar dalam kondisi sangat bersih seperti baru.') }}</p>
+
+            <div class="mt-7 flex items-center gap-3">
+              <img class="h-10 w-10 rounded-full object-cover" src="https://i.pravatar.cc/90?img=52" alt="Dr. Andi" />
+              <div>
+                <p class="text-[14px] font-bold text-slate-900 dark:text-white">Dr. Andi Wijaya</p>
+                <p class="text-[12px] text-slate-500 dark:text-slate-300">{{ __('Pemilik Toyota Land Cruiser') }}</p>
               </div>
             </div>
-            <div class="absolute -bottom-6 -right-6 w-full h-full bg-secondary-container rounded-[2.5rem] -z-10 transform rotate-3"></div>
-          </div>
+          </article>
+
+          <div class="absolute -bottom-4 -right-4 -z-0 hidden h-full w-full rounded-[2rem] bg-[#f5a623]/20 sm:block"></div>
         </div>
       </div>
     </section>
 
-    <!-- SEO Content Section -->
-    <section class="py-24 bg-surface-container-low">
-      <div class="container mx-auto px-8 max-w-4xl">
-        <h2 class="font-headline text-3xl font-extrabold text-primary mb-8">Pusat Jual Beli Mobil Bekas Berkualitas di Pekanbaru</h2>
-        <div class="prose prose-slate prose-lg max-w-none text-slate-600 leading-loose">
-          <p class="mb-6">
-            Maharani Mobil Pekanbaru telah berdiri selama lebih dari satu dekade melayani kebutuhan otomotif masyarakat Riau. Sebagai penyedia mobil bekas Pekanbaru yang terpercaya, kami memahami bahwa membeli kendaraan bukan sekadar transaksi, melainkan sebuah investasi jangka panjang.
-          </p>
-          <p class="mb-6">
-            Kami menyediakan berbagai pilihan kendaraan mulai dari MPV keluarga seperti Toyota Avanza dan Mitsubishi Xpander, hingga unit premium seperti BMW dan Mercedes-Benz. Seluruh inventaris kami telah melewati proses multi-point inspection yang ketat untuk memastikan standar kualitas "The Digital Concierge" tetap terjaga.
-          </p>
-          <p>
-            Terletak strategis di jantung kota Pekanbaru, showroom kami menawarkan pengalaman belanja yang nyaman dengan fasilitas purna jual yang lengkap. Baik Anda mencari mobil pertama atau ingin melakukan trade-in, tim ahli kami siap membantu Anda menemukan solusi finansial terbaik yang sesuai dengan anggaran Anda.
-          </p>
+    <section class="landing-surface-seo py-20">
+      <div class="mx-auto w-full max-w-[920px] px-4 md:px-6">
+        <h2 class="landing-light-heading text-center font-headline text-[34px] font-extrabold leading-tight text-slate-900 dark:text-white sm:text-[44px]">{{ __('Pusat Jual Beli Mobil Bekas Berkualitas di Pekanbaru') }}</h2>
+
+        <div class="landing-light-copy mt-8 space-y-5 text-[15px] leading-loose text-slate-600 dark:text-slate-300">
+          <p>{{ __('Maharani Mobil Pekanbaru telah berdiri selama lebih dari satu dekade melayani kebutuhan otomotif masyarakat Riau. Sebagai penyedia mobil bekas Pekanbaru yang terpercaya, kami memahami bahwa membeli kendaraan bukan sekadar transaksi, melainkan sebuah investasi jangka panjang.') }}</p>
+          <p>{{ __('Kami menyediakan berbagai pilihan kendaraan mulai dari MPV keluarga seperti Toyota Avanza dan Mitsubishi Xpander, hingga unit premium seperti BMW dan Mercedes-Benz. Seluruh inventaris kami telah melewati proses multi-point inspection yang ketat untuk memastikan standar kualitas "The Digital Concierge" tetap terjaga.') }}</p>
+          <p>{{ __('Terletak strategis di jantung kota Pekanbaru, showroom kami menawarkan pengalaman belanja yang nyaman dengan fasilitas purna jual yang lengkap. Baik Anda mencari mobil pertama atau ingin melakukan trade-in, tim ahli kami siap membantu Anda menemukan solusi finansial terbaik yang sesuai dengan anggaran Anda.') }}</p>
         </div>
       </div>
     </section>
   </main>
 
-  <!-- Footer -->
-  <footer class="bg-[#031636] dark:bg-black w-full py-20 mt-auto">
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-12 px-12 w-full max-w-screen-2xl mx-auto">
-      <div class="col-span-1 md:col-span-1">
-        <div class="text-white font-black italic text-3xl mb-6">Maharani Mobil.</div>
-        <p class="text-slate-400 font-body text-sm leading-relaxed mb-8">
-          Solusi otomotif premium dan terpercaya di Pekanbaru sejak 2014. Melayani dengan hati, mengantar dengan bangga.
-        </p>
-        <div class="flex gap-4">
-          <span class="w-10 h-10 rounded-full border border-slate-700 flex items-center justify-center text-white hover:bg-white hover:text-primary transition-all cursor-pointer">
-            <span class="material-symbols-outlined text-sm">public</span>
-          </span>
-          <span class="w-10 h-10 rounded-full border border-slate-700 flex items-center justify-center text-white hover:bg-white hover:text-primary transition-all cursor-pointer">
-            <span class="material-symbols-outlined text-sm">alternate_email</span>
-          </span>
-        </div>
-      </div>
+  <footer class="bg-[#03163f] py-14 text-white dark:bg-[#020617]">
+    <div class="mx-auto grid w-full max-w-[1280px] grid-cols-1 gap-10 px-4 md:grid-cols-4 md:px-6">
       <div>
-        <h4 class="text-white font-bold mb-6 font-label text-xs uppercase tracking-widest">Quick Links</h4>
-        <ul class="space-y-4">
-          <li><a class="text-slate-400 hover:text-white underline transition-all font-label text-xs uppercase tracking-widest" href="/catalog">Catalog</a></li>
-          <li><a class="text-slate-400 hover:text-white underline transition-all font-label text-xs uppercase tracking-widest" href="/financing">Financing</a></li>
-          <li><a class="text-slate-400 hover:text-white underline transition-all font-label text-xs uppercase tracking-widest" href="/reviews">Reviews</a></li>
+        <h3 class="font-headline text-[38px] font-extrabold italic">Maharani Mobil.</h3>
+        <p class="mt-4 max-w-[260px] text-[12px] leading-relaxed text-slate-300">{{ __('Solusi otomotif premium dan terpercaya di Pekanbaru sejak 2014. Melayani dengan hati, mengantar dengan bangga.') }}</p>
+      </div>
+
+      <div>
+        <h4 class="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-400">QUICK LINKS</h4>
+        <ul class="mt-4 space-y-2 text-[12px]">
+          <li><a class="underline transition hover:text-[#f5a623]" href="/catalog">{{ __('Catalog') }}</a></li>
+          <li><a class="underline transition hover:text-[#f5a623]" href="/privacy">{{ __('Privacy Policy') }}</a></li>
+          <li><a class="underline transition hover:text-[#f5a623]" href="/terms">{{ __('Our Showroom') }}</a></li>
+          <li><a class="underline transition hover:text-[#f5a623]" href="{{ route('login') }}">{{ __('Contact Support') }}</a></li>
         </ul>
       </div>
+
       <div>
-        <h4 class="text-white font-bold mb-6 font-label text-xs uppercase tracking-widest">Office</h4>
-        <p class="text-slate-400 font-body text-sm leading-relaxed">
-          Jl. Soekarno - Hatta No. 88<br/>
-          Marpoyan Damai, Pekanbaru<br/>
-          Riau 28282
-        </p>
+        <h4 class="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-400">OFFICE</h4>
+        <p class="mt-4 text-[12px] leading-relaxed text-slate-300">Jl. Soekarno - Hatta No. 88<br />Marpoyan Damai, Pekanbaru<br />Riau 28282</p>
       </div>
+
       <div>
-        <h4 class="text-white font-bold mb-6 font-label text-xs uppercase tracking-widest">Newsletter</h4>
-        <p class="text-slate-400 font-label text-xs uppercase tracking-widest mb-4">Dapatkan info unit terbaru</p>
-        <div class="relative">
-          <input class="w-full bg-white/5 border border-slate-700 rounded-lg p-3 text-white focus:outline-none focus:border-secondary-container" placeholder="Your Email" type="email"/>
-          <button class="absolute right-2 top-2 text-secondary-container" aria-label="Kirim">
-            <span class="material-symbols-outlined">send</span>
+        <h4 class="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-400">NEWSLETTER</h4>
+        <p class="mt-4 text-[11px] text-slate-300">{{ __('DAFTARKAN INFO UNIT TERBARU') }}</p>
+
+        <div class="mt-3 flex overflow-hidden rounded-lg border border-slate-700">
+          <input class="w-full bg-transparent px-3 py-2 text-[12px] text-white placeholder:text-slate-400 focus:outline-none" placeholder="{{ __('Your Email') }}" />
+          <button class="inline-flex items-center bg-[#f5a623] px-3 text-[#061c4d]" type="button">
+            <span class="material-symbols-outlined text-[18px]">send</span>
           </button>
         </div>
       </div>
     </div>
-    <div class="mt-20 pt-8 border-t border-slate-800 px-12 text-center">
-      <p class="text-slate-500 font-label text-xs uppercase tracking-[0.3em]">© 2026 Maharani Mobil Pekanbaru. The Digital Concierge.</p>
+
+    <div class="mx-auto mt-10 w-full max-w-[1280px] border-t border-white/10 px-4 pt-6 text-center text-[11px] tracking-[0.2em] text-slate-500 md:px-6">
+      © 2026 MAHARANI MOBIL PEKANBARU. THE DIGITAL CONCIERGE.
     </div>
   </footer>
 
-  <a class="fixed bottom-8 right-8 z-50 bg-secondary-container text-on-secondary-fixed w-16 h-16 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all" href="/catalog" aria-label="Search">
-    <span class="material-symbols-outlined text-3xl">search</span>
-  </a>
+  @include('components.whatsapp-float', ['message' => 'Halo Maharani Mobil, saya tertarik dengan mobil yang ada di website.'])
+  @include('components.search-modal', ['brandOptions' => $brandOptions ?? collect()])
+  @include('components.ui-system-footer')
 </body>
 </html>
 

@@ -1,1 +1,1 @@
-php artisan serve
+& "$PSScriptRoot\run-dev.ps1" @args

@@ -191,7 +191,7 @@
     </section>
   </main>
 
-  <footer class="bg-[#031636] dark:bg-black w-full py-12 mt-auto">
+  <footer class="bg-[#031636] dark:bg-[#03163f] w-full py-12 mt-auto">
     <div class="grid grid-cols-1 md:grid-cols-4 gap-8 px-12 w-full max-w-screen-2xl mx-auto">
       <div class="flex flex-col gap-4">
         <div class="text-white font-black italic text-xl">Maharani Mobil</div>
@@ -229,5 +229,6 @@
   </footer>
 </body>
 </html>
+
 
 
