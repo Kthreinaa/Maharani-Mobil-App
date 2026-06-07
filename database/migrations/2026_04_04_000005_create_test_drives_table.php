@@ -8,16 +8,18 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('test_drives', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('car_id')->constrained()->cascadeOnDelete();
-            $table->date('booking_date');
-            $table->time('booking_time');
-            $table->enum('status', ['pending', 'approved', 'rejected', 'completed'])->default('pending');
-            $table->text('notes')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('test_drives')) {
+            Schema::create('test_drives', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+                $table->foreignId('car_id')->constrained()->cascadeOnDelete();
+                $table->date('booking_date');
+                $table->time('booking_time');
+                $table->enum('status', ['pending', 'approved', 'rejected', 'completed'])->default('pending');
+                $table->text('notes')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void

@@ -6,42 +6,90 @@
 @endphp
 
 @section('content')
-  <form class="flex gap-2 mb-4" method="GET">
-    <select class="rounded-lg border-slate-200" name="status">
-      <option value="">Semua Status</option>
-      @foreach(['pending','verified','rejected'] as $status)
-        <option value="{{ $status }}" @selected(request('status')===$status)>{{ $status }}</option>
+  <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <div>
+      <p class="text-sm text-slate-500">Catat transaksi pembelian langsung di showroom dan lanjutkan validasi pembayarannya dari satu halaman.</p>
+    </div>
+    <a class="inline-flex items-center justify-center gap-2 rounded-full bg-[#08132e] px-5 py-2.5 text-sm font-bold text-white shadow-[0_16px_28px_rgba(8,19,46,0.18)]" href="{{ route('supervisor.payments.create') }}">
+      <span class="material-symbols-outlined text-[18px]">add_circle</span>
+      Input Transaksi Showroom
+    </a>
+  </div>
+
+  <form class="mb-4 flex flex-wrap gap-2" method="GET">
+    <input class="rounded-full border-slate-200 bg-white/80 px-4 py-2 text-sm" name="q" placeholder="Cari customer, mobil, atau kode order" value="{{ request('q') }}"/>
+    <select class="rounded-full border-slate-200 bg-white/80 px-4 py-2 text-sm font-semibold text-slate-700" name="status">
+      <option value="all">Semua Status</option>
+      @foreach(['pending','verified','rejected'] as $item)
+        <option value="{{ $item }}" @selected(request('status') === $item)>{{ strtoupper($item) }}</option>
       @endforeach
     </select>
-    <button class="rounded-lg bg-slate-900 text-white px-4">Filter</button>
+    <select class="rounded-full border-slate-200 bg-white/80 px-4 py-2 text-sm font-semibold text-slate-700" name="method">
+      <option value="all">Semua Metode</option>
+      <option value="cash" @selected(request('method') === 'cash')>CASH</option>
+      <option value="credit" @selected(request('method') === 'credit')>KREDIT</option>
+    </select>
+    <button class="rounded-full bg-[#08132e] px-5 py-2 text-sm font-semibold text-white">Filter</button>
   </form>
 
-  <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-    <table class="w-full text-sm">
+  <div class="overflow-x-auto rounded-[2rem] border border-white/70 bg-[rgba(255,255,255,0.72)] shadow-[0_24px_70px_rgba(15,23,42,0.10)] backdrop-blur-[24px]">
+    <table class="mm-data-table w-full text-sm">
       <thead class="text-xs uppercase text-slate-500">
         <tr>
-          <th class="px-4 py-3 text-left">Customer</th>
-          <th class="px-4 py-3 text-left">Mobil</th>
-          <th class="px-4 py-3 text-left">Nominal</th>
-          <th class="px-4 py-3 text-left">Metode</th>
-          <th class="px-4 py-3 text-left">Status</th>
-          <th class="px-4 py-3 text-right">Aksi</th>
+          <th class="px-5 py-4 text-left">Tanggal</th>
+          <th class="px-5 py-4 text-left">Customer</th>
+          <th class="px-5 py-4 text-left">Mobil</th>
+          <th class="px-5 py-4 text-left">Nominal</th>
+          <th class="px-5 py-4 text-left">Metode</th>
+          <th class="px-5 py-4 text-left">Validasi Internal</th>
+          <th class="px-5 py-4 text-left">Status</th>
+          <th class="px-5 py-4 text-left">ROLE</th>
+          <th class="px-5 py-4 text-right">Aksi</th>
         </tr>
       </thead>
-      <tbody class="divide-y">
+      <tbody class="divide-y divide-slate-200/60">
         @forelse($payments as $payment)
-          <tr>
-            <td class="px-4 py-3">{{ $payment->order?->user?->name }}</td>
-            <td class="px-4 py-3">{{ $payment->order?->car?->merk }} {{ $payment->order?->car?->tipe }}</td>
-            <td class="px-4 py-3">Rp {{ number_format($payment->amount,0,',','.') }}</td>
-            <td class="px-4 py-3">{{ $payment->method }}</td>
-            <td class="px-4 py-3">{{ $payment->status }}</td>
-            <td class="px-4 py-3 text-right">
-              <a href="{{ route('supervisor.payments.show', $payment) }}" class="text-slate-700 hover:underline">Detail</a>
+          @php
+            $purchaseMethodLabel = $payment->order?->is_credit_purchase ? 'Kredit' : 'Cash';
+            $paidWithLabel = match ($payment->method) {
+              'cash' => 'Tunai',
+              'transfer', 'va', 'credit' => 'Transfer',
+              default => ucfirst((string) $payment->method),
+            };
+            $displayStatusLabel = $payment->order?->is_credit_purchase && $payment->status === 'verified' && (float) $payment->amount < (float) ($payment->order->total ?? 0)
+              ? 'DP Kredit'
+              : $payment->status;
+          @endphp
+          <tr class="hover:bg-white/70">
+            <td class="px-5 py-4">{{ $payment->created_at?->format('d M Y') }}</td>
+            <td class="px-5 py-4">{{ $payment->order?->user?->name ?? '-' }}</td>
+            <td class="px-5 py-4">{{ $payment->order?->car?->merk }} {{ $payment->order?->car?->tipe }}</td>
+            <td class="px-5 py-4">{{ \App\Support\CurrencyFormatter::rupiah($payment->amount) }}</td>
+            <td class="px-5 py-4">
+              <p class="font-semibold text-slate-900">{{ $purchaseMethodLabel }}</p>
+              <p class="mt-1 text-xs text-slate-500">Dibayar dengan {{ $paidWithLabel }}</p>
+            </td>
+            <td class="px-5 py-4">
+              @if ($payment->has_proof)
+                <a class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-xs font-semibold text-slate-700" href="{{ asset('storage/' . $payment->proof_file) }}" target="_blank" rel="noreferrer">
+                  Arsip Lampiran
+                  <span class="material-symbols-outlined text-[15px]">open_in_new</span>
+                </a>
+              @else
+                <span class="inline-flex rounded-full bg-sky-50 px-3 py-1.5 text-xs font-bold text-sky-700">Dicatat internal</span>
+              @endif
+            </td>
+            <td class="px-5 py-4"><span class="rounded-full px-3 py-1 text-xs font-bold uppercase {{ $payment->status_badge_classes }}">{{ $displayStatusLabel }}</span></td>
+            <td class="px-5 py-4">
+              <span class="inline-flex rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] {{ $payment->role_badge_classes }}">{{ $payment->role_label }}</span>
+              <p class="mt-2 text-xs text-slate-500">{{ $payment->handledBy?->name ?? 'Belum ada PIC internal' }}</p>
+            </td>
+            <td class="px-5 py-4 text-right">
+              <a href="{{ route('supervisor.payments.show', $payment) }}" class="rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-xs font-semibold text-slate-700">Detail</a>
             </td>
           </tr>
         @empty
-          <tr><td class="px-4 py-6 text-slate-500" colspan="6">Belum ada pembayaran.</td></tr>
+          <tr><td class="px-5 py-8 text-slate-500" colspan="9">Belum ada pembayaran.</td></tr>
         @endforelse
       </tbody>
     </table>

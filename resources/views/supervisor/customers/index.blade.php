@@ -12,7 +12,7 @@
   </form>
 
   <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-    <table class="w-full text-sm">
+    <table class="mm-data-table w-full text-sm">
       <thead class="text-xs uppercase text-slate-500">
         <tr>
           <th class="px-4 py-3 text-left">Nama</th>

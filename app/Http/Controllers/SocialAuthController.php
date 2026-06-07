@@ -202,7 +202,7 @@ class SocialAuthController extends Controller
     private function redirectByRole(User $user): string
     {
         if ($user->role === 'customer') {
-            return '/home';
+            return route('customer.home');
         }
 
         if ($user->role === 'supervisor') {
@@ -217,6 +217,6 @@ class SocialAuthController extends Controller
             return '/owner/dashboard';
         }
 
-        return '/home';
+        return route('home.public');
     }
 }

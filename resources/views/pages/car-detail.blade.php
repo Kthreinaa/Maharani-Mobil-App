@@ -1,8 +1,4 @@
 @php
-    /**
-     * Halaman detail mobil dinamis.
-     * Menampilkan galeri foto, ringkasan unit, spesifikasi, serta CTA utama.
-     */
     $carName = trim(($car->merk ?? '') . ' ' . ($car->tipe ?? '') . ' ' . ($car->tahun ?? ''));
     $pageTitle = ($carName !== '' ? $carName . ' | ' : '') . 'Detail Mobil | Maharani Mobil';
 
@@ -35,8 +31,21 @@
     $statusLabel = $statusLabelMap[$statusKey] ?? 'Available';
     $statusClass = $statusClassMap[$statusKey] ?? $statusClassMap['available'];
 
-    $priceLabel = 'Rp ' . number_format((float) ($car->harga ?? 0), 0, ',', '.');
+    $priceLabel = \App\Support\CurrencyFormatter::rupiah($car->harga ?? 0);
     $kmLabel = number_format((int) ($car->kilometer ?? 0), 0, ',', '.') . ' KM';
+    $iosGlassActionClass = 'inline-flex w-full items-center justify-center gap-2 rounded-[1.15rem] border border-white/70 bg-[linear-gradient(135deg,rgba(255,255,255,0.82)_0%,rgba(255,245,235,0.78)_42%,rgba(232,236,242,0.82)_100%)] px-4 py-3.5 font-semibold text-[#8a4d12] shadow-[0_16px_36px_rgba(148,163,184,0.18),inset_0_1px_0_rgba(255,255,255,0.76)] backdrop-blur-[18px] transition hover:-translate-y-[1px] hover:bg-[linear-gradient(135deg,rgba(255,255,255,0.92)_0%,rgba(255,243,229,0.88)_42%,rgba(237,240,245,0.9)_100%)]';
+    $shareUrl = request()->fullUrl();
+    $shareDescription = \Illuminate\Support\Str::limit(
+        strip_tags((string) ($car->deskripsi ?: 'Lihat detail unit, harga, spesifikasi, dan ajukan test drive di Maharani Mobil.')),
+        150
+    );
+    $shareTitle = $carName !== '' ? $carName : 'Detail Mobil';
+    $shareText = 'Lihat unit ' . $shareTitle . ' di Maharani Mobil. ' . $shareDescription;
+    $shareMessage = $shareText . ' ' . $shareUrl;
+    $whatsAppShareUrl = 'https://wa.me/?text=' . rawurlencode($shareMessage);
+    $facebookShareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' . rawurlencode($shareUrl);
+    $viewerRole = auth()->check() ? (string) auth()->user()->role : 'guest';
+    $isMarketingViewer = $viewerRole === 'marketing';
 @endphp
 
 <!DOCTYPE html>
@@ -48,6 +57,15 @@
     <meta name="description" content="Detail lengkap {{ $carName !== '' ? $carName : 'unit mobil' }} di Maharani Mobil: foto, harga, spesifikasi, dan aksi booking test drive."/>
     <meta name="robots" content="index,follow"/>
     <link rel="canonical" href="{{ request()->url() }}"/>
+    <meta property="og:type" content="product"/>
+    <meta property="og:title" content="{{ $shareTitle }}"/>
+    <meta property="og:description" content="{{ $shareDescription }}"/>
+    <meta property="og:url" content="{{ $shareUrl }}"/>
+    <meta property="og:image" content="{{ $mainPhoto }}"/>
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:title" content="{{ $shareTitle }}"/>
+    <meta name="twitter:description" content="{{ $shareDescription }}"/>
+    <meta name="twitter:image" content="{{ $mainPhoto }}"/>
     @include('components.ui-system-head')
     <script src="{{ asset('assets/tailwind.config.js') }}?v={{ filemtime(public_path('assets/tailwind.config.js')) }}"></script>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -56,34 +74,22 @@
     <link href="{{ asset('assets/app.css') }}?v={{ filemtime(public_path('assets/app.css')) }}" rel="stylesheet"/>
 </head>
 <body class="bg-background text-on-background min-h-screen flex flex-col">
-    <header class="bg-slate-50/70 dark:bg-slate-950/70 backdrop-blur-xl docked full-width top-0 sticky z-50">
-        <div class="flex justify-between items-center w-full px-8 py-4 max-w-screen-2xl mx-auto">
-            <a class="text-2xl font-black text-[#1A2B4C] dark:text-white tracking-tighter font-headline" href="/">Maharani Mobil</a>
-            <nav class="hidden md:flex items-center space-x-8 font-headline tracking-tight">
-                <a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#F5A623] transition-colors duration-300" href="/home">{{ __('Home') }}</a>
-                <a class="text-[#1A2B4C] font-bold border-b-2 border-[#F5A623] pb-1" href="/catalog">{{ __('Catalog') }}</a>
-                <a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#F5A623] transition-colors duration-300" href="/about">{{ __('About Us') }}</a>
-                <a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#F5A623] transition-colors duration-300" href="/financing">{{ __('Financing') }}</a>
-            </nav>
-            <div class="flex items-center space-x-4">
-                @include('components.nav-tools')
-                @auth
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="text-slate-500 font-medium px-4 py-2 hover:text-[#1A2B4C] transition-colors">Logout</button>
-                    </form>
-                @else
-                    <a class="text-slate-500 font-medium px-4 py-2 hover:text-[#1A2B4C] transition-colors" href="{{ route('login') }}">{{ __('Login') }}</a>
-                    <a class="bg-primary text-white font-bold px-6 py-2 rounded-lg hover:scale-95 transition-transform duration-200" href="{{ route('register') }}">{{ __('Register') }}</a>
-                @endauth
-            </div>
-        </div>
-    </header>
+    @include('components.public-site-header', [
+        'active' => 'detail-mobil',
+        'overlap' => false,
+        'showCatalog' => true,
+        'catalogInline' => true,
+        'inlineBadgeLabel' => 'Home',
+        'inlineBadgeHref' => url('/'),
+        'inlineLinks' => [
+            ['key' => 'detail-mobil', 'label' => 'Detail Mobil', 'href' => $shareUrl],
+        ],
+    ])
 
     <main class="max-w-screen-2xl mx-auto w-full px-6 md:px-8 py-8 flex-grow">
         <nav aria-label="Breadcrumb" class="flex mb-6 text-sm font-medium text-on-surface-variant">
             <ol class="flex items-center gap-2">
-                <li><a class="hover:text-primary transition-colors" href="/home">Beranda</a></li>
+                <li><a class="hover:text-primary transition-colors" href="/">Beranda</a></li>
                 <li><span class="material-symbols-outlined text-sm">chevron_right</span></li>
                 <li><a class="hover:text-primary transition-colors" href="/catalog">Katalog</a></li>
                 <li><span class="material-symbols-outlined text-sm">chevron_right</span></li>
@@ -164,56 +170,81 @@
                         </div>
                     </div>
 
-                    <div class="mt-5 space-y-3">
-                        @auth
-                            <a class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#0b1a40] px-4 py-3 font-semibold text-white hover:brightness-110 transition" href="{{ route('test-drive.form', ['car_id' => $car->id]) }}">
-                                <span class="material-symbols-outlined text-[19px]">event</span>
-                                Buat Janji Test Drive
-                            </a>
-                        @else
-                            <a class="js-login-required inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#0b1a40] px-4 py-3 font-semibold text-white hover:brightness-110 transition" href="{{ route('login') }}" data-popup-message="{{ __('Please login first') }}">
-                                <span class="material-symbols-outlined text-[19px]">event</span>
-                                Buat Janji Test Drive
-                            </a>
-                        @endauth
+                    @if (! $isMarketingViewer)
+                        <div class="mt-5 space-y-3">
+                            @auth
+                                @if (auth()->user()->role === 'customer')
+                                    <a class="{{ $iosGlassActionClass }}" href="{{ route('checkout.cash', ['car_id' => $car->id]) }}">
+                                        <span class="material-symbols-outlined text-[19px]">shopping_cart_checkout</span>
+                                        Pesan Mobil
+                                    </a>
+                                @endif
+                            @else
+                                <a class="js-login-required {{ $iosGlassActionClass }}" href="{{ route('login') }}" data-popup-message="{{ __('Please login first') }}">
+                                    <span class="material-symbols-outlined text-[19px]">shopping_cart_checkout</span>
+                                    Pesan Mobil
+                                </a>
+                            @endauth
 
-                        @auth
-                            <a class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#f5a623] px-4 py-3 font-semibold text-[#0b1a40] hover:brightness-105 transition" href="{{ route('offers.page') }}">
-                                <span class="material-symbols-outlined text-[19px]">payments</span>
-                                Ajukan Penawaran
-                            </a>
-                        @else
-                            <a class="js-login-required inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#f5a623] px-4 py-3 font-semibold text-[#0b1a40] hover:brightness-105 transition" href="{{ route('login') }}" data-popup-message="{{ __('Please login first') }}">
-                                <span class="material-symbols-outlined text-[19px]">payments</span>
-                                Ajukan Penawaran
-                            </a>
-                        @endauth
+                            @auth
+                                <a class="{{ $iosGlassActionClass }}" href="{{ route('test-drive.form', ['car_id' => $car->id]) }}">
+                                    <span class="material-symbols-outlined text-[19px]">event</span>
+                                    Test Drive
+                                </a>
+                            @else
+                                <a class="js-login-required {{ $iosGlassActionClass }}" href="{{ route('login') }}" data-popup-message="{{ __('Please login first') }}">
+                                    <span class="material-symbols-outlined text-[19px]">event</span>
+                                    Test Drive
+                                </a>
+                            @endauth
 
-                        @if (auth()->check() && auth()->user()->role === 'customer')
-                            <form method="POST" action="{{ route('customer.favorites.store', $car->id) }}">
-                                @csrf
-                                <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-outline-variant px-4 py-3 font-semibold text-primary hover:bg-surface-container-low transition">
-                                    <span class="material-symbols-outlined text-[19px]">favorite</span>
-                                    Simpan Favorit
-                                </button>
-                            </form>
-                        @elseif (!auth()->check())
-                            <a class="js-login-required inline-flex w-full items-center justify-center gap-2 rounded-lg border border-outline-variant px-4 py-3 font-semibold text-primary hover:bg-surface-container-low transition" href="{{ route('login') }}" data-popup-message="{{ __('Please login first') }}">
-                                <span class="material-symbols-outlined text-[19px]">favorite</span>
-                                Simpan Favorit
-                            </a>
-                        @endif
-                    </div>
+                            @auth
+                                <a class="{{ $iosGlassActionClass }}" href="{{ route('offers.page', ['car_id' => $car->id]) }}">
+                                    <span class="material-symbols-outlined text-[19px]">payments</span>
+                                    Ajukan Penawaran
+                                </a>
+                            @else
+                                <a class="js-login-required {{ $iosGlassActionClass }}" href="{{ route('login') }}" data-popup-message="{{ __('Please login first') }}">
+                                    <span class="material-symbols-outlined text-[19px]">payments</span>
+                                    Ajukan Penawaran
+                                </a>
+                            @endauth
+
+                            <button
+                                type="button"
+                                class="share-native-btn {{ $iosGlassActionClass }}"
+                                data-share-url="{{ $shareUrl }}"
+                                data-share-title="{{ $shareTitle }}"
+                                data-share-text="{{ $shareText }}"
+                                data-share-image="{{ $mainPhoto }}"
+                            >
+                                <span class="material-symbols-outlined text-[19px]">ios_share</span>
+                                Bagikan Unit
+                            </button>
+                        </div>
+                    @else
+                        <div class="mt-5 rounded-[1.15rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium leading-6 text-slate-600">
+                            Marketing hanya memantau detail unit dari halaman ini. Aksi customer seperti test drive, ajukan penawaran, dan bagikan unit tidak ditampilkan pada workspace marketing.
+                        </div>
+                    @endif
                 </article>
 
                 <article class="rounded-2xl border border-outline-variant bg-surface p-5 md:p-6">
-                    <h3 class="text-lg font-bold text-primary">Review Singkat & Bagikan</h3>
-                    <p class="mt-1 text-sm text-on-surface-variant">Rating 4.8/5 • 52 ulasan</p>
-                    <div class="mt-4 grid grid-cols-3 gap-2">
-                        <button type="button" class="rounded-lg bg-surface-container-low px-3 py-2 text-xs font-semibold text-primary">Lihat Ulasan</button>
-                        <button type="button" class="rounded-lg bg-surface-container-low px-3 py-2 text-xs font-semibold text-primary">Facebook</button>
-                        <button type="button" class="rounded-lg bg-surface-container-low px-3 py-2 text-xs font-semibold text-primary">TikTok</button>
+                    <h3 class="text-lg font-bold text-primary">Review Customer & Bagikan</h3>
+                    <p class="mt-1 text-sm text-on-surface-variant">
+                        @if (($approvedReviewsCount ?? 0) > 0)
+                            Rating {{ number_format((float) $approvedReviewsAverage, 1) }}/5 • {{ $approvedReviewsCount }} ulasan
+                        @else
+                            Belum ada review customer untuk unit ini.
+                        @endif
+                    </p>
+                    <div class="mt-4 grid grid-cols-2 gap-2">
+                        <a href="{{ route('reviews.page', ['car' => $car->id]) }}" class="rounded-[1rem] bg-surface-container-low px-3 py-2.5 text-center text-xs font-semibold text-primary transition hover:bg-slate-100">Lihat Ulasan</a>
+                        <button type="button" class="share-copy-btn rounded-[1rem] bg-surface-container-low px-3 py-2.5 text-center text-xs font-semibold text-primary transition hover:bg-slate-100" data-copy-url="{{ $shareUrl }}" data-copy-message="Link produk berhasil disalin.">
+                            Salin Link
+                        </button>
                     </div>
+                    <p id="share-feedback" class="mt-3 hidden rounded-lg bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700"></p>
                 </article>
             </aside>
         </div>
@@ -244,36 +275,7 @@
         @endif
     </main>
 
-    <footer class="bg-[#031636] dark:bg-[#03163f] w-full py-12 mt-auto">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 px-12 w-full max-w-screen-2xl mx-auto">
-            <div class="space-y-4">
-                <div class="text-white font-black italic text-2xl tracking-tighter">Maharani Mobil</div>
-                <p class="text-slate-400 text-xs uppercase tracking-widest leading-loose font-label">© 2026 Maharani Mobil Pekanbaru.<br/>The Digital Concierge.</p>
-            </div>
-            <div class="space-y-4">
-                <h5 class="text-white font-bold text-sm tracking-widest uppercase">Navigation</h5>
-                <ul class="space-y-2 text-xs font-label uppercase tracking-widest">
-                    <li><a class="text-slate-400 hover:text-white transition-all underline" href="/catalog">Catalog</a></li>
-                    <li><a class="text-slate-400 hover:text-white transition-all underline" href="/financing">Financing</a></li>
-                    <li><a class="text-slate-400 hover:text-white transition-all underline" href="/about">About Us</a></li>
-                    <li><a class="text-slate-400 hover:text-white transition-all underline" href="/test-drive">Contact</a></li>
-                </ul>
-            </div>
-            <div class="space-y-4">
-                <h5 class="text-white font-bold text-sm tracking-widest uppercase">Support</h5>
-                <ul class="space-y-2 text-xs font-label uppercase tracking-widest">
-                    <li><a class="text-slate-400 hover:text-white transition-all underline" href="/privacy">Privacy Policy</a></li>
-                    <li><a class="text-slate-400 hover:text-white transition-all underline" href="/terms">Terms of Service</a></li>
-                    <li><a class="text-slate-400 hover:text-white transition-all underline" href="/faq">Cookie Settings</a></li>
-                    <li><a class="text-slate-400 hover:text-white transition-all underline" href="/test-drive">Contact Support</a></li>
-                </ul>
-            </div>
-            <div class="space-y-4">
-                <h5 class="text-white font-bold text-sm tracking-widest uppercase">Location</h5>
-                <p class="text-slate-400 text-sm normal-case tracking-normal">Jl. Soekarno - Hatta No. 88<br/>Marpoyan Damai, Pekanbaru<br/>Riau 28282</p>
-            </div>
-        </div>
-    </footer>
+    @include('components.public-site-footer')
 
     @include('components.whatsapp-float', ['message' => 'Halo Maharani Mobil, saya tertarik dengan unit ' . ($car->merk ?? 'mobil') . ' ' . ($car->tipe ?? '') . ' ' . ($car->tahun ?? '') . '.'])
     @include('components.ui-system-footer')
@@ -282,27 +284,125 @@
         (() => {
             const mainPhoto = document.getElementById('detail-main-photo');
             const thumbButtons = document.querySelectorAll('.detail-thumb-btn');
+            const shareFeedback = document.getElementById('share-feedback');
+            const shareNativeButtons = document.querySelectorAll('.share-native-btn');
+            const shareCopyButtons = document.querySelectorAll('.share-copy-btn');
 
-            if (!mainPhoto || !thumbButtons.length) {
-                return;
-            }
+            const showShareFeedback = (message, isError = false) => {
+                if (!shareFeedback) {
+                    return;
+                }
 
-            thumbButtons.forEach((button) => {
-                button.addEventListener('click', () => {
-                    const nextSrc = button.getAttribute('data-photo-src');
-                    if (!nextSrc) {
-                        return;
+                shareFeedback.textContent = message;
+                shareFeedback.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-700', 'bg-rose-50', 'text-rose-700');
+                shareFeedback.classList.add(isError ? 'bg-rose-50' : 'bg-emerald-50');
+                shareFeedback.classList.add(isError ? 'text-rose-700' : 'text-emerald-700');
+            };
+
+            const copyText = async (value) => {
+                if (navigator.clipboard?.writeText) {
+                    await navigator.clipboard.writeText(value);
+                    return;
+                }
+
+                const textarea = document.createElement('textarea');
+                textarea.value = value;
+                textarea.setAttribute('readonly', '');
+                textarea.style.position = 'absolute';
+                textarea.style.left = '-9999px';
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+            };
+
+            const buildShareFiles = async (imageUrl, title) => {
+                if (!imageUrl || !navigator.canShare) {
+                    return [];
+                }
+
+                try {
+                    const response = await fetch(imageUrl, { mode: 'cors' });
+                    if (!response.ok) {
+                        return [];
                     }
 
-                    mainPhoto.setAttribute('src', nextSrc);
+                    const blob = await response.blob();
+                    const extension = blob.type.includes('png') ? 'png' : blob.type.includes('webp') ? 'webp' : 'jpg';
+                    const safeTitle = (title || 'produk-maharani-mobil')
+                        .toLowerCase()
+                        .replace(/[^a-z0-9]+/g, '-')
+                        .replace(/^-+|-+$/g, '') || 'produk-maharani-mobil';
+                    const file = new File([blob], `${safeTitle}.${extension}`, { type: blob.type || 'image/jpeg' });
 
-                    thumbButtons.forEach((item) => {
-                        item.classList.remove('border-[#f5a623]');
-                        item.classList.add('border-outline-variant');
+                    return navigator.canShare({ files: [file] }) ? [file] : [];
+                } catch (error) {
+                    return [];
+                }
+            };
+
+            if (mainPhoto && thumbButtons.length) {
+                thumbButtons.forEach((button) => {
+                    button.addEventListener('click', () => {
+                        const nextSrc = button.getAttribute('data-photo-src');
+                        if (!nextSrc) {
+                            return;
+                        }
+
+                        mainPhoto.setAttribute('src', nextSrc);
+
+                        thumbButtons.forEach((item) => {
+                            item.classList.remove('border-[#f5a623]');
+                            item.classList.add('border-outline-variant');
+                        });
+
+                        button.classList.add('border-[#f5a623]');
+                        button.classList.remove('border-outline-variant');
                     });
+                });
+            }
 
-                    button.classList.add('border-[#f5a623]');
-                    button.classList.remove('border-outline-variant');
+            shareNativeButtons.forEach((button) => {
+                button.addEventListener('click', async () => {
+                    const url = button.getAttribute('data-share-url') || window.location.href;
+                    const title = button.getAttribute('data-share-title') || document.title;
+                    const text = button.getAttribute('data-share-text') || '';
+                    const imageUrl = button.getAttribute('data-share-image') || '';
+
+                    if (navigator.share) {
+                        try {
+                            const files = await buildShareFiles(imageUrl, title);
+                            const payload = files.length ? { title, text, url, files } : { title, text, url };
+                            await navigator.share(payload);
+                            showShareFeedback('Link produk siap dibagikan.');
+                            return;
+                        } catch (error) {
+                            if (error?.name === 'AbortError') {
+                                return;
+                            }
+                        }
+                    }
+
+                    try {
+                        await copyText(url);
+                        showShareFeedback('Link produk berhasil disalin. Sekarang bisa ditempel ke story, chat, atau media sosial.');
+                    } catch (error) {
+                        showShareFeedback('Gagal menyalin link produk.', true);
+                    }
+                });
+            });
+
+            shareCopyButtons.forEach((button) => {
+                button.addEventListener('click', async () => {
+                    const url = button.getAttribute('data-copy-url') || window.location.href;
+                    const message = button.getAttribute('data-copy-message') || 'Link produk berhasil disalin.';
+
+                    try {
+                        await copyText(url);
+                        showShareFeedback(message);
+                    } catch (error) {
+                        showShareFeedback('Gagal menyalin link produk.', true);
+                    }
                 });
             });
         })();

@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2200" height="880" viewBox="0 0 2200 880">
+<defs>
+<linearGradient id="headerGlow" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#08132e"/><stop offset="60%" stop-color="#102a63"/><stop offset="100%" stop-color="#f5a623"/></linearGradient>
+<marker id="arrowHead" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/></marker>
+<filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#0f172a" flood-opacity="0.12"/></filter>
+</defs>
+<rect width="2200" height="880" fill="#f8fafc"/>
+<rect x="24" y="24" width="2152" height="82" rx="28" fill="url(#headerGlow)" filter="url(#softShadow)"/>
+<text x="1100" y="62" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="800" fill="#ffffff" text-anchor="middle">BPMN 0 - Ringkasan Proses Bisnis Maharani Mobil</text>
+<text x="1100" y="92" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="500" fill="#dbeafe" text-anchor="middle">Pemetaan alur besar sistem informasi penjualan dan CRM showroom mobil Maharani Mobil.</text>
+<rect x="36" y="130" width="180" height="150" rx="28" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+<rect x="228" y="130" width="1936" height="150" rx="28" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="126" y="178" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="800" fill="#0f172a" text-anchor="middle">Customer</text>
+<rect x="36" y="300" width="180" height="150" rx="28" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+<rect x="228" y="300" width="1936" height="150" rx="28" fill="#f8fbff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="126" y="348" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="800" fill="#0f172a" text-anchor="middle">Marketing</text>
+<rect x="36" y="470" width="180" height="150" rx="28" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+<rect x="228" y="470" width="1936" height="150" rx="28" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="126" y="518" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="800" fill="#0f172a" text-anchor="middle">Supervisor /</text>
+<text x="126" y="548" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="800" fill="#0f172a" text-anchor="middle">Admin</text>
+<rect x="36" y="640" width="180" height="150" rx="28" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+<rect x="228" y="640" width="1936" height="150" rx="28" fill="#f8fbff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="126" y="688" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="800" fill="#0f172a" text-anchor="middle">Sistem &amp; Dokumen</text>
+<rect x="36" y="810" width="180" height="100" rx="28" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+<rect x="228" y="810" width="1936" height="100" rx="28" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="126" y="858" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="800" fill="#0f172a" text-anchor="middle">Owner</text>
+<circle cx="290" cy="205" r="24" fill="#ffffff" stroke="#1d4ed8" stroke-width="3"/>
+<text x="290" y="263" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700" fill="#334155" text-anchor="middle">Mulai</text>
+<polygon points="430,171 464,205 430,239 396,205" fill="#fef3c7" stroke="#d97706" stroke-width="3"/>
+<text x="430" y="195" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="900" fill="#92400e" text-anchor="middle">X</text>
+<text x="430" y="263" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700" fill="#92400e" text-anchor="middle">Jenis customer</text>
+<rect x="540" y="138" width="220" height="86" rx="22" fill="#eff6ff" stroke="#93c5fd" stroke-width="2"/>
+<text x="650" y="172" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="800" fill="#0f172a" text-anchor="middle">Guest</text>
+<text x="650" y="206" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#475569" text-anchor="middle">Lihat katalog dan detail</text>
+<text x="650" y="224" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#475569" text-anchor="middle">unit tanpa transaksi</text>
+<rect x="540" y="242" width="220" height="86" rx="22" fill="#ecfdf5" stroke="#86efac" stroke-width="2"/>
+<text x="650" y="276" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="800" fill="#0f172a" text-anchor="middle">Online tanpa test</text>
+<text x="650" y="298" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="800" fill="#0f172a" text-anchor="middle">drive</text>
+<text x="650" y="310" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#475569" text-anchor="middle">Nego via sistem lalu</text>
+<text x="650" y="328" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#475569" text-anchor="middle">checkout</text>
+<rect x="810" y="138" width="220" height="86" rx="22" fill="#fefce8" stroke="#facc15" stroke-width="2"/>
+<text x="920" y="172" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="800" fill="#0f172a" text-anchor="middle">Online + test</text>
+<text x="920" y="194" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="800" fill="#0f172a" text-anchor="middle">drive</text>
+<text x="920" y="206" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#475569" text-anchor="middle">Booking test drive lalu</text>
+<text x="920" y="224" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#475569" text-anchor="middle">datang ke showroom</text>
+<rect x="810" y="242" width="220" height="86" rx="22" fill="#fef2f2" stroke="#fca5a5" stroke-width="2"/>
+<text x="920" y="276" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="800" fill="#0f172a" text-anchor="middle">Offline showroom</text>
+<text x="920" y="310" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#475569" text-anchor="middle">Datang langsung lalu</text>
+<text x="920" y="328" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#475569" text-anchor="middle">diinput internal</text>
+<rect x="420" y="335" width="270" height="90" rx="22" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<text x="555" y="369" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="800" fill="#0f172a" text-anchor="middle">Follow-up</text>
+<text x="555" y="391" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="800" fill="#0f172a" text-anchor="middle">marketing</text>
+<text x="555" y="403" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#475569" text-anchor="middle">Prospek, customer batal,</text>
+<text x="555" y="421" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#475569" text-anchor="middle">dan hasil negosiasi</text>
+<text x="555" y="439" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#475569" text-anchor="middle">ditindaklanjuti</text>
+<rect x="800" y="335" width="280" height="90" rx="22" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<text x="940" y="369" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="800" fill="#0f172a" text-anchor="middle">Approval</text>
+<text x="940" y="391" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="800" fill="#0f172a" text-anchor="middle">supervisor</text>
+<text x="940" y="403" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#475569" text-anchor="middle">Validasi transaksi,</text>
+<text x="940" y="421" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#475569" text-anchor="middle">pembayaran, dan status</text>
+<text x="940" y="439" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#475569" text-anchor="middle">unit</text>
+<rect x="1190" y="335" width="280" height="90" rx="22" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<text x="1330" y="369" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="800" fill="#0f172a" text-anchor="middle">Dokumen digital</text>
+<text x="1330" y="391" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="800" fill="#0f172a" text-anchor="middle">otomatis</text>
+<text x="1330" y="403" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#475569" text-anchor="middle">Faktur, kwitansi digital,</text>
+<text x="1330" y="421" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#475569" text-anchor="middle">dan BAST kendaraan</text>
+<rect x="1580" y="335" width="260" height="90" rx="22" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<text x="1710" y="369" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="800" fill="#0f172a" text-anchor="middle">Laporan &amp;</text>
+<text x="1710" y="391" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="800" fill="#0f172a" text-anchor="middle">dashboard</text>
+<text x="1710" y="403" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#475569" text-anchor="middle">Online/offline, metode</text>
+<text x="1710" y="421" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#475569" text-anchor="middle">bayar, unit laku, alasan</text>
+<text x="1710" y="439" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500" fill="#475569" text-anchor="middle">batal</text>
+<circle cx="1950" cy="380" r="24" fill="#ffffff" stroke="#0f172a" stroke-width="5"/>
+<text x="1950" y="438" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700" fill="#334155" text-anchor="middle">Selesai</text>
+<rect x="420" y="670" width="1360" height="120" rx="18" fill="#eff6ff" stroke="#93c5fd" stroke-width="2" stroke-dasharray="8 6"/>
+<text x="440" y="698" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="800" fill="#1d4ed8" text-anchor="start">File BPMN Lengkap</text>
+<text x="440" y="726" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1e3a8a" text-anchor="start">Lihat diagram terpisah untuk</text>
+<text x="440" y="744" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1e3a8a" text-anchor="start">detail lengkap: 01 Customer</text>
+<text x="440" y="762" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1e3a8a" text-anchor="start">Guest, 02 Online Tanpa Test</text>
+<text x="440" y="780" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1e3a8a" text-anchor="start">Drive, 03 Online Dengan Test</text>
+<text x="440" y="798" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1e3a8a" text-anchor="start">Drive, 04 Offline Showroom,</text>
+<text x="440" y="816" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1e3a8a" text-anchor="start">05 CRM Approval &amp; Dashboard.</text>
+<path d="M 314 205 L 396 205" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrowHead)" />
+<path d="M 464 185 L 540 181" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrowHead)" />
+<rect x="416" y="159" width="96" height="24" rx="12" fill="#ffffff"/>
+<text x="464" y="177" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700" fill="#334155" text-anchor="middle">Guest</text>
+<path d="M 464 205 L 540 285" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrowHead)" />
+<rect x="416" y="179" width="140" height="24" rx="12" fill="#ffffff"/>
+<text x="464" y="197" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700" fill="#334155" text-anchor="middle">Online no test</text>
+<text x="464" y="213" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700" fill="#334155" text-anchor="middle">drive</text>
+<path d="M 464 225 L 810 181" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrowHead)" />
+<rect x="416" y="199" width="133" height="24" rx="12" fill="#ffffff"/>
+<text x="464" y="217" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700" fill="#334155" text-anchor="middle">Online + test</text>
+<text x="464" y="233" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700" fill="#334155" text-anchor="middle">drive</text>
+<path d="M 464 245 L 810 285" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrowHead)" />
+<rect x="416" y="219" width="96" height="24" rx="12" fill="#ffffff"/>
+<text x="464" y="237" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700" fill="#334155" text-anchor="middle">Offline</text>
+<path d="M 650 224 L 650 380 L 690 380" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrowHead)" />
+<path d="M 650 328 L 650 380 L 690 380" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrowHead)" />
+<path d="M 920 224 L 920 380 L 800 380" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrowHead)" />
+<path d="M 920 328 L 920 380 L 800 380" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrowHead)" />
+<path d="M 690 380 L 800 380" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrowHead)" />
+<path d="M 1080 380 L 1190 380" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrowHead)" />
+<path d="M 1470 380 L 1580 380" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrowHead)" />
+<path d="M 1840 380 L 1950 380" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrowHead)" />
+</svg>

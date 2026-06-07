@@ -1,120 +1,216 @@
-﻿<!DOCTYPE html>
+@php
+  $carName = trim(($car->merk ?? '') . ' ' . ($car->tipe ?? '') . ' ' . ($car->tahun ?? ''));
+  $unitCode = $car->kode_unit ?: 'Tanpa kode unit';
+  $carImage = is_array($car->photos ?? null) && !empty($car->photos[0])
+    ? asset('storage/' . $car->photos[0])
+    : 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1400&auto=format&fit=crop';
+  $sourceOffer = $sourceOffer ?? null;
+@endphp
+
+<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Checkout | Maharani Mobil</title>
-  <meta name="description" content="Checkout pembelian mobil bekas, detail pembayaran, dan verifikasi."/>
-  <script src="/assets/tailwind.config.js"></script>
+  <title>Pesan Online | Maharani Mobil</title>
+  <meta name="description" content="Pesan online unit Maharani Mobil dengan booking fee dan pembayaran ke rekening resmi showroom."/>
+  @include('components.ui-system-head')
+  <script src="{{ asset('assets/tailwind.config.js') }}?v={{ filemtime(public_path('assets/tailwind.config.js')) }}"></script>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700&display=swap" rel="stylesheet"/>
-  <link href="/assets/app.css" rel="stylesheet"/>
+  <link href="{{ asset('assets/app.css') }}?v={{ filemtime(public_path('assets/app.css')) }}" rel="stylesheet"/>
 </head>
 <body class="bg-background text-on-background min-h-screen flex flex-col">
-  <header class="bg-slate-50/70 backdrop-blur-xl sticky top-0 z-50">
-    <div class="flex justify-between items-center w-full px-8 py-4 max-w-screen-2xl mx-auto">
-      <a class="text-2xl font-black text-[#1A2B4C] tracking-tighter font-headline" href="/">Maharani Mobil</a>
-      <nav class="hidden md:flex items-center gap-8 font-headline tracking-tight">
-        <a class="text-slate-500 hover:text-[#F5A623] transition-colors" href="/catalog">Catalog</a>
-        <a class="text-slate-500 hover:text-[#F5A623] transition-colors" href="/about">About Us</a>
-        <a class="text-slate-500 hover:text-[#F5A623] transition-colors" href="/financing">Financing</a>
-      </nav>
+  <header class="bg-slate-50/70 dark:bg-slate-950/70 backdrop-blur-xl sticky top-0 z-50">
+    <div class="flex justify-between items-center w-full px-6 py-4 max-w-screen-2xl mx-auto">
+      <a class="text-2xl font-black text-[#1A2B4C] dark:text-white tracking-tighter font-headline" href="/">Maharani Mobil</a>
       <div class="flex items-center gap-4">
-        <a class="px-4 py-2 text-slate-500 hover:text-primary" href="/login">Login</a>
-        <a class="px-6 py-2 bg-primary text-white rounded-full font-bold" href="/register">Register</a>
+        @include('components.nav-tools')
+        <form method="POST" action="{{ route('logout') }}">
+          @csrf
+          <button type="submit" class="px-4 py-2 text-slate-500 dark:text-slate-300 hover:text-primary">Logout</button>
+        </form>
       </div>
     </div>
   </header>
 
   <main class="max-w-screen-2xl mx-auto w-full px-6 md:px-12 py-10 flex-grow">
-    <h1 class="text-3xl font-extrabold text-primary mb-6">Checkout</h1>
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <section class="lg:col-span-2 bg-white rounded-2xl shadow-xl shadow-blue-900/5 p-8">
-        <!-- API: POST /api/orders -->
-        <h2 class="text-xl font-bold text-primary mb-4">Detail Pembelian</h2>
-        <div class="flex items-center gap-4 border border-outline-variant/30 rounded-2xl p-4">
-          <img class="w-28 h-20 object-cover rounded-xl" alt="Toyota Camry" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqpa-9vFSQn1mJuQq2vGh12zAllpQNwqaENPHPY1fXH2SaBkpTL82at4NrhLq8KKVbmZETBD8XXmvA2V5YlETKM6d-OGPgVo_tm7twSejZEHKdTJTUXEwKcBsuyH_YbToPCVfx_rGOGvpFG27m1vtKFA9O8u_D9zCahxfno-9i39BnnTZI-ZWHoyRCvklqBvobHAk97nqHb590I9PpMQEjvKfMp6TZ0Yel6_HqloVB-Dqqi1t-mPXf3dIrN01RtOI2HiIEc7Hx9EY"/>
-          <div class="flex-1">
-            <p class="font-bold text-primary">Toyota Camry 2.5 V Hybrid 2022</p>
-            <p class="text-sm text-on-surface-variant">Automatic • 12.450 KM • Pekanbaru</p>
-          </div>
-          <div class="text-right">
-            <p class="text-xs text-on-surface-variant uppercase tracking-widest">Harga</p>
-            <p class="text-lg font-black text-secondary-container">Rp 545.000.000</p>
-          </div>
-        </div>
+    <div class="flex items-center justify-between gap-4 mb-8">
+      <div>
+        <p class="text-xs uppercase tracking-[0.24em] text-slate-400 font-semibold">Pembelian Online Maharani Mobil</p>
+        <h1 class="text-4xl font-extrabold text-primary mt-2">Pesan Online</h1>
+      </div>
+      <a class="text-sm font-semibold text-primary hover:text-[#F5A623]" href="{{ route('cars.show', $car->id) }}">Kembali ke detail mobil</a>
+    </div>
 
-        <div class="mt-8">
-          <h3 class="text-lg font-bold text-primary mb-4">Informasi Pembeli</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input class="w-full rounded-xl border border-outline-variant p-4" placeholder="Nama lengkap" type="text"/>
-            <input class="w-full rounded-xl border border-outline-variant p-4" placeholder="Nomor WhatsApp" type="tel"/>
-            <input class="w-full rounded-xl border border-outline-variant p-4" placeholder="Email" type="email"/>
-            <input class="w-full rounded-xl border border-outline-variant p-4" placeholder="Kota" type="text"/>
-          </div>
-        </div>
+    @if ($errors->any())
+      <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        Mohon centang persetujuan biaya booking sebelum melanjutkan ke pembayaran.
+      </div>
+    @endif
 
-        <div class="mt-8">
-          <h3 class="text-lg font-bold text-primary mb-4">Metode Pembayaran</h3>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <label class="border border-outline-variant rounded-xl p-4 flex items-center gap-3">
-              <input type="radio" name="payment"/> Cash
-            </label>
-            <label class="border border-outline-variant rounded-xl p-4 flex items-center gap-3">
-              <input type="radio" name="payment"/> Transfer
-            </label>
-            <label class="border border-outline-variant rounded-xl p-4 flex items-center gap-3">
-              <input type="radio" name="payment"/> Virtual Account
-            </label>
-          </div>
-        </div>
+    @if (session('success'))
+      <div class="mb-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+        {{ session('success') }}
+      </div>
+    @endif
 
-        <div class="mt-10 flex justify-end">
-          <a class="px-6 py-3 rounded-xl bg-primary text-white font-semibold" href="/payment">Lanjut ke Pembayaran</a>
-        </div>
+    <div class="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1.55fr)_minmax(430px,0.95fr)]">
+      <section class="rounded-[2rem] bg-white p-6 md:p-8 shadow-xl shadow-blue-900/5">
+        <form id="online-booking-form" method="POST" action="{{ route('customer.orders.store') }}" class="space-y-8">
+          @csrf
+          <input type="hidden" name="car_id" value="{{ $car->id }}"/>
+          <input type="hidden" name="payment_method" value="transfer"/>
+          <input type="hidden" name="sales_flow" value="direct_purchase"/>
+          @if ($sourceOffer)
+            <input type="hidden" name="offer_id" value="{{ $sourceOffer->id }}"/>
+          @endif
+
+          @if ($sourceOffer)
+            <div class="rounded-[1.4rem] border border-emerald-200 bg-emerald-50/80 p-5">
+              <p class="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">Harga hasil negosiasi</p>
+              <p class="mt-2 text-lg font-extrabold text-emerald-900">Unit {{ $unitCode }} sudah disetujui supervisor dengan harga hasil negosiasi.</p>
+              <p class="mt-2 text-sm leading-6 text-emerald-800">
+                Pesan online ini menggunakan harga final hasil negosiasi yang sudah disepakati di sistem.
+              </p>
+            </div>
+          @endif
+
+          <div class="rounded-[1.6rem] border border-slate-100 p-6">
+            <h2 class="text-[2rem] font-extrabold text-primary">1. Bayar Biaya Pemesanan Saja</h2>
+            <p class="mt-3 text-[15px] leading-7 text-on-surface-variant">
+              Pembelian online Maharani Mobil menggunakan skema harga cash. Setelah biaya booking dibayarkan, customer akan diarahkan ke rekening resmi Maharani Mobil untuk proses pembayaran.
+            </p>
+
+            <div class="mt-6 grid grid-cols-1 md:max-w-[460px]">
+              <div class="rounded-[1.35rem] border-2 border-[#4a86d9] bg-white px-6 py-5 shadow-sm">
+                <p class="text-sm text-on-surface-variant">Harga Cash</p>
+                <p class="mt-2 text-[2rem] font-extrabold text-primary">{{ \App\Support\CurrencyFormatter::rupiah($cashPrice) }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-[1.6rem] border border-slate-100 p-6">
+            <h2 class="text-[2rem] font-extrabold text-primary">2. Rincian Harga</h2>
+            <div class="mt-6 space-y-5">
+              <div class="flex items-center justify-between gap-4 text-lg font-bold text-primary">
+                <span>Harga Mobil (Harga Cash)</span>
+                <span>{{ \App\Support\CurrencyFormatter::rupiah($cashPrice) }}</span>
+              </div>
+              <div class="flex items-center justify-between gap-4 text-base font-semibold text-on-surface-variant">
+                <span>Biaya Booking</span>
+                <span>{{ \App\Support\CurrencyFormatter::rupiah($bookingFee) }}</span>
+              </div>
+              <div class="flex items-center justify-between gap-4 border-t border-slate-200 pt-5 text-lg font-bold text-primary">
+                <span>Sisa Pembayaran</span>
+                <span>{{ \App\Support\CurrencyFormatter::rupiah($remainingBalance) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-[1.6rem] border border-slate-100 p-6">
+            <h2 class="text-[2rem] font-extrabold text-primary">3. Lokasi Mobil</h2>
+            <div class="mt-5 rounded-[1.3rem] bg-slate-50 px-5 py-4 text-sm leading-7 text-on-surface-variant">
+              Unit berada di showroom Maharani Mobil Pekanbaru. Setelah pembayaran booking fee berhasil diproses, tim Maharani akan melanjutkan konfirmasi pesanan dan penjadwalan serah terima unit.
+            </div>
+          </div>
+        </form>
       </section>
 
-      <aside class="space-y-6">
-        <div class="bg-primary text-white rounded-2xl p-6">
-          <h2 class="text-lg font-bold mb-4">Ringkasan</h2>
-          <div class="space-y-2 text-sm text-blue-100">
-            <div class="flex justify-between">
-              <span>Harga Unit</span>
-              <span>Rp 545.000.000</span>
-            </div>
-            <div class="flex justify-between">
-              <span>Biaya Admin</span>
-              <span>Rp 1.500.000</span>
-            </div>
-            <div class="border-t border-white/20 pt-2 flex justify-between font-bold text-white">
-              <span>Total</span>
-              <span>Rp 546.500.000</span>
+      <aside class="w-full max-w-[520px] xl:justify-self-end">
+        <div class="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-xl shadow-blue-900/5">
+          <div class="grid grid-cols-[112px_minmax(0,1fr)] items-start gap-5 p-5 md:grid-cols-[128px_minmax(0,1fr)] md:p-6">
+            <img alt="{{ $carName }}" class="h-20 w-28 rounded-2xl object-cover md:h-24 md:w-32" src="{{ $carImage }}"/>
+            <div class="min-w-0">
+              <h2 class="text-[1.45rem] font-extrabold leading-tight text-primary md:text-[1.7rem]">{{ $carName }}</h2>
+              <p class="mt-2 text-sm font-semibold text-slate-500">Kode Unit: {{ $unitCode }}</p>
+              <p class="mt-3 text-[14px] leading-7 text-on-surface-variant">
+                Mobil dipesan hanya untuk Anda. Selesaikan pembayaran booking fee untuk melanjutkan proses pemesanan online.
+              </p>
             </div>
           </div>
-        </div>
-        <div class="bg-surface-container-low rounded-2xl p-6">
-          <h3 class="font-bold text-primary mb-3">Alur Setelah Checkout</h3>
-          <ol class="text-sm text-on-surface-variant space-y-2">
-            <li>1. Pembayaran diterima</li>
-            <li>2. Verifikasi supervisor</li>
-            <li>3. Serah terima unit</li>
-          </ol>
+
+          <div class="border-t border-slate-200 px-5 py-5 md:px-6">
+            <div class="space-y-5 text-primary">
+              <div class="flex items-center justify-between gap-4 text-[1.05rem] font-bold md:text-[1.15rem]">
+                <div>
+                  <p>Booking Fee</p>
+                  <span class="mt-2 inline-flex rounded-full bg-[#ffe8a6] px-3 py-1 text-sm font-semibold text-[#8a4d12]">Bayar Sekarang</span>
+                </div>
+                <span>{{ \App\Support\CurrencyFormatter::rupiah($bookingFee) }}</span>
+              </div>
+              <div class="flex items-center justify-between gap-4 border-t border-slate-200 pt-5 text-[1.05rem] font-bold md:text-[1.15rem]">
+                <div>
+                  <p>Sisa Pembayaran</p>
+                  <span class="mt-2 inline-flex rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-500">Dibayar Nanti</span>
+                </div>
+                <span>{{ \App\Support\CurrencyFormatter::rupiah($remainingBalance) }}</span>
+              </div>
+            </div>
+
+            <div class="mt-6 border-t border-slate-200 pt-6">
+              <div class="flex items-start justify-between gap-4 text-primary">
+                <div class="text-[1.05rem] font-bold md:text-[1.15rem]">
+                  <p>Pembayaran Biaya</p>
+                  <p>Pemesanan</p>
+                </div>
+                <div class="text-right text-[1.05rem] font-bold md:text-[1.15rem]">
+                  <p>{{ \App\Support\CurrencyFormatter::rupiah($bookingFee) }}</p>
+                </div>
+              </div>
+
+              <div class="mt-6">
+                <button
+                  class="inline-flex w-full items-center justify-center rounded-[1rem] bg-[#ffcf33] px-5 py-4 text-lg font-bold text-primary disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                  type="submit"
+                  form="online-booking-form"
+                  id="online-booking-submit"
+                  disabled
+                >
+                  Bayar Sekarang
+                </button>
+              </div>
+
+              <label class="mt-4 flex items-start gap-3 text-sm leading-7 text-on-surface-variant">
+                <input
+                  class="mt-1 h-5 w-5 rounded border-slate-300 text-[#4a86d9] focus:ring-[#4a86d9]"
+                  type="checkbox"
+                  name="booking_fee_agreement"
+                  value="1"
+                  form="online-booking-form"
+                  id="booking-fee-agreement"
+                  @checked(old('booking_fee_agreement'))
+                />
+                <span>Dengan memilih kotak ini, saya mengonfirmasikan bahwa saya telah membaca, memahami, dan setuju untuk membayar biaya booking sebelum melanjutkan Transaksi pesanan.</span>
+              </label>
+            </div>
+          </div>
         </div>
       </aside>
     </div>
   </main>
 
-  <footer class="bg-[#031636] w-full py-10 mt-auto text-white text-xs uppercase tracking-widest">
-    <div class="max-w-screen-2xl mx-auto px-8 flex flex-col md:flex-row justify-between gap-4">
-      <span>© 2026 Maharani Mobil Pekanbaru</span>
-      <div class="flex gap-6">
-        <a class="hover:text-secondary-container" href="/privacy">Privacy</a>
-        <a class="hover:text-secondary-container" href="/terms">Terms</a>
-      </div>
-    </div>
-  </footer>
+  @include('components.whatsapp-float', ['message' => 'Halo Maharani Mobil, saya sedang memesan online untuk unit ' . $carName . '.'])
+  @include('components.ui-system-footer')
+  <script>
+    (() => {
+      const agreement = document.getElementById('booking-fee-agreement');
+      const submit = document.getElementById('online-booking-submit');
+
+      const syncSubmitState = () => {
+        if (!agreement || !submit) {
+          return;
+        }
+
+        submit.disabled = !agreement.checked;
+      };
+
+      if (agreement) {
+        agreement.addEventListener('change', syncSubmitState);
+      }
+      syncSubmitState();
+    })();
+  </script>
 </body>
 </html>
-
-

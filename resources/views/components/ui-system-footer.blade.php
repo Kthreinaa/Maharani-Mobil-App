@@ -23,19 +23,11 @@
 
 <script>
     (() => {
-        const localeSelector = document.querySelector('[data-locale-switcher]');
         const loginModal = document.getElementById('login-required-modal');
         const loginModalMessage = document.getElementById('login-required-message');
         const loginModalGo = document.querySelector('[data-login-modal-go]');
         const loginModalCancel = document.querySelector('[data-login-modal-cancel]');
         const searchModal = document.getElementById('mm-search-modal');
-
-        if (localeSelector) {
-            localeSelector.addEventListener('change', (event) => {
-                const locale = event.target.value;
-                window.location.href = `/locale/${locale}`;
-            });
-        }
 
         const closeModal = () => {
             if (!loginModal) {

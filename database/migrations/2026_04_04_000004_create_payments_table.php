@@ -8,17 +8,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('payments', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('order_id')->constrained()->cascadeOnDelete();
-            $table->enum('method', ['cash', 'transfer', 'va']);
-            $table->decimal('amount', 15, 2);
-            $table->string('proof_file')->nullable();
-            $table->enum('status', ['pending', 'verified', 'rejected'])->default('pending');
-            $table->foreignId('verified_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamp('verified_at')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('payments')) {
+            Schema::create('payments', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('order_id')->constrained()->cascadeOnDelete();
+                $table->enum('method', ['cash', 'transfer', 'va']);
+                $table->decimal('amount', 15, 2);
+                $table->string('proof_file')->nullable();
+                $table->enum('status', ['pending', 'verified', 'rejected'])->default('pending');
+                $table->foreignId('verified_by')->nullable()->constrained('users')->nullOnDelete();
+                $table->timestamp('verified_at')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void

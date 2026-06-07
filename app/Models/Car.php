@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\CarUnitCodeSuggester;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -52,5 +53,30 @@ class Car extends Model
     public function offers()
     {
         return $this->hasMany(Offer::class);
+    }
+
+    public function productReviews()
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
+    public function getUnitCodeSequenceAttribute(): int
+    {
+        return CarUnitCodeSuggester::extractSequence($this->kode_unit);
+    }
+
+    public function getStatusBadgeClassAttribute(): string
+    {
+        return match ($this->status) {
+            'available' => 'bg-emerald-100 text-emerald-700 border border-emerald-200',
+            'reserved' => 'bg-amber-100 text-amber-700 border border-amber-200',
+            'sold' => 'bg-rose-100 text-rose-700 border border-rose-200',
+            default => 'bg-slate-100 text-slate-700 border border-slate-200',
+        };
+    }
+
+    public function getStatusDisplayLabelAttribute(): string
+    {
+        return strtoupper((string) $this->status);
     }
 }

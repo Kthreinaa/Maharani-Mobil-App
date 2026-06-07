@@ -6,6 +6,10 @@
 @endphp
 
 @section('content')
+  @php
+    $hasPhotoError = $errors->has('photos') || $errors->has('photos.*');
+  @endphp
+
   <form class="max-w-3xl bg-white border border-slate-200 rounded-xl p-6" method="POST" action="{{ route('supervisor.cars.store') }}" enctype="multipart/form-data">
     @csrf
 
@@ -23,7 +27,8 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label class="text-sm font-semibold">Kode Unit</label>
-        <input class="mt-2 w-full rounded-lg border-slate-200" name="kode_unit" value="{{ old('kode_unit') }}" required/>
+        <input id="kode_unit" class="mt-2 w-full rounded-lg border-slate-200" name="kode_unit" placeholder="MM-AVZ-024-524" value="{{ old('kode_unit') }}" required/>
+        <p class="mt-2 text-xs text-slate-500">Nomor urut berikutnya: {{ str_pad((string) ($nextUnitSequence ?? 1), 3, '0', STR_PAD_LEFT) }}. Kode akan disarankan otomatis setelah tipe dan tahun diisi.</p>
       </div>
       <div>
         <label class="text-sm font-semibold">Merk</label>
@@ -31,11 +36,11 @@
       </div>
       <div>
         <label class="text-sm font-semibold">Tipe</label>
-        <input class="mt-2 w-full rounded-lg border-slate-200" name="tipe" value="{{ old('tipe') }}" required/>
+        <input id="tipe" class="mt-2 w-full rounded-lg border-slate-200" name="tipe" value="{{ old('tipe') }}" required/>
       </div>
       <div>
         <label class="text-sm font-semibold">Tahun</label>
-        <input class="mt-2 w-full rounded-lg border-slate-200" name="tahun" type="number" value="{{ old('tahun') }}" required/>
+        <input id="tahun" class="mt-2 w-full rounded-lg border-slate-200" name="tahun" type="number" value="{{ old('tahun') }}" required/>
       </div>
       <div>
         <label class="text-sm font-semibold">Harga</label>
@@ -72,9 +77,12 @@
     </div>
 
     <div class="mt-4">
-      <label class="text-sm font-semibold">Foto Mobil (Wajib 3-5 Foto)</label>
+      <label class="text-sm font-semibold text-slate-900" for="photos">
+        Foto Mobil
+        <span class="text-rose-600">Wajib minimal 5 foto</span>
+      </label>
       <input
-        class="mt-2 block w-full rounded-lg border-slate-200 file:mr-4 file:rounded-md file:border-0 file:bg-slate-900 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-slate-700"
+        class="mt-2 block w-full rounded-lg border {{ $hasPhotoError ? 'border-rose-300 bg-rose-50/40' : 'border-slate-200' }} file:mr-4 file:rounded-md file:border-0 file:bg-slate-900 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-slate-700"
         type="file"
         name="photos[]"
         id="photos"
@@ -82,8 +90,8 @@
         accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
         required
       />
-      <p class="mt-2 text-xs text-slate-500">
-        Minimal 3 foto dan maksimal 5 foto. Format: JPG, JPEG, PNG, WEBP. Maksimal 4MB per foto.
+      <p id="photos-helper" class="mt-2 text-xs font-semibold {{ $hasPhotoError ? 'text-rose-600' : 'text-slate-500' }}">
+        Wajib upload minimal 5 foto mobil. Sistem tidak akan melanjutkan jika foto kurang dari 5. Format: JPG, JPEG, PNG, WEBP. Maksimal 4MB per foto.
       </p>
     </div>
 
@@ -97,19 +105,88 @@
 @push('scripts')
   <script>
     (function () {
+      const codeInput = document.getElementById('kode_unit');
+      const typeInput = document.getElementById('tipe');
+      const yearInput = document.getElementById('tahun');
+      const nextSequence = @json((int) ($nextUnitSequence ?? 1));
+      let codeTouched = codeInput && codeInput.value.trim() !== '';
+
+      function typeCodeFromValue(value) {
+        const normalized = (value || '').toUpperCase().replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+        if (!normalized) return 'UNK';
+
+        const map = {
+          'ACCORD': 'ACD', 'AGYA': 'AGY', 'ALVEZ': 'ALV', 'APV': 'APV', 'AVANZA': 'AVZ', 'AYLA': 'AYL',
+          'BALENO': 'BLN', 'BRV': 'BRV', 'BRIO': 'BRI', 'CALYA': 'CLY', 'CAMRY': 'CMR', 'CAPTIVA': 'CPT',
+          'CARRY': 'CRY', 'CITY': 'CTY', 'CIVIC': 'CVC', 'CONFERO': 'CFR', 'COROLLA': 'CRL', 'CRV': 'CRV',
+          'CX3': 'CX3', 'ERTIGA': 'ERT', 'ETIOS': 'ETS', 'FORTUNER': 'FRT', 'FREED': 'FRD', 'GRAN': 'GRN',
+          'GRAND': 'GRD', 'HILUX': 'HLX', 'HRV': 'HRV', 'INNOVA': 'INV', 'JAZZ': 'JZZ', 'JUKE': 'JUK',
+          'KARIMUN': 'KRM', 'KIJANG': 'KJG', 'L300': 'L30', 'LIVINA': 'LVN', 'LUXIO': 'LXI', 'MOBILIO': 'MBL',
+          'OUTLANDER': 'OTL', 'PAJERO': 'PJR', 'RAIZE': 'RAZ', 'ROCKY': 'RCK', 'RUSH': 'RSH', 'SERENA': 'SRN',
+          'SIENTA': 'SNT', 'SIGRA': 'SGR', 'SIRION': 'SRI', 'SWIFT': 'SWF', 'SX4': 'SX4', 'TERIOS': 'TRS',
+          'TRITON': 'TRT', 'VELOZ': 'VLZ', 'VIOS': 'VIS', 'XTRAIL': 'XTR', 'XENIA': 'XEN', 'XL7': 'XL7',
+          'XPANDER': 'XPD', 'YARIS': 'YRS'
+        };
+
+        const token = normalized.split(' ')[0].replace(/[^A-Z0-9]/g, '');
+        return map[token] || token.slice(0, 3).padEnd(3, 'X');
+      }
+
+      function yearCodeFromValue(value) {
+        const numericYear = parseInt(value, 10);
+        if (!numericYear || numericYear <= 0) return '000';
+        return String(numericYear % 1000).padStart(3, '0');
+      }
+
+      function updateSuggestedCode() {
+        if (!codeInput || !typeInput || !yearInput || codeTouched) return;
+        codeInput.value = `MM-${typeCodeFromValue(typeInput.value)}-${yearCodeFromValue(yearInput.value)}-${String(nextSequence).padStart(3, '0')}`;
+      }
+
+      codeInput?.addEventListener('input', function () {
+        codeTouched = codeInput.value.trim() !== '';
+      });
+
+      typeInput?.addEventListener('input', updateSuggestedCode);
+      yearInput?.addEventListener('input', updateSuggestedCode);
+      updateSuggestedCode();
+
       const input = document.getElementById('photos');
       if (!input) return;
+      const helper = document.getElementById('photos-helper');
 
-      input.addEventListener('change', function () {
-        const total = this.files ? this.files.length : 0;
-        if (total > 5) {
-          alert('Maksimal upload 5 foto.');
-          this.value = '';
+      function setPhotoState() {
+        const total = input.files ? input.files.length : 0;
+
+        if (total < 5) {
+          input.setCustomValidity('Minimal upload 5 foto mobil.');
+          if (helper) {
+            helper.textContent = total === 0
+              ? 'Wajib upload minimal 5 foto mobil. Form tidak bisa dilanjutkan sebelum 5 foto dipilih.'
+              : 'Wajib upload minimal 5 foto mobil. Saat ini file yang dipilih masih kurang dari 5.';
+            helper.classList.remove('text-slate-500');
+            helper.classList.add('text-rose-600');
+          }
           return;
         }
-        if (total > 0 && total < 3) {
-          alert('Minimal upload 3 foto.');
+
+        input.setCustomValidity('');
+        if (helper) {
+          helper.textContent = 'Wajib upload minimal 5 foto mobil. Sistem siap dilanjutkan karena jumlah foto sudah memenuhi syarat.';
+          helper.classList.remove('text-rose-600');
+          helper.classList.add('text-slate-500');
         }
+      }
+
+      input.addEventListener('change', function () {
+        setPhotoState();
+        if (input.validationMessage) {
+          input.reportValidity();
+        }
+      });
+
+      input.addEventListener('invalid', function () {
+        setPhotoState();
       });
     })();
   </script>

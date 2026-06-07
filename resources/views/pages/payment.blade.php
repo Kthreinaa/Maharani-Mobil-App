@@ -1,104 +1,227 @@
-﻿<!DOCTYPE html>
+@php
+  $car = $order->car;
+  $carName = trim(($car?->merk ?? '') . ' ' . ($car?->tipe ?? '') . ' ' . ($car?->tahun ?? ''));
+  $selectedBankCode = old('bank_account', 'mandiri');
+  $gatewayCheckoutUrl = $payment?->gateway_checkout_url;
+  $gatewayPending = filled($gatewayCheckoutUrl) && ($payment?->status ?? 'pending') !== 'verified';
+  $isCreditPurchase = $order->is_credit_purchase;
+  $localSimulationEnabled = app()->environment(['local', 'testing']) && ! $xenditEnabled && ! $isCreditPurchase;
+  $paymentLabel = $isCreditPurchase ? 'Pembayaran DP Kredit' : 'Transfer Booking Fee';
+  $paymentDescription = $isCreditPurchase
+    ? 'Lanjutkan pembayaran DP ke pihak showroom setelah pengajuan kredit disetujui oleh supervisor.'
+    : 'Pilih rekening tujuan pembayaran booking fee Maharani Mobil.';
+  $paymentMethodInput = $isCreditPurchase ? 'credit' : 'transfer';
+  $statusLabel = $isCreditPurchase && ($payment?->status ?? 'pending') === 'verified' && (float) ($payment?->amount ?? 0) < (float) $order->total
+    ? 'DP KREDIT TERVERIFIKASI'
+    : strtoupper($payment?->status ?? 'pending');
+@endphp
+
+<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Pembayaran | Maharani Mobil</title>
-  <meta name="description" content="Pilih metode pembayaran dan lanjutkan verifikasi pembelian."/>
-  <script src="/assets/tailwind.config.js"></script>
+  <title>{{ $paymentLabel }} | Maharani Mobil</title>
+  <meta name="description" content="{{ $paymentDescription }}"/>
+  @include('components.ui-system-head')
+  <script src="{{ asset('assets/tailwind.config.js') }}?v={{ filemtime(public_path('assets/tailwind.config.js')) }}"></script>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700&display=swap" rel="stylesheet"/>
-  <link href="/assets/app.css" rel="stylesheet"/>
+  <link href="{{ asset('assets/app.css') }}?v={{ filemtime(public_path('assets/app.css')) }}" rel="stylesheet"/>
 </head>
 <body class="bg-background text-on-background min-h-screen flex flex-col">
-  <header class="bg-slate-50/70 backdrop-blur-xl sticky top-0 z-50">
-    <div class="flex justify-between items-center w-full px-8 py-4 max-w-screen-2xl mx-auto">
-      <a class="text-2xl font-black text-[#1A2B4C] tracking-tighter font-headline" href="/">Maharani Mobil</a>
-      <nav class="hidden md:flex items-center gap-8 font-headline tracking-tight">
-        <a class="text-slate-500 hover:text-[#F5A623] transition-colors" href="/catalog">Catalog</a>
-        <a class="text-slate-500 hover:text-[#F5A623] transition-colors" href="/about">About Us</a>
-        <a class="text-slate-500 hover:text-[#F5A623] transition-colors" href="/financing">Financing</a>
-      </nav>
+  <header class="bg-slate-50/70 dark:bg-slate-950/70 backdrop-blur-xl sticky top-0 z-50">
+    <div class="flex justify-between items-center w-full px-6 py-4 max-w-screen-2xl mx-auto">
+      <a class="text-2xl font-black text-[#1A2B4C] dark:text-white tracking-tighter font-headline" href="/">Maharani Mobil</a>
       <div class="flex items-center gap-4">
-        <a class="px-4 py-2 text-slate-500 hover:text-primary" href="/login">Login</a>
-        <a class="px-6 py-2 bg-primary text-white rounded-full font-bold" href="/register">Register</a>
+        @include('components.nav-tools')
+        <form method="POST" action="{{ route('logout') }}">
+          @csrf
+          <button type="submit" class="px-4 py-2 text-slate-500 dark:text-slate-300 hover:text-primary">Logout</button>
+        </form>
       </div>
     </div>
   </header>
 
   <main class="max-w-screen-2xl mx-auto w-full px-6 md:px-12 py-10 flex-grow">
-    <h1 class="text-3xl font-extrabold text-primary mb-6">Pembayaran</h1>
-    <!-- API: GET /api/payment-methods -->
-    <!-- API: POST /api/payments -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <section class="lg:col-span-2 bg-white rounded-2xl shadow-xl shadow-blue-900/5 p-8">
-        <h2 class="text-xl font-bold text-primary mb-4">Pilih Metode Pembayaran</h2>
-        <div class="space-y-4">
-          <label class="border border-outline-variant rounded-2xl p-4 flex items-center gap-4">
-            <input type="radio" name="method"/>
+    <div class="flex items-center justify-between gap-4 mb-8">
+      <div>
+        <p class="text-xs uppercase tracking-[0.24em] text-slate-400 font-semibold">{{ $isCreditPurchase ? 'Step 2 - Pembayaran DP Kredit' : 'Step 2 - Transfer Booking Fee' }}</p>
+        <h1 class="text-4xl font-extrabold text-primary mt-2">{{ $paymentLabel }}</h1>
+      </div>
+      <a class="text-sm font-semibold text-primary hover:text-[#F5A623]" href="{{ route('checkout.cash', ['car_id' => $order->car_id]) }}">Kembali ke pesan online</a>
+    </div>
+
+    @if (session('success'))
+      <div class="mb-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+        {{ session('success') }}
+      </div>
+    @endif
+
+    @if (session('error'))
+      <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        {{ session('error') }}
+      </div>
+    @endif
+
+    <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
+      <section class="lg:col-span-2 rounded-[2rem] bg-white p-6 md:p-8 shadow-xl shadow-blue-900/5">
+        <div class="mb-8 rounded-[1.5rem] border border-slate-100 p-5">
+          <p class="text-xs uppercase tracking-[0.18em] text-slate-400 font-semibold">Pesanan aktif</p>
+          <div class="mt-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <p class="font-bold text-primary">Transfer Bank</p>
-              <p class="text-sm text-on-surface-variant">BCA • 123-456-7890 a.n. Maharani Mobil</p>
+              <h2 class="text-2xl font-extrabold text-primary">{{ $carName }}</h2>
+              <p class="mt-1 text-sm text-on-surface-variant">{{ $order->order_reference }} / {{ $isCreditPurchase ? 'Pembelian kredit leasing' : 'Pembelian online cash' }}</p>
             </div>
-          </label>
-          <label class="border border-outline-variant rounded-2xl p-4 flex items-center gap-4">
-            <input type="radio" name="method"/>
-            <div>
-              <p class="font-bold text-primary">Virtual Account</p>
-              <p class="text-sm text-on-surface-variant">Mandiri VA • 8800 1234 5678</p>
-            </div>
-          </label>
-          <label class="border border-outline-variant rounded-2xl p-4 flex items-center gap-4">
-            <input type="radio" name="method"/>
-            <div>
-              <p class="font-bold text-primary">Cash</p>
-              <p class="text-sm text-on-surface-variant">Pembayaran langsung di showroom</p>
-            </div>
-          </label>
+            <p class="text-3xl font-extrabold text-primary">{{ \App\Support\CurrencyFormatter::rupiah($bookingFee) }}</p>
+          </div>
         </div>
 
-        <div class="mt-8 flex justify-end">
-          <a class="px-6 py-3 rounded-xl bg-secondary-container text-on-secondary-fixed font-semibold" href="/payment-upload">Upload Bukti Pembayaran</a>
-        </div>
+        @if ($xenditEnabled)
+          <div class="rounded-[1.5rem] border border-emerald-200 bg-emerald-50/70 p-6">
+            <p class="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">Pembayaran Otomatis</p>
+            <h3 class="mt-2 text-2xl font-extrabold text-emerald-900">Bayar lewat halaman aman Xendit</h3>
+            <p class="mt-3 text-sm leading-7 text-emerald-800">
+              Customer akan diarahkan ke halaman pembayaran aman Xendit untuk memilih metode yang paling nyaman, termasuk transfer bank, virtual account, QRIS, dan e-wallet. Setelah pembayaran berhasil, status di sistem Maharani Mobil akan terupdate otomatis melalui webhook.
+            </p>
+
+            @if ($gatewayPending)
+              <div class="mt-5 rounded-[1.2rem] border border-emerald-200 bg-white/90 px-4 py-3 text-sm text-emerald-800">
+                Link pembayaran Anda sudah dibuat sebelumnya dan masih aktif. Anda bisa lanjutkan dari link yang sama tanpa membuat ulang invoice.
+              </div>
+            @endif
+          </div>
+
+          <div class="mt-5 rounded-[1.5rem] border border-slate-100 p-6">
+            <h3 class="text-2xl font-extrabold text-primary">Rekening Settlement Showroom</h3>
+            <p class="mt-3 text-sm leading-7 text-on-surface-variant">
+              Dana transaksi online akan disalurkan ke rekening resmi showroom yang telah dikonfigurasi di sistem pembayaran.
+            </p>
+
+            <div class="mt-5 rounded-[1.4rem] border border-outline-variant bg-slate-50 px-5 py-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{{ $settlementAccount['bank'] ?? 'Bank Mandiri' }}</p>
+              <p class="mt-2 text-sm font-semibold text-slate-700">a.n. {{ $settlementAccount['account_name'] ?? 'Diki Susanto' }}</p>
+              <p class="mt-1 text-xl font-extrabold text-primary">{{ $settlementAccount['account_number'] ?? '1080093012152' }}</p>
+            </div>
+
+            @if (($payment?->status ?? null) === 'verified')
+              <div class="mt-6 rounded-[1.2rem] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                Pembayaran booking fee untuk order ini sudah diterima. Anda bisa kembali ke halaman tracking untuk melihat progres pesanan.
+              </div>
+            @else
+              <form method="POST" action="{{ route('customer.payments.store') }}" class="mt-6 flex justify-end">
+                @csrf
+                <input type="hidden" name="order_id" value="{{ $order->id }}"/>
+                <input type="hidden" name="method" value="{{ $paymentMethodInput }}"/>
+                <button class="inline-flex items-center justify-center rounded-xl bg-primary px-6 py-4 text-sm font-bold text-white" type="submit">
+                  {{ $gatewayPending ? 'Lanjutkan Pembayaran Aman' : 'Buat Link Pembayaran Aman' }}
+                </button>
+              </form>
+            @endif
+          </div>
+        @else
+          <form method="POST" action="{{ route('customer.payments.store') }}" class="space-y-5">
+            @csrf
+            <input type="hidden" name="order_id" value="{{ $order->id }}"/>
+            <input type="hidden" name="method" value="{{ $paymentMethodInput }}"/>
+
+            <div class="rounded-[1.5rem] border border-slate-100 p-6">
+              <h3 class="text-2xl font-extrabold text-primary">Pilih Rekening Tujuan Maharani Mobil</h3>
+              <p class="mt-3 text-sm leading-7 text-on-surface-variant">
+                {{ $isCreditPurchase
+                  ? 'Pembayaran DP kredit dilakukan ke rekening resmi showroom berikut. Setelah dana DP diverifikasi supervisor, showroom dapat melanjutkan proses kredit sampai pelunasan leasing dan serah terima unit.'
+                  : 'Integrasi pembayaran otomatis belum diaktifkan. Untuk sementara, customer tetap dapat mencatat pembayaran ke rekening resmi showroom berikut agar divalidasi internal.' }}
+              </p>
+
+              <div class="mt-6 space-y-4">
+                @foreach ($bankAccounts as $bank)
+                  <label class="flex cursor-pointer gap-4 rounded-[1.4rem] border border-outline-variant p-5">
+                    <input type="radio" name="bank_account" value="{{ $bank['code'] }}" @checked($selectedBankCode === $bank['code']) />
+                    <div class="flex-1">
+                      <div class="flex items-center justify-between gap-3">
+                        <h4 class="text-lg font-bold text-primary">{{ $bank['bank'] }}</h4>
+                        <span class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Rekening resmi</span>
+                      </div>
+                      <p class="mt-2 text-sm font-semibold text-slate-700">a.n. {{ $bank['account_name'] }}</p>
+                      <p class="mt-1 text-base font-extrabold text-primary">{{ $bank['account_number'] }}</p>
+                    </div>
+                  </label>
+                @endforeach
+              </div>
+            </div>
+
+            <div class="flex justify-end">
+              <button class="inline-flex items-center justify-center rounded-xl bg-primary px-6 py-4 text-sm font-bold text-white" type="submit">
+                {{ $isCreditPurchase ? 'Catat Pembayaran DP Kredit' : 'Lanjutkan Pembayaran' }}
+              </button>
+            </div>
+          </form>
+
+          @if ($localSimulationEnabled)
+            <div class="mt-5 rounded-[1.5rem] border border-sky-200 bg-sky-50/80 p-5">
+              <p class="text-xs font-bold uppercase tracking-[0.18em] text-sky-700">Mode Uji Lokal</p>
+              <p class="mt-2 text-sm leading-7 text-sky-800">
+                Karena gateway real belum aktif di `.env`, pembayaran bank belum bisa benar-benar diproses dari tombol di atas. Untuk melihat hasil faktur, kwitansi digital, dan BAST sekarang juga, gunakan simulasi pelunasan test berikut.
+              </p>
+              <form method="POST" action="{{ route('customer.payments.simulate-success') }}" class="mt-4 flex justify-end">
+                @csrf
+                <input type="hidden" name="order_id" value="{{ $order->id }}"/>
+                <button class="inline-flex items-center justify-center rounded-xl border border-sky-200 bg-white px-6 py-4 text-sm font-bold text-sky-800" type="submit">
+                  Simulasikan Pembayaran Berhasil
+                </button>
+              </form>
+            </div>
+          @endif
+        @endif
       </section>
 
       <aside class="space-y-6">
-        <div class="bg-primary text-white rounded-2xl p-6">
-          <h2 class="text-lg font-bold mb-4">Ringkasan Pembayaran</h2>
-          <div class="space-y-2 text-sm text-blue-100">
+        <div class="rounded-[2rem] bg-primary p-6 text-white shadow-xl shadow-blue-900/20">
+          <h2 class="mb-4 text-lg font-bold">Ringkasan Pembayaran</h2>
+          <div class="space-y-3 text-sm text-blue-100">
             <div class="flex justify-between">
-              <span>Order ID</span>
-              <span>#MM-0241</span>
+              <span>{{ $isCreditPurchase ? 'Nominal DP' : 'Booking Fee' }}</span>
+              <span>{{ \App\Support\CurrencyFormatter::rupiah($bookingFee) }}</span>
             </div>
             <div class="flex justify-between">
-              <span>Total</span>
-              <span>Rp 546.500.000</span>
+              <span>{{ $isCreditPurchase ? 'Pelunasan Leasing' : 'Sisa Pembayaran' }}</span>
+              <span>{{ \App\Support\CurrencyFormatter::rupiah($remainingBalance) }}</span>
             </div>
-            <div class="border-t border-white/20 pt-2 flex justify-between font-bold text-white">
+            <div class="flex justify-between">
+              <span>Metode</span>
+              <span>{{ $isCreditPurchase ? 'DP KREDIT SHOWROOM' : ($xenditEnabled ? 'XENDIT HOSTED PAYMENT' : 'TRANSFER BANK') }}</span>
+            </div>
+            <div class="border-t border-white/15 pt-3 flex justify-between font-bold text-white">
               <span>Status</span>
-              <span>Pending</span>
+              <span>{{ $statusLabel }}</span>
             </div>
+            @if ($payment?->gateway_channel)
+              <div class="flex justify-between">
+                <span>Channel</span>
+                <span>{{ strtoupper($payment->gateway_channel_label) }}</span>
+              </div>
+            @endif
           </div>
         </div>
-        <div class="bg-surface-container-low rounded-2xl p-6">
-          <h3 class="font-bold text-primary mb-3">Catatan</h3>
-          <p class="text-sm text-on-surface-variant">Pembayaran akan diverifikasi oleh supervisor maksimal 1x24 jam.</p>
+
+        <div class="rounded-[2rem] bg-white p-6 shadow-xl shadow-blue-900/5">
+          <h3 class="text-lg font-bold text-primary">Informasi Penting</h3>
+          <p class="mt-3 text-sm leading-7 text-on-surface-variant">
+            @if ($isCreditPurchase)
+              Customer tidak perlu upload bukti pembayaran. DP kredit yang sudah dicatat akan divalidasi oleh supervisor. Setelah DP diterima, pelunasan utama tetap dilakukan oleh leasing sesuai approval pembiayaan.
+            @elseif ($xenditEnabled)
+              Customer tidak perlu mengunggah bukti pembayaran. Setelah menyelesaikan pembayaran di halaman Xendit, sistem Maharani Mobil akan menerima update otomatis dan status order langsung diperbarui.
+            @else
+              Customer tidak perlu mengunggah bukti pembayaran. Setelah memilih bank tujuan, informasi pembayaran akan tercatat dalam sistem dan selanjutnya dilakukan pengecekan oleh supervisor berdasarkan mutasi rekening resmi Maharani Mobil.
+            @endif
+          </p>
         </div>
       </aside>
     </div>
   </main>
 
-  <footer class="bg-[#031636] w-full py-10 mt-auto text-white text-xs uppercase tracking-widest">
-    <div class="max-w-screen-2xl mx-auto px-8 flex flex-col md:flex-row justify-between gap-4">
-      <span>© 2026 Maharani Mobil Pekanbaru</span>
-      <div class="flex gap-6">
-        <a class="hover:text-secondary-container" href="/privacy">Privacy</a>
-        <a class="hover:text-secondary-container" href="/terms">Terms</a>
-      </div>
-    </div>
-  </footer>
+  @include('components.whatsapp-float', ['message' => 'Halo Maharani Mobil, saya ingin menanyakan pembayaran booking fee untuk order ' . $order->order_reference . '.'])
+  @include('components.ui-system-footer')
 </body>
 </html>
-
-

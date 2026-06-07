@@ -29,7 +29,7 @@
     <!-- API: PATCH /api/payments/{id}/verify -->
     <section class="bg-white rounded-2xl shadow-xl shadow-blue-900/5 overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="w-full text-left">
+        <table class="mm-data-table w-full text-left">
           <thead>
             <tr class="text-on-surface-variant text-xs font-black uppercase tracking-widest">
               <th class="px-8 py-4">Payment ID</th>

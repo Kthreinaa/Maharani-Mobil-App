@@ -168,18 +168,47 @@ html[data-theme="dark"] .border-slate-300 { border-color: var(--mm-border) !impo
 }
 
 .hero-search-card {
-  /* Light mode: navy -> white hero sits on bright glass */
-  background: rgba(248, 250, 252, 0.82) !important;
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.08) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  box-shadow: 0 24px 80px rgba(2, 8, 23, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(30px) saturate(135%);
+  -webkit-backdrop-filter: blur(30px) saturate(135%);
 }
 
 html.dark .hero-search-card,
 html[data-theme="dark"] .hero-search-card {
-  /* Dark mode: deep navy glass */
-  background: rgba(11, 17, 32, 0.72) !important;
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  background: linear-gradient(180deg, rgba(12, 22, 46, 0.52) 0%, rgba(8, 19, 46, 0.36) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 24px 80px rgba(2, 8, 23, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(30px) saturate(135%);
+  -webkit-backdrop-filter: blur(30px) saturate(135%);
+}
+
+.hero-search-field {
+  background: rgba(7, 27, 71, 0.88) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.hero-search-field::placeholder {
+  color: rgba(226, 232, 240, 0.55) !important;
+}
+
+.hero-search-field option {
+  background: #0b1a40;
+  color: #f8fafc;
+}
+
+.hero-search-field:focus {
+  border-color: rgba(245, 166, 35, 0.55) !important;
+  box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+.hero-search-label {
+  color: rgba(226, 232, 240, 0.7) !important;
 }
 
 /* Search modal glass panel that follows background */
@@ -194,6 +223,125 @@ html.dark .mm-glass-panel,
 html[data-theme="dark"] .mm-glass-panel {
   background: rgba(15, 23, 42, 0.55);
   border-color: rgba(255, 255, 255, 0.08);
+}
+
+.ios-glass-card {
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(203, 213, 225, 0.82);
+  box-shadow: 0 20px 55px rgba(15, 23, 42, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(24px) saturate(145%);
+  -webkit-backdrop-filter: blur(24px) saturate(145%);
+}
+
+.ios-glass-card--amber {
+  background: rgba(255, 247, 237, 0.78);
+  border-color: rgba(245, 158, 11, 0.24);
+}
+
+.ios-glass-card--emerald {
+  background: rgba(236, 253, 245, 0.78);
+  border-color: rgba(16, 185, 129, 0.24);
+}
+
+.ios-glass-card--rose {
+  background: rgba(255, 241, 242, 0.78);
+  border-color: rgba(244, 63, 94, 0.22);
+}
+
+.ios-glass-card--slate {
+  background: rgba(248, 250, 252, 0.76);
+  border-color: rgba(100, 116, 139, 0.22);
+}
+
+.ios-glass-card--navy {
+  background: rgba(239, 246, 255, 0.76);
+  border-color: rgba(8, 19, 46, 0.20);
+}
+
+.ios-faq-help {
+  background: rgba(71, 85, 105, 0.44);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(28px) saturate(145%);
+  -webkit-backdrop-filter: blur(28px) saturate(145%);
+}
+
+.ios-faq-item {
+  background: rgba(9, 26, 64, 0.84);
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  box-shadow: 0 20px 55px rgba(8, 19, 46, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+}
+
+.mm-data-table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.mm-data-table thead {
+  background: linear-gradient(135deg, rgba(8, 19, 46, 0.08) 0%, rgba(236, 244, 255, 0.94) 48%, rgba(255, 248, 231, 0.96) 100%);
+}
+
+.mm-data-table thead th {
+  letter-spacing: 0.14em;
+  font-size: 12px;
+  font-weight: 800;
+  color: #5f6f89;
+  background: transparent;
+}
+
+.mm-data-table thead th:first-child {
+  border-top-left-radius: 1rem;
+}
+
+.mm-data-table thead th:last-child {
+  border-top-right-radius: 1rem;
+}
+
+.mm-data-table tbody tr {
+  transition: background-color 180ms ease;
+}
+
+.mm-data-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.74);
+}
+
+html.dark .ios-glass-card,
+html[data-theme="dark"] .ios-glass-card {
+  background: rgba(15, 23, 42, 0.74);
+  border-color: rgba(148, 163, 184, 0.12);
+  box-shadow: 0 20px 55px rgba(2, 8, 23, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+html.dark .ios-glass-card--amber,
+html[data-theme="dark"] .ios-glass-card--amber {
+  background: rgba(120, 53, 15, 0.32);
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+html.dark .ios-glass-card--emerald,
+html[data-theme="dark"] .ios-glass-card--emerald {
+  background: rgba(6, 78, 59, 0.32);
+  border-color: rgba(16, 185, 129, 0.22);
+}
+
+html.dark .ios-glass-card--rose,
+html[data-theme="dark"] .ios-glass-card--rose {
+  background: rgba(127, 29, 29, 0.30);
+  border-color: rgba(244, 63, 94, 0.2);
+}
+
+html.dark .ios-glass-card--slate,
+html[data-theme="dark"] .ios-glass-card--slate {
+  background: rgba(30, 41, 59, 0.76);
+  border-color: rgba(100, 116, 139, 0.22);
+}
+
+html.dark .ios-glass-card--navy,
+html[data-theme="dark"] .ios-glass-card--navy {
+  background: rgba(30, 58, 138, 0.22);
+  border-color: rgba(59, 130, 246, 0.16);
 }
 
 /* Landing hero gradient should follow theme:
@@ -226,12 +374,16 @@ html[data-theme="dark"] .landing-hero-overlay {
   background: #f3f4f6 !important;
 }
 
-.landing-surface-testimonials {
+.landing-surface-faq {
   background: #ffffff !important;
 }
 
-.landing-surface-seo {
+.landing-surface-testimonials {
   background: #f3f4f6 !important;
+}
+
+.landing-surface-seo {
+  background: #ffffff !important;
 }
 
 .landing-inventory-card {
@@ -290,9 +442,14 @@ html[data-theme="dark"] .landing-surface-main {
   background: #030712 !important;
 }
 
+html.dark .landing-surface-faq,
+html[data-theme="dark"] .landing-surface-faq {
+  background: #020617 !important;
+}
+
 html.dark .landing-surface-testimonials,
 html[data-theme="dark"] .landing-surface-testimonials {
-  background: #020617 !important;
+  background: #030712 !important;
 }
 
 html.dark .landing-surface-seo,

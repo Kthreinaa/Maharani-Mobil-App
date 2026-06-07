@@ -74,7 +74,7 @@ class AuthController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'phone' => ['nullable', 'string', 'max:50'],
+            'phone' => ['required', 'string', 'max:50'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
@@ -86,20 +86,19 @@ class AuthController extends Controller
             ])->withInput();
         }
 
-        $user = User::create([
+        User::create([
             'name' => $validated['name'],
             'email' => $email,
-            'phone' => $validated['phone'] ?? null,
+            'phone' => $validated['phone'],
             'password' => Hash::make($validated['password']),
             'role' => 'customer',
             'provider' => null,
             'provider_id' => null,
         ]);
 
-        Auth::login($user);
-        $request->session()->regenerate();
-
-        return redirect($this->redirectByRole($user))->with('success', 'Registrasi berhasil. Selamat datang!');
+        return redirect()
+            ->route('login')
+            ->with('success', 'Akun telah didaftarkan. Silakan login dengan email dan password yang sudah dibuat.');
     }
 
     /**
@@ -111,7 +110,9 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/login')->with('success', 'Anda telah logout.');
+        return redirect()
+            ->route('landing')
+            ->with('success', 'Anda telah logout.');
     }
 
     /**
@@ -120,7 +121,7 @@ class AuthController extends Controller
     protected function redirectByRole(User $user): string
     {
         if ($user->role === 'customer') {
-            return '/home';
+            return route('customer.home');
         }
 
         if ($user->role === 'supervisor') {
@@ -135,7 +136,7 @@ class AuthController extends Controller
             return '/owner/dashboard';
         }
 
-        return '/home';
+        return route('home.public');
     }
 
     /**

@@ -17,7 +17,7 @@ class SupervisorActivityController extends Controller
             ->merge(Order::latest()->take(20)->get()->map(fn ($item) => [
                 'type' => 'order',
                 'label' => 'Pesanan baru',
-                'detail' => 'Order #' . $item->id,
+                'detail' => $item->order_reference,
                 'time' => $item->created_at,
             ]))
             ->merge(Payment::latest()->take(20)->get()->map(fn ($item) => [
@@ -32,12 +32,20 @@ class SupervisorActivityController extends Controller
                 'detail' => $item->name,
                 'time' => $item->created_at,
             ]))
-            ->merge(Car::latest()->take(10)->get()->map(fn ($item) => [
-                'type' => 'car',
-                'label' => 'Mobil baru',
-                'detail' => $item->merk . ' ' . $item->tipe,
-                'time' => $item->created_at,
-            ]))
+            ->merge(Car::with('createdBy:id,name,role')->latest()->take(10)->get()->map(function ($item) {
+                $sourceLabel = match ($item->createdBy?->role) {
+                    'marketing' => 'Marketing',
+                    'supervisor' => 'Supervisor',
+                    default => 'Sumber belum tercatat',
+                };
+
+                return [
+                    'type' => 'car',
+                    'label' => 'Mobil baru',
+                    'detail' => $item->merk . ' ' . $item->tipe . ' - ' . $sourceLabel,
+                    'time' => $item->created_at,
+                ];
+            }))
             ->merge(TestDrive::latest()->take(10)->get()->map(fn ($item) => [
                 'type' => 'testdrive',
                 'label' => 'Test drive',

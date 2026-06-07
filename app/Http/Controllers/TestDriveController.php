@@ -15,6 +15,7 @@ class TestDriveController extends Controller
             'booking_time' => ['required', 'date_format:H:i'],
             'location' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string', 'max:2000'],
+            'customer_channel' => ['nullable', 'in:online,offline'],
         ]);
 
         $notesParts = [];
@@ -32,11 +33,13 @@ class TestDriveController extends Controller
             'booking_date' => $validated['booking_date'],
             'booking_time' => $validated['booking_time'],
             'status' => 'pending',
+            'customer_channel' => $validated['customer_channel'] ?? 'online',
             'notes' => $finalNotes,
+            'follow_up_status' => 'appointment',
         ]);
 
         return redirect()
-            ->route('home.public')
+            ->route('customer.home')
             ->with('success', 'Janji test drive telah di booking.');
     }
 }

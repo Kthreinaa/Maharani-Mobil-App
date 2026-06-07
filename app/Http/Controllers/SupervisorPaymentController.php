@@ -9,18 +9,41 @@ class SupervisorPaymentController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Payment::with(['order.user', 'order.car'])->latest();
-        if ($request->filled('status')) {
+        $query = Payment::query()->with(['order.user', 'order.car', 'handledBy', 'verifier'])->latest();
+
+        if ($request->filled('status') && $request->input('status') !== 'all') {
             $query->where('status', $request->get('status'));
         }
-        $payments = $query->paginate(10);
+
+        if ($request->filled('method') && $request->input('method') !== 'all') {
+            $method = (string) $request->input('method');
+            $query->whereHas('order', function ($orderQuery) use ($method) {
+                if ($method === 'credit') {
+                    $orderQuery->whereIn('payment_method', ['credit', 'va']);
+                    return;
+                }
+
+                $orderQuery->where('payment_method', 'cash');
+            });
+        }
+
+        if ($request->filled('q')) {
+            $q = trim((string) $request->input('q'));
+            $query->where(function ($sub) use ($q) {
+                $sub->whereHas('order.user', fn ($user) => $user->where('name', 'like', '%' . $q . '%'))
+                    ->orWhereHas('order.car', fn ($car) => $car->where('merk', 'like', '%' . $q . '%')->orWhere('tipe', 'like', '%' . $q . '%'))
+                    ->orWhereHas('order', fn ($order) => $order->where('id', $q)->orWhere('order_code', 'like', '%' . $q . '%'));
+            });
+        }
+
+        $payments = $query->paginate(15)->withQueryString();
 
         return view('supervisor.payments.index', compact('payments'));
     }
 
     public function show(Payment $payment)
     {
-        $payment->load(['order.user', 'order.car']);
+        $payment->load(['order.user', 'order.car', 'handledBy', 'verifier']);
         return view('supervisor.payments.show', compact('payment'));
     }
 
@@ -30,7 +53,24 @@ class SupervisorPaymentController extends Controller
             'status' => 'verified',
             'verified_by' => $request->user()->id,
             'verified_at' => now(),
+            'handled_by' => $request->user()->id,
+            'handled_role' => (string) $request->user()->role,
+            'handled_at' => now(),
         ]);
+
+        if ($payment->order) {
+            if ((float) $payment->amount >= (float) $payment->order->total) {
+                $payment->order->update(['status' => 'paid']);
+                $payment->order->issueSettlementDocuments();
+            } else {
+                $payment->order->update(['status' => 'confirmed']);
+                $payment->order->resetTransactionDocuments();
+            }
+
+            if ($payment->order->car && $payment->order->car->status !== 'sold') {
+                $payment->order->car->update(['status' => 'reserved']);
+            }
+        }
 
         return back()->with('success', 'Pembayaran berhasil diverifikasi.');
     }
@@ -41,7 +81,14 @@ class SupervisorPaymentController extends Controller
             'status' => 'rejected',
             'verified_by' => $request->user()->id,
             'verified_at' => now(),
+            'handled_by' => $request->user()->id,
+            'handled_role' => (string) $request->user()->role,
+            'handled_at' => now(),
         ]);
+
+        if ($payment->order) {
+            $payment->order->update(['status' => 'pending']);
+        }
 
         return back()->with('success', 'Pembayaran ditolak.');
     }

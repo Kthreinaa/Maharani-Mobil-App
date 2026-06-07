@@ -80,6 +80,11 @@ class User extends Authenticatable
         return $this->hasMany(Offer::class);
     }
 
+    public function productReviews()
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
     /**
      * Mengecek apakah user memiliki role customer.
      */

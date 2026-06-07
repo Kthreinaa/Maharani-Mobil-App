@@ -7,6 +7,7 @@ use App\Models\Favorite;
 use App\Models\Offer;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\ProductReview;
 use App\Models\TestDrive;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -165,6 +166,23 @@ class DummyDataSeeder extends Seeder
             ],
             [
                 'status' => 'pending',
+            ]
+        );
+
+        ProductReview::firstOrCreate(
+            [
+                'user_id' => $customer1->id,
+                'car_id' => $cars[0]->id,
+                'source_type' => 'purchase',
+                'source_id' => $order->id,
+            ],
+            [
+                'rating' => 5,
+                'review_text' => 'Pelayanan cepat, unit sesuai foto dan video. Proses pembelian ditangani dengan baik dari awal sampai serah terima.',
+                'embed_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                'status' => 'approved',
+                'verified_by' => $supervisor->id,
+                'verified_at' => now(),
             ]
         );
     }

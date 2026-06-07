@@ -9,21 +9,11 @@ use Symfony\Component\HttpFoundation\Response;
 
 class SetLocaleMiddleware
 {
-    /**
-     * Menentukan locale aplikasi berdasarkan session user pada setiap request web.
-     */
     public function handle(Request $request, Closure $next): Response
     {
-        $supportedLocales = ['id', 'en'];
-        $locale = $request->session()->get('locale', config('app.locale'));
-
-        if (!in_array($locale, $supportedLocales, true)) {
-            $locale = 'id';
-        }
-
-        App::setLocale($locale);
+        $request->session()->forget('locale');
+        App::setLocale('id');
 
         return $next($request);
     }
 }
-

@@ -38,7 +38,7 @@
         </div>
         <div class="bg-surface-container-low p-4 rounded-xl">
           <p class="text-xs uppercase tracking-widest text-on-surface-variant">Average Deal</p>
-          <p class="text-2xl font-bold text-primary">Rp 420jt</p>
+          <p class="text-2xl font-bold text-primary">{{ \App\Support\CurrencyFormatter::rupiah(420000000) }}</p>
         </div>
       </div>
     </section>
