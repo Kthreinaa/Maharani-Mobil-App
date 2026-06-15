@@ -85,9 +85,9 @@
     <div class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
       <div>
         <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f5a623]">Aktivitas Pembelian</p>
-        <h2 class="mt-2 font-headline text-[24px] font-extrabold text-slate-900">Order dan Metode Pembayaran</h2>
+        <h2 class="mt-2 font-headline text-[24px] font-extrabold text-slate-900">Order dan Metode Pembelian</h2>
       </div>
-      <p class="text-sm text-slate-500">Metode cash di laporan ini mencakup pembayaran tunai dan transfer. Kredit/leasing hanya dicatat sebagai status transaksi.</p>
+      <p class="text-sm text-slate-500">Ringkasan ini menunjukkan perbandingan pembelian cash dan kredit, lalu tetap menampilkan cara bayar tunai atau transfer pada detail transaksi.</p>
     </div>
 
     <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -184,7 +184,7 @@
             <th class="px-5 py-4">Customer</th>
             <th class="px-5 py-4">Unit</th>
             <th class="px-5 py-4">Alur</th>
-            <th class="px-5 py-4">Metode</th>
+            <th class="px-5 py-4">Metode Beli</th>
             <th class="px-5 py-4">Nominal</th>
             <th class="px-5 py-4">Status</th>
             <th class="px-5 py-4">Pengelola</th>
@@ -200,12 +200,13 @@
                 <p class="mt-1 text-xs text-slate-500">{{ $row->kode_unit }}</p>
               </td>
               <td class="px-5 py-4 text-slate-700">
-                <p class="font-semibold text-slate-800">{{ $row->transaction_channel === 'offline' ? 'Offline Showroom' : 'Online Website' }}</p>
-                <p class="mt-1 text-xs text-slate-500">
-                  {{ $row->sales_flow === 'after_test_drive' ? 'Dengan Test Drive' : ($row->sales_flow === 'offline_showroom' ? 'Datang ke Showroom' : 'Tanpa Test Drive') }}
-                </p>
+                <p class="font-semibold text-slate-800">{{ $row->transaction_channel_label }}</p>
+                <p class="mt-1 text-xs text-slate-500">{{ $row->sales_flow_label }}</p>
               </td>
-              <td class="px-5 py-4 text-slate-700">{{ $row->metode_pembayaran === 'cash' ? 'Cash' : ($row->metode_pembayaran === 'transfer' ? 'Transfer' : (($row->metode_pembayaran === 'va' || $row->metode_pembayaran === 'credit') ? 'Kredit Leasing' : strtoupper((string) $row->metode_pembayaran))) }}</td>
+              <td class="px-5 py-4 text-slate-700">
+                <p class="font-semibold text-slate-800">{{ $row->metode_beli_label }}</p>
+                <p class="mt-1 text-xs text-slate-500">Dibayar dengan {{ $row->metode_bayar_label }}</p>
+              </td>
               <td class="px-5 py-4 whitespace-nowrap font-extrabold text-slate-900">{{ \App\Support\CurrencyFormatter::rupiah($row->nominal) }}</td>
               <td class="px-5 py-4">
                 <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-bold uppercase text-slate-700">{{ $row->status_order }}</span>
@@ -218,7 +219,7 @@
             </tr>
           @empty
             <tr>
-              <td class="px-5 py-10 text-center text-slate-500" colspan="7">Belum ada data penjualan untuk periode ini.</td>
+              <td class="px-5 py-10 text-center text-slate-500" colspan="8">Belum ada data penjualan untuk periode ini.</td>
             </tr>
           @endforelse
         </tbody>

@@ -16,6 +16,7 @@ class PaymentController extends Controller
             'order_id' => ['required', 'integer'],
             'method' => ['required', 'in:cash,transfer,va,credit'],
             'bank_account' => ['nullable', 'string', 'max:50'],
+            'payment_plan' => ['nullable', 'in:booking,full'],
         ]);
 
         $order = Order::query()
@@ -25,11 +26,15 @@ class PaymentController extends Controller
             ->firstOrFail();
 
         $storedMethod = $validated['method'];
+        $paymentPlan = $validated['payment_plan']
+            ?? $this->resolveCashPaymentPlan($order);
 
         $paymentAmount = $order->is_credit_purchase
             ? (float) ($order->credit_dp_amount ?? 0)
-            : ($order->sales_flow === 'direct_purchase' && $order->transaction_channel === 'online'
-                ? min((float) $order->total, (float) config('payments.booking_fee', 2500000))
+            : ($order->transaction_channel === 'online'
+                ? ($paymentPlan === 'full'
+                    ? (float) $order->total
+                    : min((float) $order->total, (float) config('payments.booking_fee', 2500000)))
                 : (float) $order->total);
 
         if ($validated['method'] === 'transfer' && $xendit->enabled()) {
@@ -46,6 +51,7 @@ class PaymentController extends Controller
                 && $existingPayment->gateway_provider === 'xendit'
                 && $existingPayment->status !== 'verified'
                 && filled($existingPayment->gateway_checkout_url)
+                && (float) $existingPayment->amount === $paymentAmount
                 && !in_array((string) $existingPayment->gateway_status, ['EXPIRED', 'FAILED'], true)
             ) {
                 return redirect()->away((string) $existingPayment->gateway_checkout_url);
@@ -90,9 +96,14 @@ class PaymentController extends Controller
 
             if ($bankLabel) {
                 $lines = collect(preg_split("/\r\n|\n|\r/", (string) $order->notes))
-                    ->filter(fn ($line) => filled($line) && !str_starts_with((string) $line, 'Bank tujuan pembayaran:'))
+                    ->filter(fn ($line) => filled($line)
+                        && !str_starts_with((string) $line, 'Bank tujuan pembayaran:')
+                        && !str_starts_with((string) $line, 'Pilihan pembayaran customer:'))
                     ->values();
                 $lines->push('Bank tujuan pembayaran: ' . $bankLabel);
+                $lines->push('Pilihan pembayaran customer: ' . ($order->is_credit_purchase
+                    ? 'DP Kredit'
+                    : ($paymentPlan === 'full' ? 'Bayar Lunas' : 'Booking Fee')));
                 $order->notes = $lines->implode("\n");
             }
         }
@@ -181,5 +192,17 @@ class PaymentController extends Controller
         return redirect()
             ->route('order.tracking', ['order' => $order->id])
             ->with('success', 'Simulasi pembayaran lokal berhasil. Faktur, kwitansi digital, dan BAST sekarang sudah aktif untuk order ini.');
+    }
+
+    private function resolveCashPaymentPlan(Order $order): string
+    {
+        $paidAmount = (float) ($order->payment?->amount ?? 0);
+        if ($paidAmount >= (float) $order->total && (float) $order->total > 0) {
+            return 'full';
+        }
+
+        return str_contains((string) ($order->notes ?? ''), 'Pilihan pembayaran cash online: Bayar Lunas Full')
+            ? 'full'
+            : 'booking';
     }
 }

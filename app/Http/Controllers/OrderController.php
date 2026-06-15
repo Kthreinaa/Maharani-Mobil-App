@@ -19,6 +19,7 @@ class OrderController extends Controller
             'car_id' => ['required', 'exists:cars,id'],
             'offer_id' => ['nullable', 'exists:offers,id'],
             'payment_method' => ['nullable', 'in:cash,transfer,va,credit'],
+            'payment_plan' => ['nullable', 'in:booking,full'],
             'sales_flow' => ['nullable', 'in:direct_purchase,after_test_drive'],
             'notes' => ['nullable', 'string'],
             'booking_fee_agreement' => ['nullable'],
@@ -47,6 +48,7 @@ class OrderController extends Controller
         }
 
         $purchaseMethod = (string) ($validated['payment_method'] ?? 'cash');
+        $paymentPlan = (string) ($validated['payment_plan'] ?? 'booking');
         $totalAmount = (float) ($sourceOffer?->negotiated_price ?? $car->harga);
         $salesFlow = $sourceOffer ? 'direct_purchase' : ($validated['sales_flow'] ?? 'direct_purchase');
         $creditSimulation = null;
@@ -98,6 +100,9 @@ class OrderController extends Controller
             $purchaseMethod === 'credit'
                 ? 'Skema pembelian online: kredit leasing.'
                 : 'Skema pembelian online: harga cash.',
+            $purchaseMethod !== 'credit'
+                ? 'Pilihan pembayaran cash online: ' . ($paymentPlan === 'full' ? 'Bayar Lunas Full' : 'Booking Fee')
+                : null,
             $purchaseMethod === 'credit'
                 ? 'Leasing dipilih: ' . $creditSimulation['partner']['name']
                 : 'Biaya booking online: ' . number_format(self::BOOKING_FEE, 0, ',', '.'),
@@ -156,6 +161,8 @@ class OrderController extends Controller
 
         return redirect()
             ->route('payment.page', ['order' => $order->id])
-            ->with('success', 'Pesan online berhasil dibuat. Silakan pilih rekening tujuan untuk pembayaran booking fee.');
+            ->with('success', $paymentPlan === 'full'
+                ? 'Pesan online berhasil dibuat. Silakan lanjutkan ke halaman transfer pembayaran lunas full.'
+                : 'Pesan online berhasil dibuat. Silakan pilih rekening tujuan untuk pembayaran booking fee.');
     }
 }

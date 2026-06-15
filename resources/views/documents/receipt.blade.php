@@ -128,7 +128,7 @@
               <div class="meta-line"><span class="label">Sudah diterima dari:</span> <strong>{{ $buyer?->name ?? 'Customer Maharani Mobil' }}</strong></div>
               <div class="meta-line"><span class="label">Email:</span> {{ $profile['buyer_email'] ?? '-' }}</div>
               <div class="meta-line"><span class="label">Telepon:</span> {{ $profile['buyer_phone'] ?? '-' }}</div>
-              <div class="meta-line"><span class="label">Metode pembelian:</span> {{ $order->is_credit_purchase ? 'Kredit Leasing' : 'Cash' }}</div>
+              <div class="meta-line"><span class="label">Metode pembelian:</span> {{ $order->purchase_method_label }}</div>
               <div class="meta-line"><span class="label">Metode bayar:</span> {{ $order->payment?->internal_method_label ?? $order->internal_payment_method_label }}</div>
               <div class="meta-line"><span class="label">Sumber transaksi:</span> {{ $order->transaction_channel_label }}</div>
               @if ($isCreditPurchase)

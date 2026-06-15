@@ -223,17 +223,19 @@
   @php
     $summary = $report['summary'];
     $rows = $report['rows'];
+    $generatedAt = $report['generated_at'];
     $watermarkTopPositions = [6, 18, 30, 42, 54, 66, 78, 90];
     $watermarkLeftPositions = [10, 30, 50, 70, 90];
+    $watermarkMarkup = '';
+
+    foreach ($watermarkTopPositions as $top) {
+        foreach ($watermarkLeftPositions as $left) {
+            $watermarkMarkup .= '<span class="watermark-mark" style="top: ' . $top . '%; left: ' . $left . '%;">MAHARANI MOBIL</span>';
+        }
+    }
   @endphp
 
-  <div class="watermark-layer" aria-hidden="true">
-    @foreach ($watermarkTopPositions as $top)
-      @foreach ($watermarkLeftPositions as $left)
-        <span class="watermark-mark" style="top: {{ $top }}%; left: {{ $left }}%;">MAHARANI MOBIL</span>
-      @endforeach
-    @endforeach
-  </div>
+  <div class="watermark-layer" aria-hidden="true">{!! $watermarkMarkup !!}</div>
 
   <div class="page">
     <div class="report-shell">
@@ -243,7 +245,7 @@
         <p>Laporan ini berisi ringkasan penjualan, pola pembelian, aktivitas pembelian customer, dan performa merk mobil pada periode yang dipilih.</p>
         <div class="hero-meta">
           <strong>Periode:</strong> {{ $summary['range_label'] }} |
-          <strong>Dibuat:</strong> {{ $report['generated_at']->format('d M Y H:i') }}
+          <strong>Dibuat:</strong> {{ $generatedAt->format('d M Y H:i') }}
         </div>
       </div>
 
@@ -360,7 +362,7 @@
       <div class="section">
         <h2>Rincian Penjualan</h2>
         <div class="table-caption">
-          Rincian berikut merangkum customer, unit, alur pembelian, metode pembayaran, nominal transaksi, dan pengelola internal pada periode laporan.
+          Rincian berikut merangkum customer, unit, alur pembelian, metode beli, metode bayar, nominal transaksi, dan pengelola internal pada periode laporan.
         </div>
         <table class="detail-table">
           <colgroup>
@@ -379,7 +381,7 @@
               <th>Customer</th>
               <th>Unit</th>
               <th>Alur</th>
-              <th>Metode</th>
+              <th>Metode Beli</th>
               <th>Nominal</th>
               <th>Status</th>
               <th>Pengelola</th>
@@ -395,10 +397,10 @@
                   <span class="muted">{{ $row->kode_unit }}</span>
                 </td>
                 <td>
-                  {{ $row->transaction_channel === 'offline' ? 'Offline Showroom' : 'Online Website' }}<br>
-                  <span class="muted">{{ $row->sales_flow === 'after_test_drive' ? 'Dengan Test Drive' : ($row->sales_flow === 'offline_showroom' ? 'Datang ke Showroom' : 'Tanpa Test Drive') }}</span>
+                  {{ $row->transaction_channel_label }}<br>
+                  <span class="muted">{{ $row->sales_flow_label }}</span>
                 </td>
-                <td>{{ $row->metode_pembayaran === 'cash' ? 'Cash' : ($row->metode_pembayaran === 'transfer' ? 'Transfer' : (($row->metode_pembayaran === 'va' || $row->metode_pembayaran === 'credit') ? 'Kredit Leasing' : strtoupper((string) $row->metode_pembayaran))) }}</td>
+                <td>{{ $row->metode_beli_label }}<br><span class="muted">Dibayar dengan {{ $row->metode_bayar_label }}</span></td>
                 <td>{{ \App\Support\CurrencyFormatter::rupiah($row->nominal) }}</td>
                 <td>{{ $row->status_order }} / {{ $row->status_pembayaran }}</td>
                 <td>

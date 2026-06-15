@@ -46,7 +46,8 @@ class XenditPaymentLinkService
         $car = $order->car;
         $unitCode = $car?->kode_unit ?: 'UNIT-' . $order->car_id;
         $carName = trim((string) ($car?->merk ?? '') . ' ' . (string) ($car?->tipe ?? '') . ' ' . (string) ($car?->tahun ?? ''));
-        $description = 'Booking fee unit ' . $unitCode . ($carName !== '' ? ' - ' . $carName : '');
+        $isFullPayment = $amount >= (float) $order->total;
+        $description = ($isFullPayment ? 'Pelunasan penuh unit ' : 'Booking fee unit ') . $unitCode . ($carName !== '' ? ' - ' . $carName : '');
         $externalId = 'mm-order-' . $order->id . '-' . Str::lower((string) Str::ulid());
 
         $customerData = array_filter([
@@ -69,7 +70,7 @@ class XenditPaymentLinkService
                     'name' => $description,
                     'quantity' => 1,
                     'price' => (int) round($amount),
-                    'category' => 'Booking Fee',
+                    'category' => $isFullPayment ? 'Pelunasan Unit' : 'Booking Fee',
                     'url' => route('cars.show', $order->car_id),
                 ],
             ],

@@ -108,9 +108,9 @@
             <p class="text-sm text-on-surface-variant">Kode Order</p>
             <h2 class="mt-1 text-3xl font-extrabold text-primary">{{ $order->order_reference }}</h2>
             <p class="mt-2 text-sm text-on-surface-variant">{{ $carName }}</p>
-            <div class="mt-3 flex flex-wrap gap-2">
-              <span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">{{ $order->purchase_method_label }}</span>
-              <span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">{{ $order->transaction_channel_label }}</span>
+                <div class="mt-3 flex flex-wrap gap-2">
+                  <span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">{{ $order->purchase_method_label }}</span>
+                  <span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">{{ $order->transaction_channel_label }}</span>
             </div>
           </div>
           <span class="inline-flex w-fit rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] {{ $statusBadgeClass }}">
@@ -200,7 +200,7 @@
                 </div>
                 <div class="flex justify-between gap-4">
                   <span>Metode Pembelian</span>
-                  <span>{{ $isCreditPurchase ? 'Kredit Leasing' : $order->purchase_method_label }}</span>
+                  <span>{{ $order->purchase_method_label }}</span>
                 </div>
                 <div class="flex justify-between">
                   <span>Total Order</span>
@@ -212,7 +212,7 @@
                 </div>
                 <div class="flex justify-between">
                   <span>{{ $isCreditPurchase ? 'Leasing' : 'Metode' }}</span>
-                  <span>{{ $isCreditPurchase ? ($order->leasing_partner_label ?? '-') : strtoupper($payment?->method ?? $order->payment_method ?? '-') }}</span>
+                  <span>{{ $isCreditPurchase ? ($order->leasing_partner_label ?? '-') : ($payment?->internal_method_label ?? $order->internal_payment_method_label) }}</span>
                 </div>
                 @if (!$isCreditPurchase && $payment?->gateway_channel)
                   <div class="flex justify-between gap-4">

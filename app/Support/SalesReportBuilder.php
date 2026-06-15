@@ -59,7 +59,7 @@ class SalesReportBuilder
         }
 
         [$startDate, $endDate, $rangeLabel] = self::resolveWindow($period, $baseDate);
-        $rows = self::buildReportQuery($startDate, $endDate)->get();
+        $rows = self::decorateRows(self::buildReportQuery($startDate, $endDate)->get());
 
         $summary = self::buildSummary($rows, $rangeLabel, $startDate, $endDate);
         $crmOverview = self::buildCrmOverview($summary);
@@ -109,6 +109,7 @@ class SalesReportBuilder
                 'cars.tipe',
                 'cars.created_at as unit_created_at',
                 'orders.payment_method as metode_pembayaran',
+                'payments.method as metode_bayar',
                 'orders.transaction_channel',
                 'orders.sales_flow',
                 'orders.total as nominal',
@@ -123,6 +124,24 @@ class SalesReportBuilder
             ->leftJoin('users as handlers', 'handlers.id', '=', 'orders.handled_by')
             ->whereBetween('orders.created_at', [$startDate->copy()->startOfDay(), $endDate->copy()->endOfDay()])
             ->orderByDesc('orders.created_at');
+    }
+
+    /**
+     * Tambahkan label siap pakai agar Blade dan export tidak perlu mengulang logika yang sama.
+     *
+     * @param Collection<int, object> $rows
+     * @return Collection<int, object>
+     */
+    private static function decorateRows(Collection $rows): Collection
+    {
+        return $rows->map(function ($row) {
+            $row->metode_beli_label = TransactionLabelFormatter::purchaseMethod((string) $row->metode_pembayaran);
+            $row->metode_bayar_label = TransactionLabelFormatter::paymentMethod($row->metode_bayar);
+            $row->transaction_channel_label = TransactionLabelFormatter::transactionChannel((string) $row->transaction_channel);
+            $row->sales_flow_label = TransactionLabelFormatter::salesFlow((string) $row->sales_flow);
+
+            return $row;
+        });
     }
 
     /**
@@ -188,9 +207,8 @@ class SalesReportBuilder
             return in_array((string) $row->status_pembayaran, ['verified', 'paid'], true);
         })->count();
         $averageOrder = $totalOrders > 0 ? $omzet / $totalOrders : 0;
-        $cashOrders = $rows->filter(fn ($row) => self::paymentBehaviorLabel((string) $row->metode_pembayaran) === 'Cash')->count();
-        $creditOrders = $rows->filter(fn ($row) => self::paymentBehaviorLabel((string) $row->metode_pembayaran) === 'Kredit')->count();
-        $transferOrders = $rows->filter(fn ($row) => self::paymentMethodLabel((string) $row->metode_pembayaran) === 'Transfer')->count();
+        $cashOrders = $rows->filter(fn ($row) => $row->metode_beli_label === 'Cash')->count();
+        $creditOrders = $rows->filter(fn ($row) => $row->metode_beli_label === 'Kredit')->count();
         $onlineOrders = $rows->where('transaction_channel', 'online')->count();
         $offlineOrders = $rows->where('transaction_channel', 'offline')->count();
         $withTestDriveOrders = $rows->where('sales_flow', 'after_test_drive')->count();
@@ -232,7 +250,6 @@ class SalesReportBuilder
             'credit_orders' => $creditOrders,
             'cash_share' => $totalOrders > 0 ? round(($cashOrders / $totalOrders) * 100, 1) : 0,
             'credit_share' => $totalOrders > 0 ? round(($creditOrders / $totalOrders) * 100, 1) : 0,
-            'transfer_orders' => $transferOrders,
             'online_orders' => $onlineOrders,
             'offline_orders' => $offlineOrders,
             'online_share' => $totalOrders > 0 ? round(($onlineOrders / $totalOrders) * 100, 1) : 0,
@@ -271,12 +288,12 @@ class SalesReportBuilder
             [
                 'label' => 'Metode Cash',
                 'value' => number_format((int) ($summary['cash_orders'] ?? 0)),
-                'note' => 'Termasuk pembayaran cash dan transfer, totalnya ' . ($summary['cash_share'] ?? 0) . '% dari seluruh transaksi.',
+                'note' => 'Pembelian cash mencapai ' . ($summary['cash_share'] ?? 0) . '% dari seluruh transaksi pada periode ini.',
             ],
             [
                 'label' => 'Metode Kredit',
                 'value' => number_format((int) ($summary['credit_orders'] ?? 0)),
-                'note' => 'Kredit/leasing hanya dicatat sebagai status transaksi, proses approval tidak dikelola sistem.',
+                'note' => 'Pembelian kredit mencapai ' . ($summary['credit_share'] ?? 0) . '% dari seluruh transaksi pada periode ini.',
             ],
         ];
     }
@@ -397,7 +414,7 @@ class SalesReportBuilder
      */
     private static function buildPaymentMix(Collection $rows): Collection
     {
-        $groups = $rows->groupBy(fn ($row) => self::paymentBehaviorLabel((string) $row->metode_pembayaran));
+        $groups = $rows->groupBy(fn ($row) => $row->metode_beli_label);
         $totalOrders = max($rows->count(), 1);
         $maxOrders = max((int) $groups->map(fn (Collection $items) => $items->count())->max(), 1);
 
@@ -456,17 +473,17 @@ class SalesReportBuilder
                     : 'Belum ada merk dominan karena belum ada penjualan pada periode ini.',
             ],
             [
-                'title' => 'Pola metode pembayaran',
+                'title' => 'Pola metode pembelian',
                 'detail' => $topMethod
                     ? sprintf(
-                        'Metode pembayaran yang paling sering dipakai adalah %s, yaitu %s%% dari total transaksi. Pembayaran kredit di laporan ini hanya dibaca sebagai pencatatan status transaksi.',
+                        'Metode pembelian yang paling sering dipakai adalah %s, yaitu %s%% dari total transaksi pada periode ini.',
                         $topMethod['method'],
                         $topMethod['share']
                     )
-                    : 'Belum ada cukup data untuk membaca pola metode pembayaran pada periode ini.',
+                    : 'Belum ada cukup data untuk membaca pola metode pembelian pada periode ini.',
             ],
             [
-                'title' => 'pembelian customer',
+                'title' => 'Pembelian customer',
                 'detail' => sprintf(
                     'Transaksi dengan test drive tercatat %d order, sedangkan tanpa test drive %d order. Conversion rate lead ke transaksi selesai saat ini berada di %s%%.',
                     (int) ($summary['with_test_drive_orders'] ?? 0),
@@ -518,7 +535,7 @@ class SalesReportBuilder
         if ($creditShare >= 45) {
             $recommendations[] = [
                 'title' => 'Perkuat materi pembiayaan',
-                'detail' => 'Karena transaksi credit cukup dominan, siapkan simulasi cicilan, pilihan tenor, dan alur approval yang cepat supaya proses closing lebih lancar.',
+                'detail' => 'Karena transaksi kredit cukup dominan, siapkan simulasi cicilan, pilihan tenor, dan alur approval yang cepat supaya proses closing lebih lancar.',
             ];
         } elseif ($cashShare >= 60) {
             $recommendations[] = [
@@ -549,25 +566,6 @@ class SalesReportBuilder
         }
 
         return array_slice($recommendations, 0, 4);
-    }
-
-    private static function paymentMethodLabel(string $method): string
-    {
-        return match ($method) {
-            'cash' => 'Cash',
-            'transfer' => 'Transfer',
-            'credit', 'va' => 'Credit',
-            default => $method !== '' ? strtoupper($method) : 'Tidak diketahui',
-        };
-    }
-
-    private static function paymentBehaviorLabel(string $method): string
-    {
-        return match ($method) {
-            'cash', 'transfer' => 'Cash',
-            'credit', 'va' => 'Kredit',
-            default => $method !== '' ? strtoupper($method) : 'Tidak diketahui',
-        };
     }
 
     private static function visualBar(float|int $value, float|int $max, int $length = 12): string

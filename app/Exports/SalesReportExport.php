@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use App\Exports\Sheets\ArrayReportSheet;
 use App\Support\CurrencyFormatter;
+use App\Support\TransactionLabelFormatter;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
@@ -23,7 +24,7 @@ class SalesReportExport implements WithMultipleSheets
             new ArrayReportSheet('Aktivitas Pembelian', $this->activityRows()),
             new ArrayReportSheet('Tren Penjualan', $this->trendRows()),
             new ArrayReportSheet('Performa Merk', $this->brandRows()),
-            new ArrayReportSheet('Metode Bayar', $this->paymentRows()),
+            new ArrayReportSheet('Metode Beli', $this->paymentRows()),
             new ArrayReportSheet('Detail Transaksi', $this->transactionRows()),
         ];
     }
@@ -150,7 +151,8 @@ class SalesReportExport implements WithMultipleSheets
             'Mobil',
             'Merk',
             'Tipe',
-            'Metode Pembayaran',
+            'Metode Beli',
+            'Metode Bayar',
             'Nominal',
             'Status Pembayaran',
             'Status Order',
@@ -168,7 +170,8 @@ class SalesReportExport implements WithMultipleSheets
                 (string) $row->mobil,
                 (string) $row->merk,
                 (string) $row->tipe,
-                self::paymentMethodLabel((string) $row->metode_pembayaran),
+                TransactionLabelFormatter::purchaseMethod((string) $row->metode_pembayaran),
+                TransactionLabelFormatter::paymentMethod($row->metode_bayar),
                 CurrencyFormatter::rupiah($row->nominal),
                 (string) $row->status_pembayaran,
                 (string) $row->status_order,
@@ -178,16 +181,6 @@ class SalesReportExport implements WithMultipleSheets
         }
 
         return $rows;
-    }
-
-    private static function paymentMethodLabel(string $method): string
-    {
-        return match ($method) {
-            'cash' => 'Cash',
-            'transfer' => 'Transfer',
-            'credit', 'va' => 'Kredit Leasing',
-            default => $method !== '' ? strtoupper($method) : '-',
-        };
     }
 
     private static function handledRoleLabel(string $role): string

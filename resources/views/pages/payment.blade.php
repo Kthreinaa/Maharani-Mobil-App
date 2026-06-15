@@ -6,14 +6,36 @@
   $gatewayPending = filled($gatewayCheckoutUrl) && ($payment?->status ?? 'pending') !== 'verified';
   $isCreditPurchase = $order->is_credit_purchase;
   $localSimulationEnabled = app()->environment(['local', 'testing']) && ! $xenditEnabled && ! $isCreditPurchase;
-  $paymentLabel = $isCreditPurchase ? 'Pembayaran DP Kredit' : 'Transfer Booking Fee';
+  $selectedPaymentPlan = $selectedPaymentPlan ?? 'booking';
+  $fullPaymentAmount = (float) $order->total;
+  $bookingPaymentAmount = (float) $bookingFee;
+  $activePaymentAmount = $isCreditPurchase
+    ? (float) $bookingFee
+    : ($selectedPaymentPlan === 'full' ? $fullPaymentAmount : $bookingPaymentAmount);
+  $activeRemainingBalance = max((float) $order->total - $activePaymentAmount, 0);
+  $paymentLabel = $isCreditPurchase
+    ? 'Pembayaran DP Kredit'
+    : ($selectedPaymentPlan === 'full' ? 'Transfer Bayar Lunas' : 'Transfer Booking Fee');
   $paymentDescription = $isCreditPurchase
     ? 'Lanjutkan pembayaran DP ke pihak showroom setelah pengajuan kredit disetujui oleh supervisor.'
-    : 'Pilih rekening tujuan pembayaran booking fee Maharani Mobil.';
+    : ($selectedPaymentPlan === 'full'
+      ? 'Lanjutkan pembayaran lunas sesuai pilihan customer pada halaman pesan online.'
+      : 'Lanjutkan pembayaran booking fee sesuai pilihan customer pada halaman pesan online.');
   $paymentMethodInput = $isCreditPurchase ? 'credit' : 'transfer';
-  $statusLabel = $isCreditPurchase && ($payment?->status ?? 'pending') === 'verified' && (float) ($payment?->amount ?? 0) < (float) $order->total
-    ? 'DP KREDIT TERVERIFIKASI'
-    : strtoupper($payment?->status ?? 'pending');
+  $cashStepLabel = $selectedPaymentPlan === 'full' ? 'Step 2 - Transfer Bayar Lunas' : 'Step 2 - Transfer Booking Fee';
+  $cashPaymentTypeLabel = $selectedPaymentPlan === 'full' ? 'Pembayaran Lunas Full' : 'Booking Fee';
+  $cashBalanceLabel = 'Sisa Pembayaran';
+  $paymentStatus = (string) ($payment?->status ?? 'pending');
+  $paidAmount = (float) ($payment?->amount ?? 0);
+  $orderTotalAmount = (float) $order->total;
+
+  if ($isCreditPurchase && $paymentStatus === 'verified' && $paidAmount < $orderTotalAmount) {
+      $statusLabel = 'DP KREDIT TERVERIFIKASI';
+  } elseif ($paymentStatus === 'verified' && $paidAmount >= $orderTotalAmount) {
+      $statusLabel = 'LUNAS TERVERIFIKASI';
+  } else {
+      $statusLabel = strtoupper($paymentStatus);
+  }
 @endphp
 
 <!DOCTYPE html>
@@ -47,7 +69,7 @@
   <main class="max-w-screen-2xl mx-auto w-full px-6 md:px-12 py-10 flex-grow">
     <div class="flex items-center justify-between gap-4 mb-8">
       <div>
-        <p class="text-xs uppercase tracking-[0.24em] text-slate-400 font-semibold">{{ $isCreditPurchase ? 'Step 2 - Pembayaran DP Kredit' : 'Step 2 - Transfer Booking Fee' }}</p>
+        <p id="payment-step-label" class="text-xs uppercase tracking-[0.24em] text-slate-400 font-semibold">{{ $isCreditPurchase ? 'Step 2 - Pembayaran DP Kredit' : $cashStepLabel }}</p>
         <h1 class="text-4xl font-extrabold text-primary mt-2">{{ $paymentLabel }}</h1>
       </div>
       <a class="text-sm font-semibold text-primary hover:text-[#F5A623]" href="{{ route('checkout.cash', ['car_id' => $order->car_id]) }}">Kembali ke pesan online</a>
@@ -74,7 +96,10 @@
               <h2 class="text-2xl font-extrabold text-primary">{{ $carName }}</h2>
               <p class="mt-1 text-sm text-on-surface-variant">{{ $order->order_reference }} / {{ $isCreditPurchase ? 'Pembelian kredit leasing' : 'Pembelian online cash' }}</p>
             </div>
-            <p class="text-3xl font-extrabold text-primary">{{ \App\Support\CurrencyFormatter::rupiah($bookingFee) }}</p>
+            <div class="text-right">
+              <p id="active-payment-type-badge" class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{{ $isCreditPurchase ? 'Nominal DP Kredit' : $cashPaymentTypeLabel }}</p>
+              <p id="active-payment-amount" class="mt-1 text-3xl font-extrabold text-primary">{{ \App\Support\CurrencyFormatter::rupiah($activePaymentAmount) }}</p>
+            </div>
           </div>
         </div>
 
@@ -93,10 +118,15 @@
             @endif
           </div>
 
-          <div class="mt-5 rounded-[1.5rem] border border-slate-100 p-6">
+          <form method="POST" action="{{ route('customer.payments.store') }}" class="mt-5 space-y-5">
+            @csrf
+            <input type="hidden" name="order_id" value="{{ $order->id }}"/>
+            <input type="hidden" name="method" value="{{ $paymentMethodInput }}"/>
+
+            <div class="rounded-[1.5rem] border border-slate-100 p-6">
             <h3 class="text-2xl font-extrabold text-primary">Rekening Settlement Showroom</h3>
             <p class="mt-3 text-sm leading-7 text-on-surface-variant">
-              Dana transaksi online akan disalurkan ke rekening resmi showroom yang telah dikonfigurasi di sistem pembayaran.
+              Dana transaksi online akan diproses melalui halaman aman Xendit dan disalurkan ke rekening resmi showroom yang telah dikonfigurasi di sistem pembayaran.
             </p>
 
             <div class="mt-5 rounded-[1.4rem] border border-outline-variant bg-slate-50 px-5 py-4">
@@ -107,19 +137,19 @@
 
             @if (($payment?->status ?? null) === 'verified')
               <div class="mt-6 rounded-[1.2rem] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-                Pembayaran booking fee untuk order ini sudah diterima. Anda bisa kembali ke halaman tracking untuk melihat progres pesanan.
+                {{ (float) ($payment?->amount ?? 0) >= (float) $order->total
+                  ? 'Pembayaran lunas untuk order ini sudah diterima. Dokumen transaksi digital sekarang dapat dilihat dari halaman tracking.'
+                  : 'Pembayaran booking fee untuk order ini sudah diterima. Anda bisa kembali ke halaman tracking untuk melihat progres pesanan.' }}
               </div>
             @else
-              <form method="POST" action="{{ route('customer.payments.store') }}" class="mt-6 flex justify-end">
-                @csrf
-                <input type="hidden" name="order_id" value="{{ $order->id }}"/>
-                <input type="hidden" name="method" value="{{ $paymentMethodInput }}"/>
+              <div class="mt-6 flex justify-end">
                 <button class="inline-flex items-center justify-center rounded-xl bg-primary px-6 py-4 text-sm font-bold text-white" type="submit">
-                  {{ $gatewayPending ? 'Lanjutkan Pembayaran Aman' : 'Buat Link Pembayaran Aman' }}
+                  Lanjutkan Pembayaran
                 </button>
-              </form>
+              </div>
             @endif
-          </div>
+            </div>
+          </form>
         @else
           <form method="POST" action="{{ route('customer.payments.store') }}" class="space-y-5">
             @csrf
@@ -131,7 +161,9 @@
               <p class="mt-3 text-sm leading-7 text-on-surface-variant">
                 {{ $isCreditPurchase
                   ? 'Pembayaran DP kredit dilakukan ke rekening resmi showroom berikut. Setelah dana DP diverifikasi supervisor, showroom dapat melanjutkan proses kredit sampai pelunasan leasing dan serah terima unit.'
-                  : 'Integrasi pembayaran otomatis belum diaktifkan. Untuk sementara, customer tetap dapat mencatat pembayaran ke rekening resmi showroom berikut agar divalidasi internal.' }}
+                  : ($selectedPaymentPlan === 'full'
+                    ? 'Integrasi pembayaran otomatis belum diaktifkan. Untuk sementara, customer dapat mencatat pembayaran lunas full ke rekening resmi showroom berikut agar divalidasi internal.'
+                    : 'Integrasi pembayaran otomatis belum diaktifkan. Untuk sementara, customer dapat mencatat pembayaran booking fee ke rekening resmi showroom berikut agar divalidasi internal.') }}
               </p>
 
               <div class="mt-6 space-y-4">
@@ -153,7 +185,7 @@
 
             <div class="flex justify-end">
               <button class="inline-flex items-center justify-center rounded-xl bg-primary px-6 py-4 text-sm font-bold text-white" type="submit">
-                {{ $isCreditPurchase ? 'Catat Pembayaran DP Kredit' : 'Lanjutkan Pembayaran' }}
+                Lanjutkan Pembayaran
               </button>
             </div>
           </form>
@@ -181,12 +213,12 @@
           <h2 class="mb-4 text-lg font-bold">Ringkasan Pembayaran</h2>
           <div class="space-y-3 text-sm text-blue-100">
             <div class="flex justify-between">
-              <span>{{ $isCreditPurchase ? 'Nominal DP' : 'Booking Fee' }}</span>
-              <span>{{ \App\Support\CurrencyFormatter::rupiah($bookingFee) }}</span>
+              <span id="summary-payment-label">{{ $isCreditPurchase ? 'Nominal DP' : $cashPaymentTypeLabel }}</span>
+              <span id="summary-payment-amount">{{ \App\Support\CurrencyFormatter::rupiah($activePaymentAmount) }}</span>
             </div>
             <div class="flex justify-between">
-              <span>{{ $isCreditPurchase ? 'Pelunasan Leasing' : 'Sisa Pembayaran' }}</span>
-              <span>{{ \App\Support\CurrencyFormatter::rupiah($remainingBalance) }}</span>
+              <span id="summary-remaining-label">{{ $isCreditPurchase ? 'Pelunasan Leasing' : $cashBalanceLabel }}</span>
+              <span id="summary-remaining-amount">{{ \App\Support\CurrencyFormatter::rupiah($activeRemainingBalance) }}</span>
             </div>
             <div class="flex justify-between">
               <span>Metode</span>
@@ -211,9 +243,9 @@
             @if ($isCreditPurchase)
               Customer tidak perlu upload bukti pembayaran. DP kredit yang sudah dicatat akan divalidasi oleh supervisor. Setelah DP diterima, pelunasan utama tetap dilakukan oleh leasing sesuai approval pembiayaan.
             @elseif ($xenditEnabled)
-              Customer tidak perlu mengunggah bukti pembayaran. Setelah menyelesaikan pembayaran di halaman Xendit, sistem Maharani Mobil akan menerima update otomatis dan status order langsung diperbarui.
+              Customer tidak perlu mengunggah bukti pembayaran. Setelah menyelesaikan pembayaran di halaman Xendit, sistem Maharani Mobil akan menerima update otomatis. Jika pembayaran yang dipilih adalah booking fee, sisa pelunasan tetap dilanjutkan di showroom. Jika pembayaran yang dipilih adalah lunas full, dokumen transaksi digital akan langsung siap setelah pembayaran terverifikasi.
             @else
-              Customer tidak perlu mengunggah bukti pembayaran. Setelah memilih bank tujuan, informasi pembayaran akan tercatat dalam sistem dan selanjutnya dilakukan pengecekan oleh supervisor berdasarkan mutasi rekening resmi Maharani Mobil.
+              Customer tidak perlu mengunggah bukti pembayaran. Data transaksi akan otomatis tercatat dalam sistem dan diverifikasi oleh supervisor berdasarkan mutasi rekening resmi Maharani Mobil.
             @endif
           </p>
         </div>
@@ -221,7 +253,7 @@
     </div>
   </main>
 
-  @include('components.whatsapp-float', ['message' => 'Halo Maharani Mobil, saya ingin menanyakan pembayaran booking fee untuk order ' . $order->order_reference . '.'])
+  @include('components.whatsapp-float', ['message' => 'Halo Maharani Mobil, saya ingin menanyakan pembayaran untuk order ' . $order->order_reference . '.'])
   @include('components.ui-system-footer')
 </body>
 </html>

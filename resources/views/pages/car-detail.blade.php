@@ -224,7 +224,7 @@
                         </div>
                     @else
                         <div class="mt-5 rounded-[1.15rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium leading-6 text-slate-600">
-                            Marketing hanya memantau detail unit dari halaman ini. Aksi customer seperti test drive, ajukan penawaran, dan bagikan unit tidak ditampilkan pada workspace marketing.
+
                         </div>
                     @endif
                 </article>

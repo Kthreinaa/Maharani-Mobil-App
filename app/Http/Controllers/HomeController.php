@@ -6,15 +6,17 @@ use App\Models\Car;
 use App\Models\Offer;
 use App\Models\Order;
 use App\Models\ProductReview;
+use App\Models\User;
 use App\Support\CreditSimulationCatalog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 
 class HomeController extends Controller
 {
     public function landing()
     {
-        if (auth()->check() && auth()->user()->role === 'customer') {
+        if ($this->authenticatedCustomer()) {
             return redirect()->route('customer.home');
         }
 
@@ -62,7 +64,7 @@ class HomeController extends Controller
 
     public function home()
     {
-        if (auth()->check() && auth()->user()->role === 'customer') {
+        if ($this->authenticatedCustomer()) {
             return redirect()->route('customer.home');
         }
 
@@ -102,6 +104,22 @@ class HomeController extends Controller
             : 0.0;
 
         return view('pages.home', compact('catalogCars', 'homeOverviewCars', 'featuredReviews', 'featuredReviewCount', 'featuredReviewAverage'));
+    }
+
+    /**
+     * Ambil user login khusus customer agar controller tetap mudah dibaca
+     * dan editor tidak salah menandai akses properti role sebagai error.
+     */
+    private function authenticatedCustomer(): ?User
+    {
+        /** @var User|null $user */
+        $user = Auth::user();
+
+        if (!$user instanceof User || $user->role !== 'customer') {
+            return null;
+        }
+
+        return $user;
     }
 
     public function catalog(Request $request)
@@ -358,12 +376,28 @@ class HomeController extends Controller
         $bookingFee = $order->is_credit_purchase
             ? (float) ($order->credit_dp_amount ?? 0)
             : $this->bookingFeeAmount();
-        $remainingBalance = max((float) $order->total - $bookingFee, 0);
+        $selectedPaymentPlan = $order->is_credit_purchase
+            ? 'credit_dp'
+            : $this->resolveCashPaymentPlan($order);
+        $activePaymentAmount = $order->is_credit_purchase
+            ? $bookingFee
+            : ($selectedPaymentPlan === 'full' ? (float) $order->total : $bookingFee);
+        $remainingBalance = max((float) $order->total - $activePaymentAmount, 0);
         $bankAccounts = $this->showroomBankAccounts();
         $xenditEnabled = !$order->is_credit_purchase && filled(config('services.xendit.secret_key'));
         $settlementAccount = config('payments.settlement');
 
-        return view('pages.payment', compact('order', 'payment', 'bookingFee', 'remainingBalance', 'bankAccounts', 'xenditEnabled', 'settlementAccount'));
+        return view('pages.payment', compact(
+            'order',
+            'payment',
+            'bookingFee',
+            'remainingBalance',
+            'bankAccounts',
+            'xenditEnabled',
+            'settlementAccount',
+            'selectedPaymentPlan',
+            'activePaymentAmount'
+        ));
     }
 
     public function paymentUpload(Request $request)
@@ -787,6 +821,21 @@ class HomeController extends Controller
     private function bookingFeeAmount(): int
     {
         return (int) config('payments.booking_fee', 2500000);
+    }
+
+    private function resolveCashPaymentPlan(Order $order): string
+    {
+        $paidAmount = (float) ($order->payment?->amount ?? 0);
+        if ($paidAmount >= (float) $order->total && (float) $order->total > 0) {
+            return 'full';
+        }
+
+        $notes = (string) ($order->notes ?? '');
+        if (str_contains($notes, 'Pilihan pembayaran cash online: Bayar Lunas Full')) {
+            return 'full';
+        }
+
+        return 'booking';
     }
 
     private function resolveCheckoutContext(Request $request): array

@@ -102,7 +102,8 @@ class PaymentValidationWorkflowTest extends TestCase
 
         $this->actingAs($supervisor)
             ->patch(route('supervisor.orders.syncPayment', $order), [
-                'method' => 'transfer',
+                'purchase_method' => 'cash',
+                'payment_method' => 'transfer',
                 'amount' => $order->total,
             ])
             ->assertRedirect();
@@ -174,7 +175,58 @@ class PaymentValidationWorkflowTest extends TestCase
         $this->assertSame('sold', $car->status);
     }
 
-    public function test_customer_can_submit_credit_purchase_request_with_leasing_simulation(): void
+    public function test_customer_can_choose_full_payment_for_online_cash_order(): void
+    {
+        $customer = User::factory()->create([
+            'role' => 'customer',
+        ]);
+
+        $marketing = User::factory()->create([
+            'role' => 'marketing',
+        ]);
+
+        $car = Car::create([
+            'kode_unit' => 'PAY-FULL-001',
+            'merk' => 'Honda',
+            'tipe' => 'Brio',
+            'tahun' => 2020,
+            'harga' => 124000000,
+            'kilometer' => 8000,
+            'status' => 'reserved',
+            'photos' => [],
+            'created_by' => $marketing->id,
+        ]);
+
+        $order = Order::create([
+            'user_id' => $customer->id,
+            'car_id' => $car->id,
+            'status' => 'pending',
+            'total' => 124000000,
+            'payment_method' => 'transfer',
+            'transaction_channel' => 'online',
+            'sales_flow' => 'direct_purchase',
+            'document_status' => Order::pendingDocumentStatuses(),
+        ]);
+
+        $this->actingAs($customer)
+            ->post(route('customer.payments.store'), [
+                'order_id' => $order->id,
+                'method' => 'transfer',
+                'payment_plan' => 'full',
+                'bank_account' => 'mandiri',
+            ])
+            ->assertRedirect(route('order.tracking', ['order' => $order->id]));
+
+        $payment = Payment::where('order_id', $order->id)->first();
+
+        $this->assertNotNull($payment);
+        $this->assertSame('transfer', $payment->method);
+        $this->assertSame(124000000.0, (float) $payment->amount);
+        $this->assertSame('pending', $payment->status);
+        $this->assertStringContainsString('Pilihan pembayaran customer: Bayar Lunas', (string) $order->fresh()->notes);
+    }
+
+    public function test_credit_checkout_route_redirects_customer_to_cash_checkout(): void
     {
         $customer = User::factory()->create([
             'role' => 'customer',
@@ -203,49 +255,7 @@ class PaymentValidationWorkflowTest extends TestCase
 
         $this->actingAs($customer)
             ->get(route('checkout.credit', ['car_id' => $car->id]))
-            ->assertOk()
-            ->assertSee('Simulasi Kredit')
-            ->assertSee('BCA Finance')
-            ->assertSee('Kirim Pengajuan Kredit');
-
-        $response = $this->actingAs($customer)
-            ->post(route('customer.orders.store'), [
-                'car_id' => $car->id,
-                'payment_method' => 'credit',
-                'sales_flow' => 'direct_purchase',
-                'leasing_partner' => 'bca-finance',
-                'credit_dp_percentage' => 25,
-                'credit_dp_amount' => 33500000,
-                'credit_tenor_months' => 48,
-                'credit_monthly_installment' => 2900000,
-                'credit_interest_rate' => 7.85,
-                'credit_terms_agreement' => 1,
-            ]);
-
-        $order = Order::query()->latest('id')->first();
-
-        $response->assertRedirect(route('order.tracking', ['order' => $order->id]));
-
-        $this->assertNotNull($order);
-        $this->assertSame('credit', $order->payment_method);
-        $this->assertSame('BCA Finance', $order->leasing_partner);
-        $this->assertSame(48, (int) $order->credit_tenor_months);
-        $this->assertSame('pending', $order->status);
-        $this->assertSame('needs_follow_up', $order->follow_up_status);
-        $this->assertSame('reserved', $car->fresh()->status);
-        $this->assertNull($order->payment);
-
-        $this->actingAs($customer)
-            ->get(route('order.tracking', ['order' => $order->id]))
-            ->assertOk()
-            ->assertSee('Menunggu Persetujuan Kredit')
-            ->assertSee('Tindak Lanjut Leasing')
-            ->assertSee('BCA Finance')
-            ->assertSee('48 bulan');
-
-        $this->actingAs($customer)
-            ->get(route('payment.page', ['order' => $order->id]))
-            ->assertRedirect(route('order.tracking', ['order' => $order->id]));
+            ->assertRedirect(route('checkout.cash', ['car_id' => $car->id]));
     }
 
     public function test_order_code_uses_unit_date_channel_and_global_sequence_format(): void

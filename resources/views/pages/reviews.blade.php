@@ -140,46 +140,58 @@
           </form>
         </div>
 
-        @forelse ($reviews as $review)
-          @php
-            $photos = collect($review->review_photos ?? []);
-          @endphp
-          <article class="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-[0_18px_45px_rgba(7,27,71,0.06)]">
-            <div class="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-              <div>
-                <div class="flex flex-wrap items-center gap-2">
-                  <h3 class="font-headline text-[24px] font-extrabold text-slate-900">{{ $review->user?->name }}</h3>
-                  <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{{ $review->source_type === 'purchase' ? 'Pembelian selesai' : 'Test drive selesai' }}</span>
-                </div>
-                <p class="mt-1 text-sm text-slate-500">{{ $review->car?->merk }} {{ $review->car?->tipe }} {{ $review->car?->tahun }}</p>
-              </div>
-              <div class="text-right">
-                <p class="text-base font-bold text-[#071b47]">
-                  @for ($i = 1; $i <= 5; $i++)
-                    <span>{!! $i <= (int) $review->rating ? '&#9733;' : '&#9734;' !!}</span>
-                  @endfor
-                </p>
-                <p class="text-xs text-slate-500">{{ optional($review->created_at)->format('d M Y') }}</p>
-              </div>
-            </div>
-
-            <p class="mt-3 text-[15px] leading-7 text-slate-700">{{ $review->review_text }}</p>
-
-            @if ($photos->isNotEmpty())
-              <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-                @foreach ($photos as $photo)
-                  <div class="overflow-hidden rounded-[1.2rem] border border-slate-200 bg-slate-50">
-                    <img alt="Foto review {{ $review->user?->name }}" class="h-32 w-full object-cover" src="{{ asset('storage/' . $photo) }}"/>
-                  </div>
-                @endforeach
-              </div>
-            @endif
-          </article>
-        @empty
-          <div class="rounded-[1.5rem] border border-slate-200 bg-white p-6 text-sm text-slate-500 shadow-[0_18px_45px_rgba(7,27,71,0.06)]">
-            Belum ada review customer yang tampil untuk filter ini.
+        <div class="relative h-[360px] overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-[0_18px_45px_rgba(7,27,71,0.06)] md:h-[390px] lg:h-[410px]">
+          <div class="pointer-events-none absolute bottom-6 right-3 z-10 flex flex-col items-center gap-2 rounded-full bg-[#071b47]/92 px-3 py-4 text-white shadow-lg">
+            <span class="material-symbols-outlined text-[22px]">south</span>
+            <span class="writing-mode-vertical text-[10px] font-bold uppercase tracking-[0.24em] [writing-mode:vertical-rl] [text-orientation:mixed]">Scroll</span>
           </div>
-        @endforelse
+
+          <div class="h-full space-y-4 overflow-y-auto overscroll-contain scroll-smooth pr-8 [scroll-snap-type:y_mandatory] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-slate-100 [&::-webkit-scrollbar]:w-2">
+          @forelse ($reviews as $review)
+            @php
+              $photos = collect($review->review_photos ?? []);
+              $reviewRating = max(0, min(5, (int) round((float) ($review->rating ?? 0))));
+            @endphp
+            <article class="min-h-full snap-start rounded-[1.5rem] border border-slate-200 bg-white p-5">
+              <div class="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <h3 class="font-headline text-[24px] font-extrabold text-slate-900">{{ $review->user?->name }}</h3>
+                    <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{{ $review->source_type === 'purchase' ? 'Pembelian selesai' : 'Test drive selesai' }}</span>
+                  </div>
+                  <p class="mt-1 text-sm text-slate-500">{{ $review->car?->merk }} {{ $review->car?->tipe }} {{ $review->car?->tahun }}</p>
+                </div>
+                <div class="text-right">
+                  <div class="flex items-center justify-end gap-1">
+                    @for ($i = 1; $i <= 5; $i++)
+                      <svg aria-hidden="true" class="h-[18px] w-[18px] {{ $i <= $reviewRating ? 'text-[#f5a623]' : 'text-slate-300' }}" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81H7.03a1 1 0 00.951-.69l1.07-3.292z"/>
+                      </svg>
+                    @endfor
+                  </div>
+                  <p class="mt-1 text-xs text-slate-500">{{ optional($review->created_at)->format('d M Y') }}</p>
+                </div>
+              </div>
+
+              @if ($photos->isNotEmpty())
+                <div class="mt-4 flex flex-wrap gap-3">
+                  @foreach ($photos as $photo)
+                    <div class="overflow-hidden rounded-[1.2rem] border border-slate-200 bg-slate-50">
+                      <img alt="Foto review {{ $review->user?->name }}" class="h-28 w-28 object-cover" src="{{ asset('storage/' . $photo) }}"/>
+                    </div>
+                  @endforeach
+                </div>
+              @endif
+
+              <p class="mt-4 text-[15px] leading-7 text-slate-700">{{ $review->review_text }}</p>
+            </article>
+          @empty
+            <div class="rounded-[1.5rem] border border-slate-200 bg-white p-6 text-sm text-slate-500">
+              Belum ada review customer yang tampil untuk filter ini.
+            </div>
+          @endforelse
+          </div>
+        </div>
 
         @if ($reviews instanceof \Illuminate\Pagination\LengthAwarePaginator)
           <div>{{ $reviews->links() }}</div>
@@ -191,8 +203,8 @@
           <h2 class="font-headline text-[24px] font-extrabold text-slate-900">Tentang Review Customer</h2>
           <ul class="mt-4 space-y-3 text-sm leading-6 text-slate-600">
             <li>Review di halaman ini berasal dari customer yang sudah membeli unit atau sudah menyelesaikan test drive.</li>
-            <li>Customer dapat menambahkan foto review agar calon pembeli lain bisa melihat dokumentasi pengalaman secara lebih nyata.</li>
-            <li>Halaman ini fokus menampilkan pengalaman customer terhadap produk dan layanan Maharani Mobil.</li>
+            <li>Customer dapat menambahkan foto review agar calon pembeli lain bisa melihat dokumentasi pengalaman membeli mobil bekas di Maharani.</li>
+            <li></li>
           </ul>
         </section>
       </aside>

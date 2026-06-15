@@ -36,12 +36,13 @@
 
       <div class="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
         <div class="overflow-x-auto">
-        <table class="w-full min-w-[1560px] table-auto text-left text-sm">
+        <table class="w-full min-w-[1720px] table-auto text-left text-sm">
           <colgroup>
             <col style="width: 140px;">
             <col style="width: 420px;">
             <col style="width: 220px;">
             <col style="width: 190px;">
+            <col style="width: 220px;">
             <col style="width: 220px;">
             <col style="width: 220px;">
             <col style="width: 300px;">
@@ -55,6 +56,7 @@
               <th class="px-6 py-4">{{ __('Total') }}</th>
               <th class="px-6 py-4">{{ __('Pembayaran') }}</th>
               <th class="px-6 py-4">{{ __('Status Pembelian') }}</th>
+              <th class="px-6 py-4">{{ __('Status Review') }}</th>
               <th class="px-6 py-4">{{ __('Dokumen') }}</th>
               <th class="px-6 py-4 text-right">{{ __('Aksi') }}</th>
             </tr>
@@ -98,7 +100,7 @@
                 <td class="px-6 py-4">
                   <div class="min-w-[190px]">
                     <p class="font-semibold text-slate-900">{{ $order->purchase_method_label }}</p>
-                    <p class="mt-1 text-xs text-slate-500">{{ $order->transaction_channel_label }}</p>
+                    <p class="mt-1 text-xs text-slate-500">{{ $order->payment?->internal_method_label ?? $order->internal_payment_method_label }}</p>
                   </div>
                 </td>
                 <td class="px-6 py-4">{{ \App\Support\CurrencyFormatter::rupiah($order->total) }}</td>
@@ -111,6 +113,23 @@
                   @if ($order->cancel_reason)
                     <p class="mt-1 text-xs text-rose-600">{{ $order->cancel_reason }}</p>
                   @endif
+                </td>
+                <td class="px-6 py-4">
+                  <div class="min-w-[180px]">
+                    @if ($order->has_purchase_review)
+                      <span class="inline-flex items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-center text-[11px] font-bold uppercase tracking-[0.04em] text-emerald-700 whitespace-nowrap">
+                        {{ $order->review_status_label }}
+                      </span>
+                    @elseif (in_array($order->status, ['paid', 'completed'], true))
+                      <a class="inline-flex items-center justify-center rounded-full border border-amber-200 bg-amber-50 px-3 py-2 text-center text-[11px] font-bold uppercase tracking-[0.04em] text-amber-700 whitespace-nowrap transition hover:bg-amber-100" href="{{ route('customer.reviews.create', ['car' => $order->car_id]) }}">
+                        {{ $order->review_status_label }}
+                      </a>
+                    @else
+                      <span class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-center text-[11px] font-bold uppercase tracking-[0.04em] text-slate-500 whitespace-nowrap">
+                        Menunggu Selesai
+                      </span>
+                    @endif
+                  </div>
                 </td>
                 <td class="px-6 py-4">
                   @php($documentsReady = $order->areTransactionDocumentsReady())
@@ -132,7 +151,7 @@
               </tr>
             @empty
               <tr>
-                <td colspan="8" class="px-6 py-10 text-center text-slate-500">{{ __('Belum ada pesanan. Mulai dari katalog untuk checkout unit pertama Anda.') }}</td>
+                <td colspan="9" class="px-6 py-10 text-center text-slate-500">{{ __('Belum ada pesanan. Mulai dari katalog untuk checkout unit pertama Anda.') }}</td>
               </tr>
             @endforelse
           </tbody>
