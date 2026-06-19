@@ -46,6 +46,7 @@
     $facebookShareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' . rawurlencode($shareUrl);
     $viewerRole = auth()->check() ? (string) auth()->user()->role : 'guest';
     $isMarketingViewer = $viewerRole === 'marketing';
+    $marketingBackUrl = route('marketing.products.index');
 @endphp
 
 <!DOCTYPE html>
@@ -74,25 +75,39 @@
     <link href="{{ asset('assets/app.css') }}?v={{ filemtime(public_path('assets/app.css')) }}" rel="stylesheet"/>
 </head>
 <body class="bg-background text-on-background min-h-screen flex flex-col">
-    @include('components.public-site-header', [
-        'active' => 'detail-mobil',
-        'overlap' => false,
-        'showCatalog' => true,
-        'catalogInline' => true,
-        'inlineBadgeLabel' => 'Home',
-        'inlineBadgeHref' => url('/'),
-        'inlineLinks' => [
-            ['key' => 'detail-mobil', 'label' => 'Detail Mobil', 'href' => $shareUrl],
-        ],
-    ])
+    @if ($isMarketingViewer)
+        @include('components.public-site-header', [
+            'active' => 'detail-mobil',
+            'overlap' => false,
+            'showCatalog' => true,
+            'catalogInline' => true,
+            'inlineBadgeLabel' => 'Kembali',
+            'inlineBadgeHref' => $marketingBackUrl,
+            'inlineLinks' => [],
+            'showLogout' => false,
+            'showRightActions' => false,
+        ])
+    @else
+        @include('components.public-site-header', [
+            'active' => 'detail-mobil',
+            'overlap' => false,
+            'showCatalog' => true,
+            'catalogInline' => true,
+            'inlineBadgeLabel' => 'Detail Mobil',
+            'inlineBadgeHref' => $shareUrl,
+            'inlineLinks' => [],
+        ])
+    @endif
 
     <main class="max-w-screen-2xl mx-auto w-full px-6 md:px-8 py-8 flex-grow">
         <nav aria-label="Breadcrumb" class="flex mb-6 text-sm font-medium text-on-surface-variant">
             <ol class="flex items-center gap-2">
-                <li><a class="hover:text-primary transition-colors" href="/">Beranda</a></li>
+                <li><a class="hover:text-primary transition-colors" href="{{ $isMarketingViewer ? $marketingBackUrl : url('/') }}">{{ $isMarketingViewer ? 'Pantau Unit Mobil' : 'Home' }}</a></li>
                 <li><span class="material-symbols-outlined text-sm">chevron_right</span></li>
-                <li><a class="hover:text-primary transition-colors" href="/catalog">Katalog</a></li>
-                <li><span class="material-symbols-outlined text-sm">chevron_right</span></li>
+                @unless ($isMarketingViewer)
+                    <li><a class="hover:text-primary transition-colors" href="/catalog">Katalog</a></li>
+                    <li><span class="material-symbols-outlined text-sm">chevron_right</span></li>
+                @endunless
                 <li class="text-primary font-semibold truncate max-w-[260px] md:max-w-none">{{ $carName !== '' ? $carName : 'Detail Mobil' }}</li>
             </ol>
         </nav>
@@ -224,7 +239,7 @@
                         </div>
                     @else
                         <div class="mt-5 rounded-[1.15rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium leading-6 text-slate-600">
-                            Marketing hanya memantau detail unit dari halaman ini. Aksi customer seperti test drive, ajukan penawaran, dan bagikan unit tidak ditampilkan pada workspace marketing.
+
                         </div>
                     @endif
                 </article>
@@ -239,7 +254,7 @@
                         @endif
                     </p>
                     <div class="mt-4 grid grid-cols-2 gap-2">
-                        <a href="{{ route('reviews.page', ['car' => $car->id]) }}" class="rounded-[1rem] bg-surface-container-low px-3 py-2.5 text-center text-xs font-semibold text-primary transition hover:bg-slate-100">Lihat Ulasan</a>
+                        <a href="{{ $isMarketingViewer ? route('marketing.products.reviews.index', $car->id) : route('reviews.page', ['car' => $car->id]) }}" class="rounded-[1rem] bg-surface-container-low px-3 py-2.5 text-center text-xs font-semibold text-primary transition hover:bg-slate-100">Lihat Ulasan</a>
                         <button type="button" class="share-copy-btn rounded-[1rem] bg-surface-container-low px-3 py-2.5 text-center text-xs font-semibold text-primary transition hover:bg-slate-100" data-copy-url="{{ $shareUrl }}" data-copy-message="Link produk berhasil disalin.">
                             Salin Link
                         </button>
@@ -249,7 +264,7 @@
             </aside>
         </div>
 
-        @if (($relatedCars ?? collect())->isNotEmpty())
+        @if (! $isMarketingViewer && ($relatedCars ?? collect())->isNotEmpty())
             <section class="mt-12">
                 <div class="mb-5 flex items-center justify-between">
                     <h2 class="text-2xl font-extrabold text-primary">Unit Serupa</h2>
@@ -275,7 +290,9 @@
         @endif
     </main>
 
-    @include('components.public-site-footer')
+    @unless ($isMarketingViewer)
+        @include('components.public-site-footer')
+    @endunless
 
     @include('components.whatsapp-float', ['message' => 'Halo Maharani Mobil, saya tertarik dengan unit ' . ($car->merk ?? 'mobil') . ' ' . ($car->tipe ?? '') . ' ' . ($car->tahun ?? '') . '.'])
     @include('components.ui-system-footer')

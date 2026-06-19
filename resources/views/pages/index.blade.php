@@ -313,38 +313,56 @@
 
         <div class="relative lg:col-span-6">
           @if (($featuredReviews ?? collect())->isNotEmpty())
-            <div class="grid gap-4">
-              @foreach (($featuredReviews ?? collect()) as $review)
-                @php
-                  $photos = collect($review->review_photos ?? []);
-                @endphp
-                <article class="relative z-10 rounded-[2rem] border border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-[#0b1120] md:p-7">
+            @php
+              $latestReview = ($featuredReviews ?? collect())->first();
+              $overviewReviewPhotos = ($featuredReviews ?? collect())
+                  ->flatMap(fn ($review) => collect($review->review_photos ?? []))
+                  ->filter(fn ($photo) => filled($photo))
+                  ->take(8)
+                  ->values();
+              $latestReviewRating = max(0, min(5, (int) round((float) ($latestReview?->rating ?? 0))));
+            @endphp
+            <article class="relative z-10 overflow-hidden rounded-[2rem] border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1120]">
+              <div class="border-b border-slate-200 bg-[linear-gradient(135deg,#08132e_0%,#0d214f_100%)] px-6 py-5 text-white dark:border-white/10 md:px-7">
+                <div class="flex flex-col gap-3">
+                  <div>
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f5a623]">Review Terbaru</p>
+                    <h3 class="mt-2 font-headline text-[24px] font-extrabold">Ringkasan Pengalaman Customer</h3>
+                    <p class="mt-2 max-w-[520px] text-sm leading-6 text-slate-200">Komentar terbaru customer tampil di satu box overview, sementara dokumentasi foto customer lain tetap berjajar rapi di bawahnya.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="px-6 py-6 md:px-7">
+                <article>
                   <div class="flex items-start justify-between gap-4">
                     <div>
-                      <p class="text-[15px] font-bold text-slate-900 dark:text-white">{{ $review->user?->name }}</p>
-                      <p class="mt-1 text-[12px] text-slate-500 dark:text-slate-300">{{ $review->car?->merk }} {{ $review->car?->tipe }} {{ $review->car?->tahun }}</p>
+                      <p class="text-[15px] font-bold text-slate-900 dark:text-white">{{ $latestReview->user?->name }}</p>
+                      <p class="mt-1 text-[12px] text-slate-500 dark:text-slate-300">{{ $latestReview->car?->merk }} {{ $latestReview->car?->tipe }} {{ $latestReview->car?->tahun }}</p>
                     </div>
-                    <div class="text-right text-[#f5a623]">
+                    <div class="flex items-center gap-1 text-right">
                       @for ($i = 1; $i <= 5; $i++)
-                        <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' {{ $i <= (int) $review->rating ? 1 : 0 }};">star</span>
+                        <svg aria-hidden="true" class="h-[18px] w-[18px] {{ $i <= $latestReviewRating ? 'text-[#f5a623]' : 'text-slate-300 dark:text-slate-600' }}" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81H7.03a1 1 0 00.951-.69l1.07-3.292z"/>
+                        </svg>
                       @endfor
                     </div>
                   </div>
 
-                  <p class="mt-4 text-[15px] leading-7 text-slate-700 dark:text-slate-100">{{ \Illuminate\Support\Str::limit($review->review_text, 170) }}</p>
+                  <p class="mt-4 text-[15px] leading-7 text-slate-700 dark:text-slate-100">{{ \Illuminate\Support\Str::limit($latestReview->review_text, 170) }}</p>
 
-                  @if ($photos->isNotEmpty())
-                    <div class="mt-4 grid grid-cols-3 gap-3">
-                      @foreach ($photos->take(3) as $photo)
-                        <div class="h-24 w-24 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-                          <img alt="Foto review {{ $review->user?->name }}" class="h-24 w-24 rounded-full object-cover" src="{{ asset('storage/' . $photo) }}"/>
+                  @if ($overviewReviewPhotos->isNotEmpty())
+                    <div class="mt-5 flex flex-wrap items-center gap-3">
+                      @foreach ($overviewReviewPhotos as $photo)
+                        <div class="h-24 w-24 shrink-0 overflow-hidden rounded-full bg-slate-100 ring-2 ring-slate-100 dark:bg-slate-800 dark:ring-slate-700">
+                          <img alt="Foto dokumentasi review customer" class="h-24 w-24 rounded-full object-cover" src="{{ asset('storage/' . $photo) }}"/>
                         </div>
                       @endforeach
                     </div>
                   @endif
                 </article>
-              @endforeach
-            </div>
+              </div>
+            </article>
           @else
             <article class="relative z-10 rounded-[2rem] border border-slate-200 bg-white p-8 dark:border-white/10 dark:bg-[#0b1120] md:p-10">
               <p class="text-[17px] leading-relaxed text-slate-700 dark:text-slate-100">
@@ -514,5 +532,3 @@
   </script>
 </body>
 </html>
-
-

@@ -41,8 +41,16 @@ class SupervisorOrderController extends Controller
         return view('supervisor.orders.index', compact('orders', 'status'));
     }
 
-    public function show(Order $order)
+    public function show(Request $request, Order $order)
     {
+        if ($order->status === 'pending' && !$order->handled_by) {
+            $order->forceFill([
+                'handled_by' => $request->user()->id,
+                'handled_role' => (string) $request->user()->role,
+                'handled_at' => now(),
+            ])->save();
+        }
+
         $order->load(['user', 'car', 'payment.handledBy', 'handledBy']);
         $leasingPartners = collect(CreditSimulationCatalog::partners())->pluck('name')->values();
 
@@ -52,7 +60,7 @@ class SupervisorOrderController extends Controller
     public function create()
     {
         $cars = Car::query()
-            ->whereIn('status', ['available', 'reserved'])
+            ->where('status', 'available')
             ->orderBy('merk')
             ->orderBy('tipe')
             ->get();

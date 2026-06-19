@@ -17,6 +17,7 @@ class XenditPaymentLinkService
 {
     public function __construct(
         private readonly HttpFactory $http,
+        private readonly CheckoutDraftService $checkoutDrafts,
     ) {
     }
 
@@ -39,15 +40,36 @@ class XenditPaymentLinkService
      */
     public function createInvoice(Order $order, User $customer, float $amount): array
     {
+        return $this->createInvoiceForDraft([
+            'token' => 'legacy-order-' . $order->id,
+            'user_id' => $order->user_id,
+            'car_id' => $order->car_id,
+            'total_amount' => (float) $order->total,
+        ], $customer, $amount);
+    }
+
+    /**
+     * @param array<string, mixed> $draft
+     * @return array<string, mixed>
+     */
+    public function createInvoiceForDraft(array $draft, User $customer, float $amount): array
+    {
         if (!$this->enabled()) {
             throw new RuntimeException('Xendit belum dikonfigurasi.');
         }
 
-        $car = $order->car;
-        $unitCode = $car?->kode_unit ?: 'UNIT-' . $order->car_id;
+        $token = (string) ($draft['token'] ?? '');
+        if ($token === '') {
+            throw new RuntimeException('Draft checkout tidak ditemukan.');
+        }
+
+        $car = \App\Models\Car::query()->find((int) ($draft['car_id'] ?? 0));
+        $totalAmount = (float) ($draft['total_amount'] ?? 0);
+        $unitCode = $car?->kode_unit ?: 'UNIT-' . (int) ($draft['car_id'] ?? 0);
         $carName = trim((string) ($car?->merk ?? '') . ' ' . (string) ($car?->tipe ?? '') . ' ' . (string) ($car?->tahun ?? ''));
-        $description = 'Booking fee unit ' . $unitCode . ($carName !== '' ? ' - ' . $carName : '');
-        $externalId = 'mm-order-' . $order->id . '-' . Str::lower((string) Str::ulid());
+        $isFullPayment = $amount >= $totalAmount;
+        $description = ($isFullPayment ? 'Pelunasan penuh unit ' : 'Booking fee unit ') . $unitCode . ($carName !== '' ? ' - ' . $carName : '');
+        $externalId = $this->checkoutDrafts->gatewayExternalId($token);
 
         $customerData = array_filter([
             'given_names' => (string) $customer->name,
@@ -61,22 +83,22 @@ class XenditPaymentLinkService
             'description' => $description,
             'invoice_duration' => 86400,
             'currency' => 'IDR',
-            'success_redirect_url' => route('order.tracking', ['order' => $order->id]),
-            'failure_redirect_url' => route('payment.page', ['order' => $order->id]),
+            'success_redirect_url' => route('payment.page', ['draft' => $token, 'gateway' => 'xendit']),
+            'failure_redirect_url' => route('payment.page', ['draft' => $token, 'gateway' => 'xendit']),
             'customer' => $customerData,
             'items' => [
                 [
                     'name' => $description,
                     'quantity' => 1,
                     'price' => (int) round($amount),
-                    'category' => 'Booking Fee',
-                    'url' => route('cars.show', $order->car_id),
+                    'category' => $isFullPayment ? 'Pelunasan Unit' : 'Booking Fee',
+                    'url' => route('cars.show', (int) ($draft['car_id'] ?? 0)),
                 ],
             ],
             'metadata' => [
-                'order_id' => (string) $order->id,
-                'user_id' => (string) $order->user_id,
-                'car_id' => (string) $order->car_id,
+                'draft_token' => $token,
+                'user_id' => (string) ($draft['user_id'] ?? 0),
+                'car_id' => (string) ($draft['car_id'] ?? 0),
                 'unit_code' => $unitCode,
             ],
         ];
@@ -124,14 +146,62 @@ class XenditPaymentLinkService
             ->where('gateway_external_id', $externalId)
             ->first();
 
-        if (!$payment || !$payment->order) {
-            return;
-        }
-
         $gatewayStatus = Str::upper((string) Arr::get($payload, 'status', 'PENDING'));
-        $paidAmount = (float) Arr::get($payload, 'paid_amount', $payment->amount ?? 0);
+        $paidAmount = (float) Arr::get($payload, 'paid_amount', $payment?->amount ?? 0);
         $paidAt = Arr::get($payload, 'paid_at');
         $handledAt = filled($paidAt) ? Carbon::parse((string) $paidAt) : now();
+
+        if (!$payment || !$payment->order) {
+            if ($gatewayStatus !== 'PAID') {
+                return;
+            }
+
+            $token = $this->checkoutDrafts->tokenFromGatewayExternalId($externalId);
+            if (!$token) {
+                return;
+            }
+
+            $draft = $this->checkoutDrafts->find($token);
+            if (!$draft) {
+                $resolvedOrderId = $this->checkoutDrafts->resolvedOrderId($token);
+                if ($resolvedOrderId > 0) {
+                    $payment = Payment::query()
+                        ->with(['order.car'])
+                        ->where('gateway_provider', 'xendit')
+                        ->where('gateway_external_id', $externalId)
+                        ->first();
+                }
+
+                return;
+            }
+
+            $user = User::query()->find((int) ($draft['user_id'] ?? 0));
+            if (!$user) {
+                return;
+            }
+
+            $order = $this->checkoutDrafts->finalizePaidDraft($draft, $user, [
+                'method' => 'transfer',
+                'gateway_provider' => 'xendit',
+                'gateway_reference' => (string) Arr::get($payload, 'id', ''),
+                'gateway_external_id' => $externalId,
+                'gateway_checkout_url' => (string) Arr::get($payload, 'invoice_url', ''),
+                'gateway_status' => $gatewayStatus,
+                'gateway_channel' => (string) Arr::get($payload, 'payment_channel', Arr::get($payload, 'payment_method', '')),
+                'gateway_payload' => $payload,
+                'amount' => $paidAmount,
+                'status' => 'verified',
+                'handled_role' => 'gateway',
+                'handled_at' => $handledAt,
+                'verified_at' => $handledAt,
+                'paid_at' => $handledAt,
+            ]);
+
+            $payment = $order->payment;
+            if (!$payment) {
+                return;
+            }
+        }
 
         DB::transaction(function () use ($payment, $payload, $gatewayStatus, $paidAmount, $handledAt): void {
             $payment->fill([
@@ -165,7 +235,9 @@ class XenditPaymentLinkService
                 }
 
                 if ($payment->order->car && $payment->order->car->status !== 'sold') {
-                    $payment->order->car->update(['status' => 'reserved']);
+                    $payment->order->car->update([
+                        'status' => $payment->order->status === 'completed' ? 'sold' : 'reserved',
+                    ]);
                 }
             }
         });

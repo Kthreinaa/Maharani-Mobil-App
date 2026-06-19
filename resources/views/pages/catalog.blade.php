@@ -76,7 +76,7 @@
 
     <div class="flex flex-col gap-8 xl:flex-row">
       <aside class="w-full xl:w-[320px] xl:flex-shrink-0">
-        <div class="sticky top-28 overflow-hidden rounded-[2rem] border border-white/60 bg-white/90 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+        <div class="overflow-hidden rounded-[2rem] border border-white/60 bg-white/90 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl">
           <div class="mb-6 flex items-start justify-between gap-4">
             <div>
               <p class="text-[11px] font-bold uppercase tracking-[0.22em] text-[#f5a623]">{{ __('Filter Katalog') }}</p>

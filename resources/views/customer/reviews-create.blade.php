@@ -124,7 +124,7 @@
               </form>
             @else
               <div class="mt-6 rounded-[1.4rem] border border-amber-200 bg-amber-50 px-5 py-5 text-sm leading-7 text-amber-700">
-                Anda baru bisa menulis review setelah pembelian selesai atau test drive Anda disetujui. Begitu salah satu status itu aktif, unit akan muncul di form review ini.
+                Semua unit yang bisa direview sudah Anda review.
               </div>
             @endif
           </section>

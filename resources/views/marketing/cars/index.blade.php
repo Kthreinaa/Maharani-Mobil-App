@@ -64,9 +64,7 @@
       @endif
     </form>
 
-    <div class="rounded-full border border-slate-200 bg-white/80 px-4 py-2.5 text-sm font-semibold text-slate-600">
-      Data mobil dikelola supervisor. Marketing hanya memantau stok dan detail unit.
-    </div>
+    
   </div>
 
   <div class="overflow-x-auto rounded-[2rem] border border-white/70 bg-[rgba(255,255,255,0.72)] shadow-[0_24px_70px_rgba(15,23,42,0.10)] backdrop-blur-[24px]">

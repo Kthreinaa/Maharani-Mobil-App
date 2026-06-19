@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Car;
 use App\Models\Offer;
 use App\Models\OfferHistory;
 use Illuminate\Http\Request;
@@ -16,6 +17,13 @@ class OfferController extends Controller
             'notes' => ['nullable', 'string'],
             'customer_channel' => ['nullable', 'in:online,offline'],
         ]);
+
+        $car = Car::query()->findOrFail((int) $validated['car_id']);
+        if ($car->status !== 'available') {
+            return back()
+                ->withErrors(['car_id' => 'Unit ini sudah terpesan atau terjual, sehingga tidak bisa diajukan penawaran lagi.'])
+                ->withInput();
+        }
 
         $offer = Offer::create([
             'user_id' => $request->user()->id,

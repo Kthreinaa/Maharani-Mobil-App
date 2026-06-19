@@ -31,7 +31,7 @@ class SupervisorTestDriveController extends Controller
     public function create()
     {
         $cars = Car::query()
-            ->whereIn('status', ['available', 'reserved'])
+            ->where('status', 'available')
             ->orderBy('merk')
             ->orderBy('tipe')
             ->get();
@@ -65,6 +65,13 @@ class SupervisorTestDriveController extends Controller
             'lost_reason' => ['nullable', 'string', 'max:255'],
             'next_follow_up_at' => ['nullable', 'date'],
         ]);
+
+        $car = Car::query()->findOrFail((int) $validated['car_id']);
+        if ($car->status !== 'available') {
+            return back()
+                ->withErrors(['car_id' => 'Unit ini sudah terpesan atau terjual, sehingga tidak bisa dijadwalkan test drive baru.'])
+                ->withInput();
+        }
 
         $customer = $this->resolveCustomer($validated);
         $followUpStatus = match ($validated['status']) {

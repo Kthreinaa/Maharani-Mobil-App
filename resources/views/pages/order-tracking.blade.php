@@ -108,9 +108,9 @@
             <p class="text-sm text-on-surface-variant">Kode Order</p>
             <h2 class="mt-1 text-3xl font-extrabold text-primary">{{ $order->order_reference }}</h2>
             <p class="mt-2 text-sm text-on-surface-variant">{{ $carName }}</p>
-            <div class="mt-3 flex flex-wrap gap-2">
-              <span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">{{ $order->purchase_method_label }}</span>
-              <span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">{{ $order->transaction_channel_label }}</span>
+                <div class="mt-3 flex flex-wrap gap-2">
+                  <span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">{{ $order->purchase_method_label }}</span>
+                  <span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">{{ $order->transaction_channel_label }}</span>
             </div>
           </div>
           <span class="inline-flex w-fit rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] {{ $statusBadgeClass }}">
@@ -200,7 +200,7 @@
                 </div>
                 <div class="flex justify-between gap-4">
                   <span>Metode Pembelian</span>
-                  <span>{{ $isCreditPurchase ? 'Kredit Leasing' : $order->purchase_method_label }}</span>
+                  <span>{{ $order->purchase_method_label }}</span>
                 </div>
                 <div class="flex justify-between">
                   <span>Total Order</span>
@@ -212,7 +212,7 @@
                 </div>
                 <div class="flex justify-between">
                   <span>{{ $isCreditPurchase ? 'Leasing' : 'Metode' }}</span>
-                  <span>{{ $isCreditPurchase ? ($order->leasing_partner_label ?? '-') : strtoupper($payment?->method ?? $order->payment_method ?? '-') }}</span>
+                  <span>{{ $isCreditPurchase ? ($order->leasing_partner_label ?? '-') : ($payment?->internal_method_label ?? $order->internal_payment_method_label) }}</span>
                 </div>
                 @if (!$isCreditPurchase && $payment?->gateway_channel)
                   <div class="flex justify-between gap-4">
@@ -241,6 +241,17 @@
                     <span>Cicilan / Bulan</span>
                     <span>{{ \App\Support\CurrencyFormatter::rupiah($creditInstallment) }}</span>
                   </div>
+                @endif
+              </div>
+              <div class="mt-5 space-y-3">
+                @if (!$isCreditPurchase)
+                  <a class="inline-flex w-full items-center justify-center rounded-xl border border-white/15 bg-white/10 px-5 py-3 text-sm font-semibold text-white" href="{{ route('payment.page', ['order' => $order->id]) }}">Lihat Pembayaran</a>
+                @endif
+                @if (!$isCreditPurchase && $gatewayPending)
+                  <a class="inline-flex w-full items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-primary" href="{{ $gatewayCheckoutUrl }}" target="_blank" rel="noopener noreferrer">Lanjutkan Pembayaran Aman</a>
+                @endif
+                @if ($isCreditPurchase && $order->status !== 'pending' && !$hasVerifiedCreditDp)
+                  <a class="inline-flex w-full items-center justify-center rounded-xl border border-white/15 bg-white/10 px-5 py-3 text-sm font-semibold text-white" href="{{ route('payment.page', ['order' => $order->id]) }}">Lanjutkan Pembayaran DP Kredit</a>
                 @endif
               </div>
             </div>
@@ -276,21 +287,6 @@
                     {{ $docLabel }}
                   </a>
                 @endforeach
-              </div>
-            </div>
-
-            <div class="rounded-[1.5rem] border border-slate-200 p-6">
-              <h3 class="text-lg font-bold text-primary">Aksi Cepat</h3>
-              <div class="mt-4 space-y-3">
-                @if (!$isCreditPurchase)
-                  <a class="inline-flex w-full items-center justify-center rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-primary" href="{{ route('payment.page', ['order' => $order->id]) }}">Lihat Pembayaran</a>
-                @endif
-                @if (!$isCreditPurchase && $gatewayPending)
-                  <a class="inline-flex w-full items-center justify-center rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white" href="{{ $gatewayCheckoutUrl }}" target="_blank" rel="noopener noreferrer">Lanjutkan Pembayaran Aman</a>
-                @endif
-                @if ($isCreditPurchase && $order->status !== 'pending' && !$hasVerifiedCreditDp)
-                  <a class="inline-flex w-full items-center justify-center rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white" href="{{ route('payment.page', ['order' => $order->id]) }}">Lanjutkan Pembayaran DP Kredit</a>
-                @endif
               </div>
             </div>
           </aside>

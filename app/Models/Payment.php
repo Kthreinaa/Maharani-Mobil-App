@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\TransactionLabelFormatter;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -54,11 +55,7 @@ class Payment extends Model
 
     public function getInternalMethodLabelAttribute(): string
     {
-        return match ($this->method) {
-            'cash' => 'Tunai',
-            'credit', 'transfer', 'va' => 'Transfer',
-            default => strtoupper((string) $this->method),
-        };
+        return TransactionLabelFormatter::paymentMethod($this->method);
     }
 
     public function getStatusBadgeClassesAttribute(): string

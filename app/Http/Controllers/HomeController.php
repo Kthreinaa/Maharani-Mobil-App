@@ -6,15 +6,18 @@ use App\Models\Car;
 use App\Models\Offer;
 use App\Models\Order;
 use App\Models\ProductReview;
+use App\Models\User;
+use App\Services\CheckoutDraftService;
 use App\Support\CreditSimulationCatalog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 
 class HomeController extends Controller
 {
     public function landing()
     {
-        if (auth()->check() && auth()->user()->role === 'customer') {
+        if ($this->authenticatedCustomer()) {
             return redirect()->route('customer.home');
         }
 
@@ -62,7 +65,7 @@ class HomeController extends Controller
 
     public function home()
     {
-        if (auth()->check() && auth()->user()->role === 'customer') {
+        if ($this->authenticatedCustomer()) {
             return redirect()->route('customer.home');
         }
 
@@ -102,6 +105,22 @@ class HomeController extends Controller
             : 0.0;
 
         return view('pages.home', compact('catalogCars', 'homeOverviewCars', 'featuredReviews', 'featuredReviewCount', 'featuredReviewAverage'));
+    }
+
+    /**
+     * Ambil user login khusus customer agar controller tetap mudah dibaca
+     * dan editor tidak salah menandai akses properti role sebagai error.
+     */
+    private function authenticatedCustomer(): ?User
+    {
+        /** @var User|null $user */
+        $user = Auth::user();
+
+        if (!$user instanceof User || $user->role !== 'customer') {
+            return null;
+        }
+
+        return $user;
     }
 
     public function catalog(Request $request)
@@ -324,6 +343,16 @@ class HomeController extends Controller
             return redirect()->route('catalog')->with('error', 'Pilih unit mobil terlebih dahulu sebelum masuk ke checkout.');
         }
 
+        if ($car->status !== 'available') {
+            $message = $car->status === 'sold'
+                ? 'Unit ini sudah terjual dan tidak bisa dipesan lagi.'
+                : 'Unit ini sudah terpesan dan sedang menunggu proses supervisor, sehingga tidak bisa dipesan lagi.';
+
+            return redirect()
+                ->route('cars.show', ['id' => $car->id])
+                ->with('error', $message);
+        }
+
         return view('pages.checkout', compact('car', 'cashPrice', 'bookingFee', 'remainingBalance', 'sourceOffer'));
     }
 
@@ -339,14 +368,41 @@ class HomeController extends Controller
             ->with('success', 'Pembelian online saat ini menggunakan skema cash via transfer. Fitur simulasi kredit telah dinonaktifkan.');
     }
 
-    public function payment(Request $request)
+    public function payment(Request $request, CheckoutDraftService $checkoutDrafts)
     {
-        $order = $this->resolveCustomerOrder($request);
-        if (!$order) {
+        $draftTokenQuery = (string) $request->query('draft', $request->session()->get('active_checkout_draft', ''));
+        $draft = $this->resolveCheckoutDraft($request, $checkoutDrafts);
+        $order = ($draft || $draftTokenQuery !== '') ? null : $this->resolveCustomerOrder($request);
+
+        if (!$order && !$draft && $draftTokenQuery !== '') {
+            $resolvedOrder = $checkoutDrafts->resolvedOrderForUser($draftTokenQuery, (int) $request->user()->id);
+            if ($resolvedOrder) {
+                $request->session()->forget('active_checkout_draft');
+                $request->session()->put('active_order_id', $resolvedOrder->id);
+
+                return redirect()
+                    ->route('order.tracking', ['order' => $resolvedOrder->id])
+                    ->with('success', 'Pembayaran berhasil diterima. Pesanan online sekarang sudah tercatat di sistem.');
+            }
+        }
+
+        if (!$order && !$draft) {
             return redirect()->route('customer.orders.index')->with('error', 'Belum ada pesanan yang bisa diproses untuk pembayaran.');
         }
 
-        if ($order->is_credit_purchase) {
+        if (!$order && $draft) {
+            $resolvedOrder = $checkoutDrafts->resolvedOrderForUser((string) $draft['token'], (int) $request->user()->id);
+            if ($resolvedOrder) {
+                $request->session()->forget('active_checkout_draft');
+                $request->session()->put('active_order_id', $resolvedOrder->id);
+
+                return redirect()
+                    ->route('order.tracking', ['order' => $resolvedOrder->id])
+                    ->with('success', 'Pembayaran berhasil diterima. Pesanan online sekarang sudah tercatat di sistem.');
+            }
+        }
+
+        if ($order && $order->is_credit_purchase) {
             if ($order->status === 'pending') {
                 return redirect()
                     ->route('order.tracking', ['order' => $order->id])
@@ -354,16 +410,54 @@ class HomeController extends Controller
             }
         }
 
-        $payment = $order->payment;
-        $bookingFee = $order->is_credit_purchase
-            ? (float) ($order->credit_dp_amount ?? 0)
-            : $this->bookingFeeAmount();
-        $remainingBalance = max((float) $order->total - $bookingFee, 0);
+        $customer = $request->user();
+        $payment = $order?->payment;
+        $car = $order?->car;
+        if (!$car && $draft) {
+            $car = Car::query()->find((int) ($draft['car_id'] ?? 0));
+        }
+        $draftToken = $draft['token'] ?? null;
+        $selectedPaymentPlan = $order
+            ? ($order->is_credit_purchase ? 'credit_dp' : $this->resolveCashPaymentPlan($order))
+            : (string) ($draft['payment_plan'] ?? 'booking');
+        $bookingFee = $order
+            ? ($order->is_credit_purchase ? (float) ($order->credit_dp_amount ?? 0) : $this->bookingFeeAmount())
+            : (float) ($draft['active_payment_amount'] ?? $this->bookingFeeAmount());
+        $activePaymentAmount = $order
+            ? ($order->is_credit_purchase
+                ? $bookingFee
+                : ($selectedPaymentPlan === 'full' ? (float) $order->total : $bookingFee))
+            : (float) ($draft['active_payment_amount'] ?? 0);
+        $orderTotal = $order
+            ? (float) $order->total
+            : (float) ($draft['total_amount'] ?? 0);
+        $remainingBalance = $order
+            ? max((float) $order->total - $activePaymentAmount, 0)
+            : max((float) ($draft['remaining_balance'] ?? ($orderTotal - $activePaymentAmount)), 0);
+        $displayReference = $order?->order_reference ?: 'Menunggu pembayaran berhasil';
+        $isCreditPurchase = $order?->is_credit_purchase ?? false;
         $bankAccounts = $this->showroomBankAccounts();
-        $xenditEnabled = !$order->is_credit_purchase && filled(config('services.xendit.secret_key'));
+        $xenditEnabled = !$isCreditPurchase && filled(config('services.xendit.secret_key'));
         $settlementAccount = config('payments.settlement');
 
-        return view('pages.payment', compact('order', 'payment', 'bookingFee', 'remainingBalance', 'bankAccounts', 'xenditEnabled', 'settlementAccount'));
+        return view('pages.payment', compact(
+            'order',
+            'draft',
+            'draftToken',
+            'car',
+            'customer',
+            'payment',
+            'displayReference',
+            'bookingFee',
+            'remainingBalance',
+            'bankAccounts',
+            'xenditEnabled',
+            'settlementAccount',
+            'selectedPaymentPlan',
+            'activePaymentAmount',
+            'orderTotal',
+            'isCreditPurchase'
+        ));
     }
 
     public function paymentUpload(Request $request)
@@ -784,9 +878,51 @@ class HomeController extends Controller
         return $order;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function resolveCheckoutDraft(Request $request, CheckoutDraftService $checkoutDrafts): ?array
+    {
+        $user = $request->user();
+        if (!$user) {
+            return null;
+        }
+
+        $draftToken = (string) $request->query('draft', $request->session()->get('active_checkout_draft', ''));
+        if ($draftToken === '') {
+            return null;
+        }
+
+        $draft = $checkoutDrafts->findForUser($draftToken, (int) $user->id);
+        if ($draft) {
+            $request->session()->put('active_checkout_draft', $draftToken);
+            $carId = (int) ($draft['car_id'] ?? 0);
+            if ($carId > 0) {
+                $request->session()->put('checkout_car_id', $carId);
+            }
+        }
+
+        return $draft;
+    }
+
     private function bookingFeeAmount(): int
     {
         return (int) config('payments.booking_fee', 2500000);
+    }
+
+    private function resolveCashPaymentPlan(Order $order): string
+    {
+        $paidAmount = (float) ($order->payment?->amount ?? 0);
+        if ($paidAmount >= (float) $order->total && (float) $order->total > 0) {
+            return 'full';
+        }
+
+        $notes = (string) ($order->notes ?? '');
+        if (str_contains($notes, 'Pilihan pembayaran cash online: Bayar Lunas Full')) {
+            return 'full';
+        }
+
+        return 'booking';
     }
 
     private function resolveCheckoutContext(Request $request): array

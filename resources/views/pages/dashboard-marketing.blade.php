@@ -3,6 +3,9 @@
 @php
   $title = 'Dashboard Marketing';
   $pageTitle = 'Dashboard Marketing';
+  $topOpportunitiesPreview = collect($topOpportunities ?? collect())->take(5)->values();
+  $recentOrdersPreview = collect($recentOrders ?? collect())->take(5)->values();
+  $recentPaymentsPreview = collect($recentPayments ?? collect())->take(5)->values();
 
   $summaryCards = [
     ['label' => 'Unit Aktif', 'value' => (int) ($activeInventory ?? 0), 'note' => 'Unit tersedia yang masih bisa dipasarkan', 'icon' => 'inventory_2', 'tone' => 'from-[#08132e] to-[#12357a]', 'route' => route('marketing.products.index', ['status' => 'available', 'dataset' => 'operational'])],
@@ -44,8 +47,8 @@
     </div>
   </section>
 
-  <section id="marketing-signals-section" class="mt-6 grid grid-cols-1 items-stretch gap-6 xl:grid-cols-4 scroll-mt-28">
-    <article class="flex h-full min-h-[560px] flex-col rounded-[2rem] border border-white/70 bg-[rgba(255,255,255,0.72)] p-6 shadow-[0_24px_70px_rgba(15,23,42,0.10)] backdrop-blur-[24px] xl:col-span-2">
+  <section id="marketing-signals-section" class="mt-6 grid grid-cols-1 items-stretch gap-6 xl:grid-cols-2 scroll-mt-28">
+    <article class="flex h-full min-h-[500px] flex-col rounded-[2rem] border border-white/70 bg-[rgba(255,255,255,0.72)] p-6 shadow-[0_24px_70px_rgba(15,23,42,0.10)] backdrop-blur-[24px] xl:h-[560px]">
       <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f5a623]">Marketing Signals</p>
@@ -82,12 +85,12 @@
           </form>
         </div>
       </div>
-      <div class="mt-5 h-[320px] flex-1">
+      <div class="mt-5 h-[260px] flex-1 md:h-[300px] xl:h-[320px]">
         <canvas id="marketingFunnelChart"></canvas>
       </div>
     </article>
 
-    <article class="flex h-full min-h-[560px] flex-col rounded-[2rem] border border-white/70 bg-[rgba(255,255,255,0.72)] p-6 shadow-[0_24px_70px_rgba(15,23,42,0.10)] backdrop-blur-[24px] xl:col-span-2">
+    <article class="flex h-full min-h-[500px] flex-col rounded-[2rem] border border-white/70 bg-[rgba(255,255,255,0.72)] p-6 shadow-[0_24px_70px_rgba(15,23,42,0.10)] backdrop-blur-[24px] xl:h-[560px]">
       <div class="flex items-center justify-between gap-4">
         <div>
           <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f5a623]">Action Priority</p>
@@ -96,10 +99,11 @@
         <span class="rounded-full bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-500">Top 5</span>
       </div>
 
-      <div class="mt-5 flex flex-1 flex-col justify-between gap-3">
-        @forelse(($topOpportunities ?? collect()) as $index => $item)
+      <div class="mt-5 flex-1 overflow-hidden">
+        <div class="h-full space-y-3 overflow-y-auto pr-1">
+        @forelse($topOpportunitiesPreview as $index => $item)
           @php($car = $item['car'])
-          <div class="flex-1 rounded-[1.4rem] border border-slate-200/80 bg-white/70 px-4 py-4">
+          <div class="rounded-[1.4rem] border border-slate-200/80 bg-white/70 px-4 py-4">
             <div class="flex items-start justify-between gap-4">
               <div class="min-w-0">
                 <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">#{{ $index + 1 }}</p>
@@ -118,12 +122,13 @@
         @empty
           <div class="rounded-[1.4rem] border border-dashed border-slate-200 px-4 py-8 text-sm text-slate-500">Belum ada data prioritas unit.</div>
         @endforelse
+        </div>
       </div>
     </article>
   </section>
 
   <section class="mt-6 grid grid-cols-1 items-stretch gap-6 xl:grid-cols-4">
-    <article class="flex h-full min-h-[660px] flex-col rounded-[2rem] border border-white/70 bg-[rgba(255,255,255,0.72)] p-6 shadow-[0_24px_70px_rgba(15,23,42,0.10)] backdrop-blur-[24px] xl:col-span-2">
+    <article class="flex h-full min-h-[660px] flex-col rounded-[2rem] border border-white/70 bg-[rgba(255,255,255,0.72)] p-6 shadow-[0_24px_70px_rgba(15,23,42,0.10)] backdrop-blur-[24px] xl:col-span-2 xl:h-[660px]">
       <div class="mb-5 flex items-center justify-between gap-4">
         <div>
           <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f5a623]">Recent Orders</p>
@@ -135,7 +140,7 @@
         </a>
       </div>
 
-      <div class="glass-table-shell flex-1 overflow-x-auto rounded-[1.5rem]">
+      <div class="glass-table-shell flex-1 overflow-x-auto overflow-y-auto rounded-[1.5rem]">
         <table class="glass-table mm-data-table w-full text-sm">
           <thead>
             <tr>
@@ -146,7 +151,7 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-200/60">
-            @forelse(($recentOrders ?? collect()) as $order)
+            @forelse($recentOrdersPreview as $order)
               <tr>
                 <td class="px-4 py-3">
                   <p class="font-semibold text-slate-800">{{ $order->created_at?->format('d M Y') }}</p>
@@ -169,7 +174,7 @@
       </div>
     </article>
 
-    <article class="flex h-full min-h-[660px] flex-col rounded-[2rem] border border-white/70 bg-[rgba(255,255,255,0.72)] p-6 shadow-[0_24px_70px_rgba(15,23,42,0.10)] backdrop-blur-[24px] xl:col-span-2">
+    <article class="flex h-full min-h-[660px] flex-col rounded-[2rem] border border-white/70 bg-[rgba(255,255,255,0.72)] p-6 shadow-[0_24px_70px_rgba(15,23,42,0.10)] backdrop-blur-[24px] xl:col-span-2 xl:h-[660px]">
       <div class="mb-5 flex items-center justify-between gap-4">
         <div>
           <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f5a623]">Transaksi Terbaru</p>
@@ -181,9 +186,10 @@
         </a>
       </div>
 
-      <div class="flex flex-1 flex-col justify-between gap-3">
-        @forelse(($recentPayments ?? collect()) as $payment)
-          <div class="flex-1 rounded-[1.4rem] border border-slate-200/80 bg-white/70 px-4 py-4">
+      <div class="flex-1 overflow-hidden">
+        <div class="h-full space-y-3 overflow-y-auto pr-1">
+        @forelse($recentPaymentsPreview as $payment)
+          <div class="rounded-[1.4rem] border border-slate-200/80 bg-white/70 px-4 py-4">
             <div class="flex items-start justify-between gap-4">
               <div class="min-w-0">
                 <p class="font-extrabold text-slate-900">{{ $payment->order?->car?->merk }} {{ $payment->order?->car?->tipe }}</p>
@@ -196,6 +202,7 @@
         @empty
           <div class="rounded-[1.4rem] border border-dashed border-slate-200 px-4 py-8 text-sm text-slate-500">Belum ada transaksi terbaru.</div>
         @endforelse
+        </div>
       </div>
     </article>
   </section>

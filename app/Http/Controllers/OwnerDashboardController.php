@@ -72,24 +72,6 @@ class OwnerDashboardController extends Controller
             })
             ->values();
 
-        $monthlyGrowth = $monthlyPerformance->values()->map(function (array $item, int $index) use ($monthlyPerformance) {
-            $previousRevenue = $index > 0 ? (float) $monthlyPerformance[$index - 1]['revenue'] : null;
-
-            return [
-                'label' => $item['label'],
-                'growth' => $this->percentageChange($item['revenue'], $previousRevenue),
-            ];
-        });
-
-        $yearlyGrowth = $annualRows->values()->map(function (array $item, int $index) use ($annualRows) {
-            $previousRevenue = $index > 0 ? (float) $annualRows[$index - 1]['revenue'] : null;
-
-            return [
-                'label' => (string) $item['year'],
-                'growth' => $this->percentageChange($item['revenue'], $previousRevenue),
-            ];
-        });
-
         $topBrands = (clone $paidOrders)
             ->join('cars', 'cars.id', '=', 'orders.car_id')
             ->selectRaw('cars.merk as brand, COUNT(orders.id) as total_units, SUM(orders.total) as total_revenue')
@@ -210,8 +192,6 @@ class OwnerDashboardController extends Controller
             ],
             'monthlyPerformance' => $monthlyPerformance,
             'annualRevenue' => $annualRows,
-            'monthlyGrowth' => $monthlyGrowth,
-            'yearlyGrowth' => $yearlyGrowth,
             'topBrands' => $topBrands,
             'strategicInsights' => $strategicInsights,
             'reportLinks' => [
@@ -239,16 +219,6 @@ class OwnerDashboardController extends Controller
             'annual_revenue_chart' => [
                 'labels' => $dashboard['annualRevenue']->pluck('year')->map(fn ($year) => (string) $year)->values(),
                 'revenues' => $dashboard['annualRevenue']->pluck('revenue')->values(),
-            ],
-            'growth_charts' => [
-                'monthly' => [
-                    'labels' => $dashboard['monthlyGrowth']->pluck('label')->values(),
-                    'values' => $dashboard['monthlyGrowth']->pluck('growth')->values(),
-                ],
-                'yearly' => [
-                    'labels' => $dashboard['yearlyGrowth']->pluck('label')->values(),
-                    'values' => $dashboard['yearlyGrowth']->pluck('growth')->values(),
-                ],
             ],
             'top_brands' => [
                 'items' => $dashboard['topBrands']->values(),

@@ -4,21 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Car;
 use App\Models\Offer;
-use App\Models\Order;
+use App\Services\CheckoutDraftService;
 use App\Support\CreditSimulationCatalog;
-use App\Support\TestDriveOrderLinker;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
     private const BOOKING_FEE = 2500000;
 
-    public function store(Request $request)
+    public function store(Request $request, CheckoutDraftService $checkoutDrafts)
     {
         $validated = $request->validate([
             'car_id' => ['required', 'exists:cars,id'],
             'offer_id' => ['nullable', 'exists:offers,id'],
             'payment_method' => ['nullable', 'in:cash,transfer,va,credit'],
+            'payment_plan' => ['nullable', 'in:booking,full'],
             'sales_flow' => ['nullable', 'in:direct_purchase,after_test_drive'],
             'notes' => ['nullable', 'string'],
             'booking_fee_agreement' => ['nullable'],
@@ -40,13 +40,14 @@ class OrderController extends Controller
         }
 
         $car = Car::query()->findOrFail($sourceOffer?->car_id ?? $validated['car_id']);
-        if ($car->status === 'sold') {
+        if ($car->status !== 'available') {
             return back()->withErrors([
-                'car_id' => 'Unit ini sudah terjual dan tidak bisa dipesan lagi.',
+                'car_id' => $this->unavailableCarMessage($car),
             ])->withInput();
         }
 
         $purchaseMethod = (string) ($validated['payment_method'] ?? 'cash');
+        $paymentPlan = (string) ($validated['payment_plan'] ?? 'booking');
         $totalAmount = (float) ($sourceOffer?->negotiated_price ?? $car->harga);
         $salesFlow = $sourceOffer ? 'direct_purchase' : ($validated['sales_flow'] ?? 'direct_purchase');
         $creditSimulation = null;
@@ -98,6 +99,9 @@ class OrderController extends Controller
             $purchaseMethod === 'credit'
                 ? 'Skema pembelian online: kredit leasing.'
                 : 'Skema pembelian online: harga cash.',
+            $purchaseMethod !== 'credit'
+                ? 'Pilihan pembayaran cash online: ' . ($paymentPlan === 'full' ? 'Bayar Lunas Full' : 'Booking Fee')
+                : null,
             $purchaseMethod === 'credit'
                 ? 'Leasing dipilih: ' . $creditSimulation['partner']['name']
                 : 'Biaya booking online: ' . number_format(self::BOOKING_FEE, 0, ',', '.'),
@@ -113,49 +117,46 @@ class OrderController extends Controller
             !empty($validated['notes']) ? 'Catatan: ' . $validated['notes'] : null,
         ])->filter()->implode("\n");
 
-        $order = Order::create([
-            'user_id' => $request->user()->id,
+        $draftToken = $checkoutDrafts->store($request->user(), [
             'car_id' => $car->id,
-            'total' => $totalAmount,
-            'payment_method' => $purchaseMethod === 'credit' ? 'credit' : 'transfer',
-            'leasing_partner' => $creditSimulation['partner']['name'] ?? null,
-            'credit_dp_percentage' => $creditSimulation['dp_percentage'] ?? null,
-            'credit_dp_amount' => $creditSimulation['dp_amount'] ?? null,
-            'credit_tenor_months' => $creditSimulation['tenor_months'] ?? null,
-            'credit_monthly_installment' => $creditSimulation['monthly_installment'] ?? null,
-            'credit_interest_rate' => $creditSimulation['annual_rate'] ?? null,
-            'transaction_channel' => 'online',
+            'offer_id' => $sourceOffer?->id,
+            'payment_plan' => $paymentPlan,
             'sales_flow' => $salesFlow,
-            'notes' => $notes !== '' ? $notes : null,
-            'follow_up_status' => $purchaseMethod === 'credit' ? 'needs_follow_up' : 'new_lead',
-            'document_status' => Order::pendingDocumentStatuses(),
-            'status' => 'pending',
+            'total_amount' => $totalAmount,
+            'active_payment_amount' => $purchaseMethod === 'credit'
+                ? (float) ($creditSimulation['dp_amount'] ?? 0)
+                : ($paymentPlan === 'full' ? $totalAmount : min($totalAmount, (float) config('payments.booking_fee', self::BOOKING_FEE))),
+            'remaining_balance' => max(
+                $totalAmount - ($purchaseMethod === 'credit'
+                    ? (float) ($creditSimulation['dp_amount'] ?? 0)
+                    : ($paymentPlan === 'full' ? $totalAmount : min($totalAmount, (float) config('payments.booking_fee', self::BOOKING_FEE)))),
+                0
+            ),
+            'order_payment_method' => $purchaseMethod === 'credit' ? 'credit' : 'transfer',
+            'notes' => $notes,
         ]);
 
-        TestDriveOrderLinker::attach($order);
-
-        if ($sourceOffer) {
-            $sourceOffer->update([
-                'follow_up_status' => 'closed_won',
-                'final_price' => $sourceOffer->negotiated_price,
-            ]);
-        }
-
-        if ($car->status === 'available') {
-            $car->update(['status' => 'reserved']);
-        }
-
-        $request->session()->put('active_order_id', $order->id);
+        $request->session()->forget('active_order_id');
+        $request->session()->put('active_checkout_draft', $draftToken);
         $request->session()->put('checkout_car_id', $car->id);
 
         if ($purchaseMethod === 'credit') {
             return redirect()
-                ->route('order.tracking', ['order' => $order->id])
-                ->with('success', 'Pengajuan kredit berhasil dikirim. Supervisor akan meninjau pengajuan Anda terlebih dahulu sebelum customer dapat melanjutkan pembayaran DP ke showroom.');
+                ->route('payment.page', ['draft' => $draftToken])
+                ->with('success', 'Lanjutkan pembayaran DP kredit terlebih dahulu. Pesanan baru akan tercatat setelah pembayaran berhasil masuk.');
         }
 
         return redirect()
-            ->route('payment.page', ['order' => $order->id])
-            ->with('success', 'Pesan online berhasil dibuat. Silakan pilih rekening tujuan untuk pembayaran booking fee.');
+            ->route('payment.page', ['draft' => $draftToken])
+            ->with('success', $paymentPlan === 'full'
+                ? 'Draft pembayaran lunas full sudah disiapkan. Pesanan akan tercatat setelah pembayaran berhasil.'
+                : 'Draft pembayaran booking fee sudah disiapkan. Pesanan akan tercatat setelah pembayaran berhasil.');
+    }
+
+    private function unavailableCarMessage(Car $car): string
+    {
+        return $car->status === 'sold'
+            ? 'Unit ini sudah terjual dan tidak bisa dipesan lagi.'
+            : 'Unit ini sudah terpesan dan sedang menunggu proses supervisor, sehingga tidak bisa dipesan lagi.';
     }
 }

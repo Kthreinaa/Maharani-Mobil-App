@@ -103,6 +103,42 @@
     </div>
   </section>
 
+  <section class="mb-6 overflow-hidden rounded-[2rem] border border-white/70 bg-white/80 p-5 shadow-[0_22px_60px_rgba(15,23,42,0.10)] backdrop-blur-[22px] md:p-6">
+    <div class="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+      <div>
+        <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f5a623]">Reminder!</p>
+        <h3 class="mt-2 font-headline text-[24px] font-extrabold text-slate-900">Perlu Diproses!</h3>
+        <p class="mt-2 max-w-[720px] text-sm leading-6 text-slate-500">
+          Pengingat ini tetap tampil selama data belum ditindaklanjuti. Setelah supervisor memproses status pesanan, pembayaran, penawaran, atau test drive, jumlahnya otomatis berkurang.
+        </p>
+      </div>
+      <span class="inline-flex w-fit items-center rounded-full bg-[#08132e] px-4 py-2 text-xs font-bold text-white">
+        {{ number_format(collect($supervisorReminders ?? [])->sum('value')) }} perlu dicek
+      </span>
+    </div>
+
+    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      @foreach (($supervisorReminders ?? []) as $reminder)
+        <a href="{{ $reminder['href'] }}" class="group rounded-[1.45rem] border {{ $reminder['tone'] }} p-4 transition hover:-translate-y-0.5 hover:shadow-[0_18px_34px_rgba(15,23,42,0.10)]">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <p class="text-[11px] font-extrabold uppercase tracking-[0.18em] opacity-80">{{ $reminder['label'] }}</p>
+              <p class="mt-3 text-[32px] font-black leading-none">{{ number_format((int) $reminder['value']) }}</p>
+            </div>
+            <span class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/80 shadow-sm">
+              <span class="material-symbols-outlined text-[23px]">{{ $reminder['icon'] }}</span>
+            </span>
+          </div>
+          <p class="mt-4 min-h-[42px] text-sm leading-6 opacity-85">{{ $reminder['note'] }}</p>
+          <span class="mt-4 inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.16em]">
+            Buka data
+            <span class="material-symbols-outlined text-[18px] transition group-hover:translate-x-1">arrow_forward</span>
+          </span>
+        </a>
+      @endforeach
+    </div>
+  </section>
+
   <section class="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-[0.75fr_1.75fr]">
     <article id="supervisor-sales-trend-section" class="overflow-hidden rounded-[2rem] border border-white/70 bg-[rgba(255,255,255,0.72)] p-6 shadow-[0_24px_70px_rgba(15,23,42,0.10)] backdrop-blur-[24px] scroll-mt-28">
       <div class="mb-5 flex items-center justify-between gap-4">

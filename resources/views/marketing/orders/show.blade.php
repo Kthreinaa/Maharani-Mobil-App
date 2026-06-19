@@ -111,7 +111,7 @@
 
             <div class="rounded-[1.35rem] border border-cyan-100 bg-[linear-gradient(135deg,rgba(236,254,255,0.94),rgba(255,255,255,0.82))] p-4 shadow-[0_14px_30px_rgba(103,232,249,0.12)]">
               <p class="text-slate-500">Metode Bayar</p>
-              <p class="mt-1 font-bold text-slate-900">{{ $order->internal_payment_method_label }}</p>
+              <p class="mt-1 font-bold text-slate-900">{{ $order->payment?->internal_method_label ?? $order->internal_payment_method_label }}</p>
               <p class="mt-1 text-slate-500">Transaksi diproses oleh Supervisor</p>
               @if ($order->payment?->proof_file)
                 <a class="mt-3 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-xs font-semibold text-slate-700" href="{{ asset('storage/' . $order->payment->proof_file) }}" target="_blank" rel="noreferrer">

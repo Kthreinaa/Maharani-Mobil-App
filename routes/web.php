@@ -13,6 +13,7 @@ use App\Http\Controllers\MarketingCarController;
 use App\Http\Controllers\MarketingCustomerController;
 use App\Http\Controllers\MarketingOfferController;
 use App\Http\Controllers\MarketingOrderController;
+use App\Http\Controllers\MarketingProductReviewController;
 use App\Http\Controllers\MarketingSettingsController;
 use App\Http\Controllers\MarketingTestDriveController;
 use App\Http\Controllers\MarketingTransactionController;
@@ -125,6 +126,18 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::post('/offers', [OfferController::class, 'store'])->name('offers.store');
 });
 
+Route::post('/checkout', [PaymentController::class, 'checkout']);
+Route::post('/payments/snap-token', [PaymentController::class, 'snapToken'])
+    ->name('payments.snap-token');
+
+Route::post('/midtrans/callback', [PaymentController::class, 'callback'])
+    ->name('midtrans.callback');
+
+    Route::post('/payments/complete',
+    [PaymentController::class, 'completePayment'])
+    ->name('payments.complete');
+    
+
 // Aksi sensitif customer dengan proteksi pesan login khusus.
 Route::middleware(['action.auth', 'auth', 'role:customer'])->prefix('customer')->name('customer.')->group(function () {
     Route::post('/favorites/{car}', [FavoriteController::class, 'store'])->name('favorites.store');
@@ -216,6 +229,7 @@ Route::middleware(['auth', 'role:marketing'])->prefix('marketing')->name('market
     Route::get('/upload', [MarketingCarController::class, 'create'])->name('products.upload');
     Route::post('/products', [MarketingCarController::class, 'store'])->name('products.store');
     Route::get('/products/{car}/edit', [MarketingCarController::class, 'edit'])->name('products.edit');
+    Route::get('/products/{car}/reviews', [MarketingProductReviewController::class, 'index'])->name('products.reviews.index');
     Route::put('/products/{car}', [MarketingCarController::class, 'update'])->name('products.update');
     Route::patch('/products/{car}/photos/{photoIndex}', [MarketingCarController::class, 'replacePhoto'])->name('products.photos.replace');
     Route::delete('/products/{car}/photos/{photoIndex}', [MarketingCarController::class, 'destroyPhoto'])->name('products.photos.destroy');

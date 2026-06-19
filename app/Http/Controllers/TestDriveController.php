@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Car;
 use App\Models\TestDrive;
 use Illuminate\Http\Request;
 
@@ -17,6 +18,13 @@ class TestDriveController extends Controller
             'notes' => ['nullable', 'string', 'max:2000'],
             'customer_channel' => ['nullable', 'in:online,offline'],
         ]);
+
+        $car = Car::query()->findOrFail((int) $validated['car_id']);
+        if ($car->status !== 'available') {
+            return back()
+                ->withErrors(['car_id' => 'Unit ini sudah terpesan atau terjual, sehingga tidak bisa dijadwalkan test drive.'])
+                ->withInput();
+        }
 
         $notesParts = [];
         if (!empty($validated['location'])) {

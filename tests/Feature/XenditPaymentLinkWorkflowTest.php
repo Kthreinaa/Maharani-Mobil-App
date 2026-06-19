@@ -75,6 +75,61 @@ class XenditPaymentLinkWorkflowTest extends TestCase
         $this->assertSame('transfer', $order->payment_method);
     }
 
+    public function test_customer_can_create_xendit_invoice_for_full_payment_when_selected(): void
+    {
+        config()->set('services.xendit.secret_key', 'xnd_development_test');
+        config()->set('payments.booking_fee', 2500000);
+
+        Http::fake([
+            'https://api.xendit.co/v2/invoices' => Http::response([
+                'id' => 'inv-test-full-001',
+                'external_id' => 'mm-order-full-test',
+                'status' => 'PENDING',
+                'invoice_url' => 'https://checkout.xendit.test/inv-test-full-001',
+            ], 200),
+        ]);
+
+        $customer = User::factory()->create(['role' => 'customer']);
+        $marketing = User::factory()->create(['role' => 'marketing']);
+
+        $car = Car::create([
+            'kode_unit' => 'MM-XDT-003',
+            'merk' => 'Honda',
+            'tipe' => 'Brio',
+            'tahun' => 2021,
+            'harga' => 124000000,
+            'kilometer' => 9000,
+            'status' => 'reserved',
+            'photos' => [],
+            'created_by' => $marketing->id,
+        ]);
+
+        $order = Order::create([
+            'user_id' => $customer->id,
+            'car_id' => $car->id,
+            'status' => 'pending',
+            'total' => 124000000,
+            'payment_method' => null,
+            'transaction_channel' => 'online',
+            'sales_flow' => 'direct_purchase',
+            'document_status' => Order::pendingDocumentStatuses(),
+        ]);
+
+        $this->actingAs($customer)
+            ->post(route('customer.payments.store'), [
+                'order_id' => $order->id,
+                'method' => 'transfer',
+                'payment_plan' => 'full',
+            ])
+            ->assertRedirect('https://checkout.xendit.test/inv-test-full-001');
+
+        $payment = Payment::where('order_id', $order->id)->first();
+
+        $this->assertNotNull($payment);
+        $this->assertSame(124000000.0, (float) $payment->amount);
+        $this->assertSame('xendit', $payment->gateway_provider);
+    }
+
     public function test_xendit_webhook_marks_payment_as_verified_automatically(): void
     {
         config()->set('services.xendit.webhook_token', 'webhook-secret');

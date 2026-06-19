@@ -128,7 +128,7 @@
             <div class="panel">
               <div class="panel-title">Data Transaksi</div>
               <div><span class="label">Nomor Order:</span> {{ $order->order_reference }}</div>
-              <div><span class="label">Metode Pembelian:</span> {{ $order->is_credit_purchase ? 'Kredit Leasing' : 'Cash' }}</div>
+              <div><span class="label">Metode Pembelian:</span> {{ $order->purchase_method_label }}</div>
               <div><span class="label">Metode Bayar:</span> {{ $order->payment?->internal_method_label ?? $order->internal_payment_method_label }}</div>
               <div><span class="label">Sumber Transaksi:</span> {{ $order->transaction_channel_label }}</div>
               <div><span class="label">Status Transaksi:</span> Lunas</div>

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\OrderCodeFormatter;
+use App\Support\TransactionLabelFormatter;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -79,6 +80,12 @@ class Order extends Model
     public function payment()
     {
         return $this->hasOne(Payment::class);
+    }
+
+    public function purchaseReview()
+    {
+        return $this->hasOne(ProductReview::class, 'source_id')
+            ->where('source_type', 'purchase');
     }
 
     public function handledBy()
@@ -240,13 +247,7 @@ class Order extends Model
 
     public function getInternalPaymentMethodLabelAttribute(): string
     {
-        return match ($this->payment_method) {
-            'cash' => 'Cash',
-            'credit' => 'Kredit Leasing',
-            'transfer' => 'Transfer',
-            'va' => 'Kredit Leasing',
-            default => '-',
-        };
+        return TransactionLabelFormatter::paymentMethod($this->payment?->method);
     }
 
     public function getIsCreditPurchaseAttribute(): bool
@@ -261,19 +262,12 @@ class Order extends Model
 
     public function getTransactionChannelLabelAttribute(): string
     {
-        return match ($this->transaction_channel) {
-            'offline' => 'Datang ke Showroom',
-            default => 'Online Website',
-        };
+        return TransactionLabelFormatter::transactionChannel($this->transaction_channel);
     }
 
     public function getSalesFlowLabelAttribute(): string
     {
-        return match ($this->sales_flow) {
-            'after_test_drive' => 'Dengan Test Drive',
-            'offline_showroom' => 'Datang ke Showroom + Test Drive',
-            default => 'Tanpa Test Drive',
-        };
+        return TransactionLabelFormatter::salesFlow($this->sales_flow);
     }
 
     public function getFollowUpStatusLabelAttribute(): string
@@ -289,11 +283,7 @@ class Order extends Model
 
     public function getPurchaseMethodLabelAttribute(): string
     {
-        return match ($this->sales_flow) {
-            'after_test_drive' => 'Dengan Test Drive',
-            'offline_showroom' => 'Test Drive di Showroom',
-            default => 'Tanpa Test Drive',
-        };
+        return TransactionLabelFormatter::purchaseMethod($this->payment_method);
     }
 
     public function getCustomerJourneyTitleAttribute(): string
@@ -366,6 +356,20 @@ class Order extends Model
         }
 
         return 'Guest';
+    }
+
+    public function getHasPurchaseReviewAttribute(): bool
+    {
+        if ($this->relationLoaded('purchaseReview')) {
+            return $this->purchaseReview !== null;
+        }
+
+        return $this->purchaseReview()->exists();
+    }
+
+    public function getReviewStatusLabelAttribute(): string
+    {
+        return $this->has_purchase_review ? 'Sudah di Review' : 'Review unit sekarang';
     }
 
     public function getHandoverDocumentChecklistAttribute(): array

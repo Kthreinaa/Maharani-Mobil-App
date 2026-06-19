@@ -1,8 +1,8 @@
 @extends('layouts.supervisor')
 
 @php
-  $title = 'Manajemen Customer';
-  $pageTitle = 'Manajemen Customer';
+  $title = 'Data Customer';
+  $pageTitle = 'Data Customer';
 @endphp
 
 @section('content')

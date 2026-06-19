@@ -1,0 +1,124 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam backgroundColor white
+skinparam actorStyle awesome
+skinparam defaultFontName Arial
+skinparam usecase {
+  BackgroundColor #FFFFFF
+  BorderColor #071B47
+  ArrowColor #071B47
+}
+
+title Use Case Diagram Maharani Mobil App
+
+actor "Pengunjung" as Guest
+actor "Customer" as Customer
+actor "Marketing" as Marketing
+actor "Supervisor" as Supervisor
+actor "Owner" as Owner
+
+rectangle "Sistem Maharani Mobil App" {
+
+  usecase "Lihat Beranda" as UC_Home
+  usecase "Lihat Katalog Mobil" as UC_Catalog
+  usecase "Lihat Detail Mobil" as UC_CarDetail
+  usecase "Lihat Ulasan Customer" as UC_Reviews
+  usecase "Login" as UC_Login
+  usecase "Register" as UC_Register
+
+  usecase "Kelola Favorit" as UC_Favorite
+  usecase "Ajukan Penawaran Harga" as UC_Offer
+  usecase "Booking Test Drive" as UC_TestDrive
+  usecase "Pesan Mobil" as UC_Order
+  usecase "Pilih Metode Beli\nCash / Kredit" as UC_Method
+  usecase "Upload Pembayaran" as UC_Payment
+  usecase "Lihat Tracking Pesanan" as UC_Tracking
+  usecase "Lihat Pesanan Saya" as UC_MyOrders
+  usecase "Tulis Review Customer" as UC_WriteReview
+  usecase "Kelola Profil Customer" as UC_CustomerProfile
+
+  usecase "Kelola Data Produk Mobil" as UC_MarketingProducts
+  usecase "Pantau Pesanan" as UC_MarketingOrders
+  usecase "Pantau Penawaran" as UC_MarketingOffers
+  usecase "Pantau Test Drive" as UC_MarketingTestDrive
+  usecase "Pantau Transaksi" as UC_MarketingTransactions
+  usecase "Kelola Data Customer" as UC_MarketingCustomers
+  usecase "Kelola Pengaturan Marketing" as UC_MarketingSettings
+
+  usecase "Kelola Data Mobil" as UC_SupervisorCars
+  usecase "Kelola Pesanan" as UC_SupervisorOrders
+  usecase "Validasi Pembayaran" as UC_SupervisorPayments
+  usecase "Kelola Test Drive" as UC_SupervisorTestDrive
+  usecase "Kelola Penawaran" as UC_SupervisorOffers
+  usecase "Kelola Customer" as UC_SupervisorCustomers
+  usecase "Kelola User Internal" as UC_SupervisorUsers
+  usecase "Lihat Aktivitas Sistem" as UC_SupervisorActivity
+  usecase "Lihat Laporan Supervisor" as UC_SupervisorReports
+  usecase "Unduh Faktur / Kwitansi / BAST" as UC_Documents
+  usecase "Kelola Pengaturan Supervisor" as UC_SupervisorSettings
+
+  usecase "Lihat Dashboard Owner" as UC_OwnerDashboard
+  usecase "Lihat Laporan Penjualan" as UC_OwnerReports
+  usecase "Export Laporan PDF / Excel" as UC_OwnerExport
+  usecase "Kelola Pengaturan Owner" as UC_OwnerSettings
+}
+
+Guest --> UC_Home
+Guest --> UC_Catalog
+Guest --> UC_CarDetail
+Guest --> UC_Reviews
+Guest --> UC_Login
+Guest --> UC_Register
+
+Customer --> UC_Login
+Customer --> UC_Favorite
+Customer --> UC_Offer
+Customer --> UC_TestDrive
+Customer --> UC_Order
+Customer --> UC_Payment
+Customer --> UC_Tracking
+Customer --> UC_MyOrders
+Customer --> UC_WriteReview
+Customer --> UC_CustomerProfile
+Customer --> UC_Documents
+
+Marketing --> UC_Login
+Marketing --> UC_MarketingProducts
+Marketing --> UC_MarketingOrders
+Marketing --> UC_MarketingOffers
+Marketing --> UC_MarketingTestDrive
+Marketing --> UC_MarketingTransactions
+Marketing --> UC_MarketingCustomers
+Marketing --> UC_MarketingSettings
+
+Supervisor --> UC_Login
+Supervisor --> UC_SupervisorCars
+Supervisor --> UC_SupervisorOrders
+Supervisor --> UC_SupervisorPayments
+Supervisor --> UC_SupervisorTestDrive
+Supervisor --> UC_SupervisorOffers
+Supervisor --> UC_SupervisorCustomers
+Supervisor --> UC_SupervisorUsers
+Supervisor --> UC_SupervisorActivity
+Supervisor --> UC_SupervisorReports
+Supervisor --> UC_Documents
+Supervisor --> UC_SupervisorSettings
+
+Owner --> UC_Login
+Owner --> UC_OwnerDashboard
+Owner --> UC_OwnerReports
+Owner --> UC_OwnerExport
+Owner --> UC_OwnerSettings
+
+UC_Order .> UC_Method : <<include>>
+UC_Payment .> UC_Tracking : <<extend>>
+UC_OwnerReports .> UC_OwnerExport : <<include>>
+
+note bottom of UC_Method
+Metode beli pada sistem:
+Cash dan Kredit
+end note
+
+@enduml

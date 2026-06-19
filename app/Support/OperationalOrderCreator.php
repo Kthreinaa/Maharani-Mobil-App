@@ -8,12 +8,21 @@ use App\Models\Payment;
 use App\Models\User;
 use App\Support\TestDriveOrderLinker;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class OperationalOrderCreator
 {
     public function create(array $data, User $actor): Order
     {
         $car = Car::query()->findOrFail((int) $data['car_id']);
+        if ($car->status !== 'available') {
+            throw ValidationException::withMessages([
+                'car_id' => $car->status === 'sold'
+                    ? 'Unit ini sudah terjual dan tidak bisa dibuat transaksi baru.'
+                    : 'Unit ini sudah terpesan dan sedang diproses, sehingga tidak bisa dibuat transaksi baru.',
+            ]);
+        }
+
         $customer = $this->resolveCustomer($data);
         $channel = (string) ($data['transaction_channel'] ?? 'offline');
         $salesFlow = $channel === 'offline'

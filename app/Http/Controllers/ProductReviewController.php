@@ -154,6 +154,12 @@ class ProductReviewController extends Controller
 
     private function eligibleReviewCars(int $userId)
     {
+        $reviewedSources = ProductReview::query()
+            ->where('user_id', $userId)
+            ->get(['source_type', 'source_id'])
+            ->map(fn (ProductReview $review) => $review->source_type . ':' . $review->source_id)
+            ->all();
+
         $purchasedCars = Order::query()
             ->with('car')
             ->where('user_id', $userId)
@@ -166,7 +172,8 @@ class ProductReviewController extends Controller
                     'source_id' => $order->id,
                     'label' => 'Pembelian terverifikasi',
                 ];
-            });
+            })
+            ->reject(fn (array $item) => in_array($item['source_type'] . ':' . $item['source_id'], $reviewedSources, true));
 
         $testDriveCars = TestDrive::query()
             ->with('car')
@@ -180,7 +187,8 @@ class ProductReviewController extends Controller
                     'source_id' => $testDrive->id,
                     'label' => 'Test drive terverifikasi',
                 ];
-            });
+            })
+            ->reject(fn (array $item) => in_array($item['source_type'] . ':' . $item['source_id'], $reviewedSources, true));
 
         return $purchasedCars
             ->merge($testDriveCars)

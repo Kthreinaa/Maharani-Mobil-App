@@ -234,22 +234,26 @@ class DashboardNotificationBuilder
     {
         $items = collect();
 
-        $pendingCreditOrders = Order::query()
+        $pendingOrders = Order::query()
             ->with(['user', 'car'])
-            ->where('payment_method', 'credit')
             ->where('status', 'pending')
+            ->whereNull('handled_by')
             ->latest()
             ->take(4)
             ->get();
 
-        foreach ($pendingCreditOrders as $order) {
+        foreach ($pendingOrders as $order) {
+            $isCreditOrder = in_array((string) $order->payment_method, ['credit', 'va'], true);
+
             $items->push(self::item(
                 'receipt_long',
-                'Pengajuan kredit baru menunggu approval',
-                ($order->user?->name ?? 'Customer') . ' ingin membeli ' . self::carName($order->car?->merk, $order->car?->tipe) . ' secara kredit. Tinjau pengajuan lalu setujui agar customer bisa melanjutkan pembayaran DP.',
+                $isCreditOrder ? 'Pengajuan kredit baru menunggu approval' : 'Pesanan online baru belum diproses',
+                $isCreditOrder
+                    ? ($order->user?->name ?? 'Customer') . ' ingin membeli ' . self::carName($order->car?->merk, $order->car?->tipe) . ' secara kredit. Tinjau pengajuan lalu setujui agar customer bisa melanjutkan pembayaran DP.'
+                    : ($order->user?->name ?? 'Customer') . ' membuat order ' . $order->order_reference . ' untuk ' . self::carName($order->car?->merk, $order->car?->tipe) . '. Proses pesanan agar status unit dan pembayaran jelas.',
                 $order->created_at,
                 route('supervisor.orders.show', $order),
-                'navy',
+                $isCreditOrder ? 'navy' : 'amber',
                 true
             ));
         }

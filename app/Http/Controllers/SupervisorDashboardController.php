@@ -164,6 +164,50 @@ class SupervisorDashboardController extends Controller
         $recentOrders = Order::with(['user', 'car'])->latest()->take(5)->get();
         $recentPayments = Payment::with(['order.user', 'order.car'])->latest()->take(5)->get();
         $recentTestDrives = TestDrive::with(['user', 'car'])->latest()->take(5)->get();
+        $pendingOrderReminders = Order::query()
+            ->where('status', 'pending')
+            ->whereNull('handled_by')
+            ->count();
+        $pendingOfferReminders = Offer::query()
+            ->where('status', 'pending')
+            ->count();
+        $pendingTestDriveReminders = TestDrive::query()
+            ->where('status', 'pending')
+            ->count();
+        $supervisorReminders = [
+            [
+                'label' => 'Pesanan belum diproses',
+                'value' => $pendingOrderReminders,
+                'icon' => 'receipt_long',
+                'tone' => 'bg-amber-50 text-amber-700 border-amber-200',
+                'href' => route('supervisor.orders.index', ['status' => 'pending']),
+                'note' => 'Order customer yang masih menunggu tindakan supervisor.',
+            ],
+            [
+                'label' => 'Pembayaran menunggu validasi',
+                'value' => $pendingPayments,
+                'icon' => 'payments',
+                'tone' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                'href' => route('supervisor.payments.index'),
+                'note' => 'Pembayaran tercatat dan perlu dicek berdasarkan data transaksi.',
+            ],
+            [
+                'label' => 'Penawaran perlu respons',
+                'value' => $pendingOfferReminders,
+                'icon' => 'sell',
+                'tone' => 'bg-sky-50 text-sky-700 border-sky-200',
+                'href' => route('supervisor.offers.index'),
+                'note' => 'Penawaran harga yang belum diberi keputusan.',
+            ],
+            [
+                'label' => 'Test drive perlu follow-up',
+                'value' => $pendingTestDriveReminders,
+                'icon' => 'event_available',
+                'tone' => 'bg-rose-50 text-rose-700 border-rose-200',
+                'href' => route('supervisor.testdrives.index', ['status' => 'pending']),
+                'note' => 'Jadwal test drive yang belum disetujui atau ditolak.',
+            ],
+        ];
 
         $activity = collect()
             ->merge(Order::latest()->take(5)->get()->map(function ($item) {
@@ -255,6 +299,7 @@ class SupervisorDashboardController extends Controller
             'recentOrders',
             'recentPayments',
             'recentTestDrives',
+            'supervisorReminders',
             'activity',
             'dashboardNotifications'
         ));

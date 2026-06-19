@@ -50,7 +50,7 @@ class MarketingOrderController extends Controller
     public function create()
     {
         $cars = Car::query()
-            ->whereIn('status', ['available', 'reserved'])
+            ->where('status', 'available')
             ->orderBy('merk')
             ->orderBy('tipe')
             ->get();

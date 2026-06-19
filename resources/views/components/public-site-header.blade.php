@@ -8,6 +8,8 @@
     'inlineBadgeLabel' => null,
     'inlineBadgeHref' => null,
     'inlineLinks' => null,
+    'showLogout' => true,
+    'showRightActions' => true,
 ])
 
 @php
@@ -32,7 +34,7 @@
     ];
 
     $links = $catalogInline
-        ? (is_array($inlineLinks) && !empty($inlineLinks) ? $inlineLinks : [$primaryLink])
+        ? (is_array($inlineLinks) ? $inlineLinks : [$primaryLink])
         : ($isCustomer
             ? [
                 ['key' => 'home', 'label' => __('Home'), 'href' => $homeUrl],
@@ -66,8 +68,12 @@
 
     $customerNotifications = $dashboardNotifications ?? null;
 
+    $hasCenterLinks = count($links) > 0;
+
     $desktopShellClass = $catalogInline
-        ? 'md:grid md:grid-cols-[minmax(320px,1fr)_auto_minmax(320px,1fr)]'
+        ? ($hasCenterLinks
+            ? 'md:grid md:grid-cols-[minmax(320px,1fr)_auto_minmax(320px,1fr)]'
+            : 'md:grid md:grid-cols-[minmax(320px,1fr)_minmax(320px,1fr)]')
         : 'md:grid md:grid-cols-[minmax(260px,1fr)_auto_minmax(260px,1fr)]';
 @endphp
 
@@ -83,6 +89,7 @@
         @endif
       </div>
 
+      @if ($hasCenterLinks)
       <div class="hidden justify-self-center md:flex">
         <div class="inline-flex items-center gap-1 rounded-full border border-white/12 bg-[rgba(255,255,255,0.08)] px-2 py-1.5 shadow-sm backdrop-blur-xl dark:border-white/15 dark:bg-[rgba(255,255,255,0.06)]">
           @foreach ($links as $link)
@@ -99,47 +106,53 @@
           @endforeach
         </div>
       </div>
+      @endif
 
-      <div class="flex items-center justify-end gap-3 md:min-w-0 md:justify-self-end">
-        @include('components.nav-tools')
+      @if ($showRightActions)
+        <div class="flex items-center justify-end gap-3 md:min-w-0 md:justify-self-end">
+          @include('components.nav-tools')
 
-        @auth
-          @if ($isCustomer)
-            @if ($customerNotifications)
-              <x-dashboard-notification-bell
-                :data="$customerNotifications"
-                :title="__('Notifikasi Customer')"
-                variant="dark"
-              />
+          @auth
+            @if ($isCustomer)
+              @if ($customerNotifications)
+                <x-dashboard-notification-bell
+                  :data="$customerNotifications"
+                  :title="__('Notifikasi Customer')"
+                  variant="dark"
+                />
+              @endif
+              <a
+                class="inline-flex h-10 w-10 items-center justify-center rounded-full border text-slate-100 transition {{ $utilityActive === 'cart' ? 'border-[rgba(245,166,35,0.28)] bg-[rgba(245,166,35,0.18)] shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-xl' : 'border-white/15 bg-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.14)]' }}"
+                href="{{ $cartUrl }}"
+                aria-label="{{ __('Keranjang') }}"
+              >
+                <span class="material-symbols-outlined text-[18px]">shopping_cart</span>
+              </a>
+              <a
+                class="inline-flex h-10 w-10 items-center justify-center rounded-full border text-slate-100 transition {{ $utilityActive === 'settings' ? 'border-[rgba(245,166,35,0.28)] bg-[rgba(245,166,35,0.18)] shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-xl' : 'border-white/15 bg-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.14)]' }}"
+                href="{{ route('customer.settings.edit') }}"
+                aria-label="{{ __('Pengaturan') }}"
+              >
+                <span class="material-symbols-outlined text-[18px]">settings</span>
+              </a>
+            @else
+              <a class="hidden text-[13px] font-semibold text-slate-200 transition hover:text-white dark:text-slate-200 dark:hover:text-white sm:inline" href="{{ $dashboardUrl }}">Dashboard</a>
             @endif
-            <a
-              class="inline-flex h-10 w-10 items-center justify-center rounded-full border text-slate-100 transition {{ $utilityActive === 'cart' ? 'border-[rgba(245,166,35,0.28)] bg-[rgba(245,166,35,0.18)] shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-xl' : 'border-white/15 bg-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.14)]' }}"
-              href="{{ $cartUrl }}"
-              aria-label="{{ __('Keranjang') }}"
-            >
-              <span class="material-symbols-outlined text-[18px]">shopping_cart</span>
-            </a>
-            <a
-              class="inline-flex h-10 w-10 items-center justify-center rounded-full border text-slate-100 transition {{ $utilityActive === 'settings' ? 'border-[rgba(245,166,35,0.28)] bg-[rgba(245,166,35,0.18)] shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-xl' : 'border-white/15 bg-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.14)]' }}"
-              href="{{ route('customer.settings.edit') }}"
-              aria-label="{{ __('Pengaturan') }}"
-            >
-              <span class="material-symbols-outlined text-[18px]">settings</span>
-            </a>
+            @if ($showLogout)
+              <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="rounded-full border border-white/15 bg-[rgba(255,255,255,0.08)] px-4 py-1.5 text-[12px] font-semibold text-slate-100 transition hover:bg-[rgba(255,255,255,0.14)] dark:border-white/15 dark:bg-[rgba(255,255,255,0.08)] dark:text-slate-100 dark:hover:bg-[rgba(255,255,255,0.12)]">Logout</button>
+              </form>
+            @endif
           @else
-            <a class="hidden text-[13px] font-semibold text-slate-200 transition hover:text-white dark:text-slate-200 dark:hover:text-white sm:inline" href="{{ $dashboardUrl }}">Dashboard</a>
-          @endif
-          <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit" class="rounded-full border border-white/15 bg-[rgba(255,255,255,0.08)] px-4 py-1.5 text-[12px] font-semibold text-slate-100 transition hover:bg-[rgba(255,255,255,0.14)] dark:border-white/15 dark:bg-[rgba(255,255,255,0.08)] dark:text-slate-100 dark:hover:bg-[rgba(255,255,255,0.12)]">Logout</button>
-          </form>
-        @else
-          <a class="rounded-full px-4 py-1.5 text-[12px] font-semibold transition {{ $authActive === 'login' ? 'border border-[rgba(245,166,35,0.22)] bg-[rgba(245,166,35,0.22)] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-xl' : 'text-slate-200 hover:bg-[rgba(255,255,255,0.08)] hover:text-white' }}" href="{{ route('login') }}">{{ __('Login') }}</a>
-          <a class="rounded-full px-4 py-1.5 text-[12px] font-bold transition {{ $authActive === 'register' ? 'border border-[rgba(245,166,35,0.22)] bg-[rgba(245,166,35,0.22)] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-xl' : 'bg-[#f5a623] text-[#111827] hover:brightness-105' }}" href="{{ route('register') }}">{{ __('Register') }}</a>
-        @endauth
-      </div>
+            <a class="rounded-full px-4 py-1.5 text-[12px] font-semibold transition {{ $authActive === 'login' ? 'border border-[rgba(245,166,35,0.22)] bg-[rgba(245,166,35,0.22)] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-xl' : 'text-slate-200 hover:bg-[rgba(255,255,255,0.08)] hover:text-white' }}" href="{{ route('login') }}">{{ __('Login') }}</a>
+            <a class="rounded-full px-4 py-1.5 text-[12px] font-bold transition {{ $authActive === 'register' ? 'border border-[rgba(245,166,35,0.22)] bg-[rgba(245,166,35,0.22)] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-xl' : 'bg-[#f5a623] text-[#111827] hover:brightness-105' }}" href="{{ route('register') }}">{{ __('Register') }}</a>
+          @endauth
+        </div>
+      @endif
     </div>
 
+    @if ($hasCenterLinks)
     <div class="mt-3 grid {{ $catalogInline ? 'grid-cols-1' : ($isCustomer ? 'grid-cols-3' : 'grid-cols-4') }} rounded-2xl border border-white/12 bg-[rgba(255,255,255,0.08)] p-1 shadow-sm backdrop-blur-xl md:hidden dark:border-white/15 dark:bg-[rgba(255,255,255,0.06)]">
       @foreach ($links as $link)
         @php
@@ -156,5 +169,6 @@
         </a>
       @endforeach
     </div>
+    @endif
   </nav>
 </header>
