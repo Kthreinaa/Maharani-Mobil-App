@@ -242,6 +242,12 @@
                 <button class="inline-flex flex-1 items-center justify-center rounded-[1.2rem] bg-[#08132e] px-6 py-4 text-sm font-bold text-white transition hover:bg-[#10214a]" id="pay-button" type="submit" form="manual-payment-form">
                   Lanjut Bayar Sekarang
                 </button>
+                <button
+    id="check-status-button"
+    type="button"
+    class="inline-flex items-center justify-center rounded-[1.2rem] border border-slate-200 bg-white px-6 py-4 text-sm font-bold text-primary transition hover:bg-slate-50">
+    Check Status
+</button>
                 @if ($localSimulationEnabled && $draftToken)
                   <button class="inline-flex items-center justify-center rounded-[1.2rem] border border-slate-200 bg-white px-6 py-4 text-sm font-bold text-primary transition hover:bg-slate-50" id="simulate-pay-button" type="button">
                     Simulasi Berhasil
@@ -352,91 +358,199 @@
 
   <script>
     const payButton = document.getElementById('pay-button');
-    const simulatePayButton = document.getElementById('simulate-pay-button');
-    const draftToken = @json($draftToken);
+const simulatePayButton = document.getElementById('simulate-pay-button');
+const checkStatusButton = document.getElementById('check-status-button');
 
-    const completeDraftPayment = () => {
-      return fetch('{{ route("payments.complete") }}', {
+const draftToken = @json($draftToken);
+
+let currentOrderId = null;
+
+const completeDraftPayment = () => {
+    return fetch('{{ route("payments.complete") }}', {
         method: 'POST',
         headers: {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-          'Content-Type': 'application/json'
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
         },
         body: JSON.stringify({
-          draft_token: draftToken
+            draft_token: draftToken
         })
-      })
-      .then(response => response.json())
-      .then(data => {
+    })
+    .then(response => response.json())
+    .then(data => {
         if (data.redirect) {
-          window.location.href = data.redirect;
+            window.location.href = data.redirect;
         }
-      });
-    };
+    });
+};
 
-    if (payButton && draftToken) {
-      payButton.addEventListener('click', function (event) {
+const checkPaymentStatus = () => {
+
+    if (!currentOrderId) {
+        alert('Order ID tidak ditemukan.');
+        return;
+    }
+
+    fetch('{{ route("payments.check-status") }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            order_id: currentOrderId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+
+        console.log('Midtrans Status:', data);
+
+        if (!data.success) {
+            alert(data.message || 'Gagal cek status pembayaran');
+            return;
+        }
+
+        const status = data.status;
+
+        if (
+            status === 'settlement' ||
+            status === 'capture'
+        ) {
+
+            completeDraftPayment();
+            return;
+        }
+
+        if (status === 'pending') {
+            alert('Pembayaran masih pending.');
+            return;
+        }
+
+        if (
+            status === 'expire' ||
+            status === 'cancel' ||
+            status === 'deny'
+        ) {
+            alert('Pembayaran gagal atau expired.');
+            return;
+        }
+
+        alert('Status pembayaran: ' + status);
+
+    })
+    .catch(error => {
+        console.error(error);
+        alert('Gagal menghubungi server.');
+    });
+};
+
+if (payButton && draftToken) {
+
+    payButton.addEventListener('click', function (event) {
+
         event.preventDefault();
 
         fetch('{{ route("payments.snap-token") }}', {
-          method: 'POST',
-          headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            draft_token: draftToken
-          })
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                draft_token: draftToken
+            })
         })
         .then(response => response.json())
         .then(data => {
-          snap.pay(data.token, {
-            onSuccess: function () {
-              completeDraftPayment();
-            },
-            onPending: function (result) {
-              console.log(result);
-            },
-            onError: function (result) {
-              console.log(result);
-              alert('Payment failed');
-            },
-            onClose: function () {
-              console.log('Payment popup closed');
-            }
-          });
-        })
-        .catch(error => {
-          console.error(error);
-        });
-      });
-    }
 
-    if (simulatePayButton && draftToken) {
-      simulatePayButton.addEventListener('click', function () {
+            currentOrderId = data.order_id;
+
+            snap.pay(data.token, {
+
+                onSuccess: function(result) {
+
+                    console.log('SUCCESS', result);
+
+                    currentOrderId =
+                        result.order_id ||
+                        currentOrderId;
+
+                    checkPaymentStatus();
+                },
+
+                onPending: function(result) {
+
+                    console.log('PENDING', result);
+
+                    currentOrderId =
+                        result.order_id ||
+                        currentOrderId;
+
+                    alert('Pembayaran pending. Klik Check Status setelah selesai membayar.');
+                },
+
+                onError: function(result) {
+
+                    console.log('ERROR', result);
+
+                    alert('Pembayaran gagal.');
+                },
+
+                onClose: function() {
+
+                    console.log('Popup ditutup');
+
+                    alert('Popup pembayaran ditutup.');
+                }
+            });
+
+        })
+        .catch(error => {
+            console.error(error);
+            alert('Gagal membuat transaksi.');
+        });
+    });
+}
+
+if (checkStatusButton) {
+
+    checkStatusButton.addEventListener('click', function () {
+        checkPaymentStatus();
+    });
+}
+
+if (simulatePayButton && draftToken) {
+
+    simulatePayButton.addEventListener('click', function () {
+
         fetch('{{ route("customer.payments.simulate-success") }}', {
-          method: 'POST',
-          headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            draft_token: draftToken
-          })
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                draft_token: draftToken
+            })
         })
         .then(response => response.json())
         .then(data => {
-          if (data.redirect) {
-            window.location.href = data.redirect;
-          }
+
+            if (data.redirect) {
+                window.location.href = data.redirect;
+            }
+
         })
         .catch(error => {
-          console.error(error);
+            console.error(error);
         });
-      });
-    }
+    });
+}
   </script>
 </body>
 </html>

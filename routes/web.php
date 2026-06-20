@@ -130,12 +130,16 @@ Route::post('/checkout', [PaymentController::class, 'checkout']);
 Route::post('/payments/snap-token', [PaymentController::class, 'snapToken'])
     ->name('payments.snap-token');
 
+    Route::post('/payments/check-status', [PaymentController::class, 'checkStatus'])
+    ->name('payments.check-status');
+
 Route::post('/midtrans/callback', [PaymentController::class, 'callback'])
     ->name('midtrans.callback');
 
     Route::post('/payments/complete',
     [PaymentController::class, 'completePayment'])
     ->name('payments.complete');
+    
     
 
 // Aksi sensitif customer dengan proteksi pesan login khusus.

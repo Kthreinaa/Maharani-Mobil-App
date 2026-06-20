@@ -9,6 +9,8 @@ use App\Services\XenditPaymentLinkService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Midtrans\Snap;
+use Midtrans\Notification;
+use Midtrans\Transaction;
 
 class PaymentController extends Controller
 {
@@ -273,7 +275,7 @@ public function snapToken(Request $request, CheckoutDraftService $checkoutDrafts
     $paymentAmount = $this->paymentAmountFromDraft($draft, $paymentPlan);
     $car = \App\Models\Car::query()->find((int) ($draft['car_id'] ?? 0));
     $carName = trim((string) ($car?->merk ?? '') . ' ' . (string) ($car?->tipe ?? '') . ' ' . (string) ($car?->tahun ?? ''));
-
+    $orderId = 'CHK-' . substr(sha1((string) $validated['draft_token']), 0, 20);
     $params = [
         'transaction_details' => [
             'order_id' => 'CHK-' . substr(sha1((string) $validated['draft_token']), 0, 20),
@@ -297,6 +299,7 @@ public function snapToken(Request $request, CheckoutDraftService $checkoutDrafts
 
     return response()->json([
         'token' => $snapToken,
+        'order_id' => $orderId,
     ]);
 }
 public function completePayment(Request $request)
@@ -373,4 +376,33 @@ public function completePayment(Request $request)
             ? $totalAmount
             : min($totalAmount, (float) config('payments.booking_fee', 2500000));
     }
+    
+public function checkStatus(Request $request)
+{
+    $validated = $request->validate([
+        'order_id' => ['required', 'string'],
+    ]);
+
+    \Midtrans\Config::$serverKey = config('midtrans.server_key');
+    \Midtrans\Config::$isProduction = config('midtrans.is_production');
+
+    try {
+        $status = Transaction::status($validated['order_id']);
+
+        return response()->json([
+            'success' => true,
+            'status' => $status->transaction_status ?? null,
+            'fraud_status' => $status->fraud_status ?? null,
+            'payment_type' => $status->payment_type ?? null,
+            'raw' => $status,
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage(),
+        ], 500);
+    }
+}
+
+
 }
