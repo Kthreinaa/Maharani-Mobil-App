@@ -10,6 +10,11 @@ class Car extends Model
 {
     use HasFactory;
 
+    public const IMPORT_ARCHIVE_DESCRIPTIONS = [
+        'Unit arsip hasil import penjualan Excel.',
+        'Unit arsip hasil import penjualan 2025.',
+    ];
+
     protected $fillable = [
         'kode_unit',
         'merk',
@@ -78,5 +83,47 @@ class Car extends Model
     public function getStatusDisplayLabelAttribute(): string
     {
         return strtoupper((string) $this->status);
+    }
+
+    public function scopeImportedArchive($query)
+    {
+        return $query
+            ->where('cars.status', 'sold')
+            ->whereIn('cars.deskripsi', self::IMPORT_ARCHIVE_DESCRIPTIONS)
+            ->whereExists(function ($subQuery) {
+                $subQuery
+                    ->selectRaw('1')
+                    ->from('orders')
+                    ->whereColumn('orders.car_id', 'cars.id')
+                    ->whereNotNull('orders.import_reference');
+            });
+    }
+
+    public function scopeOperationalDataset($query)
+    {
+        return $query->where(function ($subQuery) {
+            $subQuery->where('cars.status', '!=', 'sold')
+                ->orWhereNotIn('cars.deskripsi', self::IMPORT_ARCHIVE_DESCRIPTIONS);
+        });
+    }
+
+    public function scopeManagedCatalog($query)
+    {
+        return $query->where(function ($subQuery) {
+            $subQuery->where(function ($operationalQuery) {
+                $operationalQuery->where('cars.status', '!=', 'sold')
+                    ->orWhereNotIn('cars.deskripsi', self::IMPORT_ARCHIVE_DESCRIPTIONS);
+            })->orWhere(function ($archiveQuery) {
+                $archiveQuery->where('cars.status', 'sold')
+                    ->whereIn('cars.deskripsi', self::IMPORT_ARCHIVE_DESCRIPTIONS)
+                    ->whereExists(function ($orderQuery) {
+                        $orderQuery
+                            ->selectRaw('1')
+                            ->from('orders')
+                            ->whereColumn('orders.car_id', 'cars.id')
+                            ->whereNotNull('orders.import_reference');
+                    });
+            });
+        });
     }
 }

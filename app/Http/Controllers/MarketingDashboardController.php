@@ -30,7 +30,7 @@ class MarketingDashboardController extends Controller
             $selectedSignalMonth = 0;
         }
 
-        $activeInventory = Car::where('status', 'available')->count();
+        $activeInventory = Car::managedCatalog()->where('status', 'available')->count();
         $customerCount = User::where('role', 'customer')->count();
         $recentOrders = Order::with(['user', 'car'])->latest()->take(5)->get();
         $recentPayments = Payment::with(['order.user', 'order.car', 'handledBy'])->latest()->take(5)->get();

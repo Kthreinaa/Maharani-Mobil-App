@@ -9,11 +9,6 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class MarketingCarController extends Controller
 {
-    private const IMPORT_ARCHIVE_DESCRIPTIONS = [
-        'Unit arsip hasil import penjualan Excel.',
-        'Unit arsip hasil import penjualan 2025.',
-    ];
-
     public function index(Request $request)
     {
         $status = strtolower(trim((string) $request->query('status', 'all')));
@@ -37,6 +32,7 @@ class MarketingCarController extends Controller
         }
 
         $query = Car::query()
+            ->managedCatalog()
             ->with('createdBy:id,name,role')
             ->select('cars.*')
             ->selectSub(
@@ -46,8 +42,8 @@ class MarketingCarController extends Controller
                 'latest_transaction_at'
             )
             ->selectRaw(
-                "CASE WHEN cars.status = 'sold' AND cars.deskripsi IN (?, ?) THEN 1 ELSE 0 END as is_import_archive",
-                self::IMPORT_ARCHIVE_DESCRIPTIONS
+                "CASE WHEN cars.status = 'sold' AND cars.deskripsi IN (?, ?) AND EXISTS (SELECT 1 FROM orders archive_orders WHERE archive_orders.car_id = cars.id AND archive_orders.import_reference IS NOT NULL) THEN 1 ELSE 0 END as is_import_archive",
+                Car::IMPORT_ARCHIVE_DESCRIPTIONS
             );
 
         if ($status !== 'all') {
@@ -66,13 +62,9 @@ class MarketingCarController extends Controller
 
         if ($dataset !== 'all') {
             if ($dataset === 'archive') {
-                $query->where('cars.status', 'sold')
-                    ->whereIn('cars.deskripsi', self::IMPORT_ARCHIVE_DESCRIPTIONS);
+                $query->importedArchive();
             } else {
-                $query->where(function ($subQuery) {
-                    $subQuery->where('cars.status', '!=', 'sold')
-                        ->orWhereNotIn('cars.deskripsi', self::IMPORT_ARCHIVE_DESCRIPTIONS);
-                });
+                $query->operationalDataset();
             }
         }
 
@@ -86,17 +78,14 @@ class MarketingCarController extends Controller
 
         $cars = $this->paginateSortedCars($query->get(), $request);
         $sourceSummary = [
-            'all' => Car::count(),
-            'marketing' => Car::whereHas('createdBy', fn ($userQuery) => $userQuery->where('role', 'marketing'))->count(),
-            'supervisor' => Car::whereHas('createdBy', fn ($userQuery) => $userQuery->where('role', 'supervisor'))->count(),
-            'unknown' => Car::whereNull('created_by')->count(),
-            'available' => Car::where('status', 'available')->count(),
-            'sold' => Car::where('status', 'sold')->count(),
-            'archive' => Car::where('status', 'sold')->whereIn('deskripsi', self::IMPORT_ARCHIVE_DESCRIPTIONS)->count(),
-            'operational' => Car::where(function ($subQuery) {
-                $subQuery->where('status', '!=', 'sold')
-                    ->orWhereNotIn('deskripsi', self::IMPORT_ARCHIVE_DESCRIPTIONS);
-            })->count(),
+            'all' => Car::managedCatalog()->count(),
+            'marketing' => Car::managedCatalog()->whereHas('createdBy', fn ($userQuery) => $userQuery->where('role', 'marketing'))->count(),
+            'supervisor' => Car::managedCatalog()->whereHas('createdBy', fn ($userQuery) => $userQuery->where('role', 'supervisor'))->count(),
+            'unknown' => Car::managedCatalog()->whereNull('created_by')->count(),
+            'available' => Car::managedCatalog()->where('status', 'available')->count(),
+            'sold' => Car::managedCatalog()->where('status', 'sold')->count(),
+            'archive' => Car::importedArchive()->count(),
+            'operational' => Car::operationalDataset()->count(),
         ];
 
         return view('marketing.cars.index', compact('cars', 'sourceSummary', 'status', 'source', 'dataset', 'search'));

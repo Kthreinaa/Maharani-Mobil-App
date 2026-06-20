@@ -44,6 +44,13 @@ class InternalSalesImportController extends Controller
         $absolutePath = Storage::disk('local')->path($storedPath);
 
         try {
+            MaharaniSalesImporter::importSalesWorkbook(
+                $absolutePath,
+                (int) $request->user()->id,
+                true,
+                $file->getClientOriginalName()
+            );
+
             $stats = MaharaniSalesImporter::importSalesWorkbook(
                 $absolutePath,
                 (int) $request->user()->id,

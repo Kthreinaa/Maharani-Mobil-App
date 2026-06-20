@@ -19,8 +19,8 @@ class SupervisorDashboardController extends Controller
     {
         $totalCustomers = User::where('role', 'customer')->count();
         $totalOrders = Order::count();
-        $totalAvailableCars = Car::where('status', 'available')->count();
-        $totalSold = Car::where('status', 'sold')->count();
+        $totalAvailableCars = Car::managedCatalog()->where('status', 'available')->count();
+        $totalSold = Car::managedCatalog()->where('status', 'sold')->count();
         $pendingPayments = Payment::where('status', 'pending')->count();
         $verifiedPayments = Payment::where('status', 'verified')->count();
         $completedPayments = Payment::where('status', 'verified')->count();
