@@ -3,13 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class SocialAuthController extends Controller
 {
+    private ?string $googleFailureMessage = null;
+
     /**
      * URL endpoint OAuth Google untuk proses authorization code flow.
      */
@@ -84,14 +89,14 @@ class SocialAuthController extends Controller
         $token = $this->exchangeCodeForToken($code);
         if (!$token) {
             return redirect('/login')->withErrors([
-                'email' => 'Gagal mengambil token Google. Silakan coba lagi.',
+                'email' => $this->googleFailureMessage ?: 'Gagal mengambil token Google. Silakan coba lagi.',
             ]);
         }
 
         $googleUser = $this->fetchGoogleUser($token);
         if (!$googleUser) {
             return redirect('/login')->withErrors([
-                'email' => 'Gagal mengambil data akun Google.',
+                'email' => $this->googleFailureMessage ?: 'Gagal mengambil data akun Google.',
             ]);
         }
 
@@ -143,15 +148,25 @@ class SocialAuthController extends Controller
     {
         $googleConfig = $this->googleConfig();
 
-        $response = Http::asForm()
-            ->timeout(20)
-            ->post(self::GOOGLE_TOKEN_URL, [
-                'code' => $code,
-                'client_id' => $googleConfig['client_id'],
-                'client_secret' => $googleConfig['client_secret'],
-                'redirect_uri' => $googleConfig['redirect'],
-                'grant_type' => 'authorization_code',
+        try {
+            $response = $this->googleHttpClient()
+                ->asForm()
+                ->post(self::GOOGLE_TOKEN_URL, [
+                    'code' => $code,
+                    'client_id' => $googleConfig['client_id'],
+                    'client_secret' => $googleConfig['client_secret'],
+                    'redirect_uri' => $googleConfig['redirect'],
+                    'grant_type' => 'authorization_code',
+                ]);
+        } catch (ConnectionException $exception) {
+            $this->googleFailureMessage = $this->resolveGoogleConnectionMessage($exception);
+
+            Log::warning('Google OAuth token exchange failed.', [
+                'message' => $exception->getMessage(),
             ]);
+
+            return null;
+        }
 
         if (!$response->ok()) {
             return null;
@@ -169,9 +184,19 @@ class SocialAuthController extends Controller
      */
     private function fetchGoogleUser(string $accessToken): ?array
     {
-        $response = Http::withToken($accessToken)
-            ->timeout(20)
-            ->get(self::GOOGLE_USERINFO_URL);
+        try {
+            $response = $this->googleHttpClient()
+                ->withToken($accessToken)
+                ->get(self::GOOGLE_USERINFO_URL);
+        } catch (ConnectionException $exception) {
+            $this->googleFailureMessage = $this->resolveGoogleConnectionMessage($exception);
+
+            Log::warning('Google OAuth userinfo request failed.', [
+                'message' => $exception->getMessage(),
+            ]);
+
+            return null;
+        }
 
         if (!$response->ok()) {
             return null;
@@ -193,7 +218,37 @@ class SocialAuthController extends Controller
             'client_id' => config('services.google.client_id'),
             'client_secret' => config('services.google.client_secret'),
             'redirect' => config('services.google.redirect'),
+            'ca_bundle' => config('services.google.ca_bundle'),
+            'disable_ssl_verification' => (bool) config('services.google.disable_ssl_verification', false),
         ];
+    }
+
+    private function googleHttpClient(): PendingRequest
+    {
+        $googleConfig = $this->googleConfig();
+
+        $client = Http::timeout(20);
+
+        if (!empty($googleConfig['ca_bundle']) && is_string($googleConfig['ca_bundle']) && is_file($googleConfig['ca_bundle'])) {
+            return $client->withOptions([
+                'verify' => $googleConfig['ca_bundle'],
+            ]);
+        }
+
+        if ($googleConfig['disable_ssl_verification']) {
+            return $client->withoutVerifying();
+        }
+
+        return $client;
+    }
+
+    private function resolveGoogleConnectionMessage(ConnectionException $exception): string
+    {
+        if (str_contains($exception->getMessage(), 'cURL error 77')) {
+            return 'Google login sementara tidak bisa digunakan karena sertifikat SSL lokal belum terbaca. Silakan cek file CA bundle atau coba lagi setelah konfigurasi Laragon diperbarui.';
+        }
+
+        return 'Koneksi ke layanan Google sedang bermasalah. Silakan coba lagi.';
     }
 
     /**

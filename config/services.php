@@ -39,6 +39,8 @@ return [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'redirect' => env('GOOGLE_REDIRECT_URI'),
+        'ca_bundle' => env('GOOGLE_CA_BUNDLE'),
+        'disable_ssl_verification' => env('GOOGLE_DISABLE_SSL_VERIFICATION', false),
     ],
 
     'apple' => [
