@@ -1,9 +1,9 @@
 <?php
 require __DIR__ . '/../vendor/autoload.php';
 $files = [
-  '2021' => 'C:\\Users\\dell\\Downloads\\MBKM_2025-2026\\PENJUALAN_MAHARANI\\2021\\Penjualan_2021_Maharani Mobil.xlsx',
-  '2022' => 'C:\\Users\\dell\\Downloads\\MBKM_2025-2026\\PENJUALAN_MAHARANI\\2022\\Penjualan_2022_Maharani mobil.xlsx',
-  '2025' => 'C:\\Users\\dell\\Downloads\\MBKM_2025-2026\\PENJUALAN_MAHARANI\\2025\\Penjualan_2025_Maharani Mobil.xlsx',
+  '2021' => public_path('imports/PENJUALAN_MAHARANI/2021/Penjualan_2021_Maharani Mobil.xlsx'),
+  '2022' => public_path('imports/PENJUALAN_MAHARANI/2022/Penjualan_2022_Maharani mobil.xlsx'),
+  '2025' => public_path('imports/PENJUALAN_MAHARANI/2025/Penjualan_2025_Maharani Mobil.xlsx'),
 ];
 foreach ($files as $label => $path) {
   echo "==== $label ====\n";

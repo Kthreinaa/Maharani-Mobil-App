@@ -15,14 +15,32 @@ class HistoricalUnitCodeSynchronizer
             ->whereBetween('orders.created_at', [$startDate, $endDate])
             ->orderBy('orders.created_at')
             ->orderBy('orders.id')
-            ->get();
+            ->get()
+            ->unique('car_id')
+            ->values();
+
+        $targetCarIds = $rows->pluck('car_id')->map(fn ($id) => (int) $id)->all();
+        $reservedCodes = DB::table('cars')
+            ->whereNotIn('id', $targetCarIds)
+            ->whereNotNull('kode_unit')
+            ->pluck('id', 'kode_unit')
+            ->mapWithKeys(fn ($carId, $code) => [strtoupper((string) $code) => (int) $carId])
+            ->all();
 
         $sequence = 1;
         foreach ($rows as $row) {
+            $kodeUnit = self::nextAvailableCode(
+                (string) $row->tipe,
+                (int) $row->tahun,
+                $sequence,
+                (int) $row->car_id,
+                $reservedCodes
+            );
+
             DB::table('cars')
                 ->where('id', $row->car_id)
                 ->update([
-                    'kode_unit' => UnitCodeFormatter::compose((string) $row->tipe, (int) $row->tahun, $sequence),
+                    'kode_unit' => $kodeUnit,
                     'updated_at' => now(),
                 ]);
 
@@ -30,5 +48,23 @@ class HistoricalUnitCodeSynchronizer
         }
 
         return $rows->count();
+    }
+
+    /**
+     * @param array<string, int> $reservedCodes
+     */
+    private static function nextAvailableCode(string $type, int $year, int &$sequence, int $carId, array &$reservedCodes): string
+    {
+        while (true) {
+            $candidate = strtoupper(UnitCodeFormatter::compose($type, $year, $sequence));
+            $ownerCarId = $reservedCodes[$candidate] ?? null;
+
+            if ($ownerCarId === null || $ownerCarId === $carId) {
+                $reservedCodes[$candidate] = $carId;
+                return $candidate;
+            }
+
+            $sequence++;
+        }
     }
 }

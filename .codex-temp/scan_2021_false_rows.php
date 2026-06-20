@@ -1,7 +1,7 @@
 <?php
 require __DIR__ . '/../vendor/autoload.php';
 use Carbon\Carbon;
-$path = 'C:\\Users\\dell\\Downloads\\MBKM_2025-2026\\PENJUALAN_MAHARANI\\2021\\Penjualan_2021_Maharani Mobil.xlsx';
+$path = public_path('imports/PENJUALAN_MAHARANI/2021/Penjualan_2021_Maharani Mobil.xlsx');
 $yearHint = 2021;
 foreach (\App\Support\XlsxReader::sheets($path) as $sheet) {
   $rows = \App\Support\XlsxReader::readSheet($path, $sheet['path']);
