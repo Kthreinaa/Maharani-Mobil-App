@@ -1,5 +1,5 @@
 @php
-  $phone = $phone ?? '6281234567890';
+  $phone = $phone ?? '6281372136927';
   $text = $message ?? 'Halo Maharani Mobil, saya tertarik dengan mobil yang ada di website.';
   $url = 'https://wa.me/' . $phone . '?text=' . urlencode($text);
 @endphp

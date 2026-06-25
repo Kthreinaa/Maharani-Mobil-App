@@ -3,7 +3,7 @@
   $tiktokUrl = 'https://tiktok.com/@mobilbekaspekanbaruriau_';
   $facebookUrl = 'https://www.facebook.com/share/1EC1fw93BB/';
   $youtubeUrl = 'https://www.youtube.com/channel/UC9Dcw3CkFDkjJ163UQyXInw';
-  $whatsAppUrl = 'https://wa.me/628117584617?text=Halo%20Maharani%20Mobil%2C%20saya%20ingin%20bertanya%20tentang%20unit%20mobil.';
+  $whatsAppUrl = 'https://wa.me/6281372136927?text=Halo%20Maharani%20Mobil%2C%20saya%20ingin%20bertanya%20tentang%20unit%20mobil.';
   $showroomPhone = '0813 7213 6927';
   $whatsAppIcon = 'https://commons.wikimedia.org/wiki/Special:Redirect/file/WhatsApp.svg';
   $instagramIcon = 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Instagram%20Glyph%20Gradient%20RGB%20logo.svg';
