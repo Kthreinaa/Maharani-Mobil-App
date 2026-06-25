@@ -111,9 +111,9 @@ class MarketingCustomerController extends Controller
             ->orderBy('is_import_customer')
             ->orderByDesc('latest_activity_at')
             ->orderByDesc('created_at');
-
+        dd($query);
         $customers = $query->paginate(10)->withQueryString();
-        dd($customers);
+        
         return view('marketing.customers.index', compact('customers'));
     }
 
