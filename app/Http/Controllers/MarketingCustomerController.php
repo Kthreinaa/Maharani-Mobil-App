@@ -113,7 +113,7 @@ class MarketingCustomerController extends Controller
             ->orderByDesc('created_at');
 
         $customers = $query->paginate(10)->withQueryString();
-
+        dd($customers);
         return view('marketing.customers.index', compact('customers'));
     }
 
