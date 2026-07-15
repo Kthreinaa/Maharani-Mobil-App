@@ -42,10 +42,13 @@
         </div>
       </div>
 
-      <div>
-        <label class="mb-2 block text-[10px] font-bold uppercase tracking-[0.18em] text-white/80">{{ __('Kilometer & Harga') }}</label>
-        <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="mb-2 block text-[10px] font-bold uppercase tracking-[0.18em] text-white/80">{{ __('Kilometer') }}</label>
           <input name="kilometer" class="w-full rounded-xl border border-white/10 bg-[#071538]/85 px-4 py-3 text-[13px] font-medium text-white placeholder:text-white/50 focus:border-[#f5a623] focus:ring-[#f5a623]" placeholder="{{ __('Kilometer') }}" inputmode="numeric" />
+        </div>
+        <div>
+          <label class="mb-2 block text-[10px] font-bold uppercase tracking-[0.18em] text-white/80">{{ __('Harga') }}</label>
           <input name="price_target" class="w-full rounded-xl border border-white/10 bg-[#071538]/85 px-4 py-3 text-[13px] font-medium text-white placeholder:text-white/50 focus:border-[#f5a623] focus:ring-[#f5a623]" placeholder="{{ __('Harga (contoh: 250 juta)') }}" inputmode="numeric" />
         </div>
       </div>

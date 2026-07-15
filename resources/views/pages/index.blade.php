@@ -90,10 +90,13 @@
                 </div>
               </div>
 
-              <div>
-                <label class="hero-search-label mb-2 block text-[10px] font-bold uppercase tracking-[0.18em]">{{ __('Kilometer & Harga') }}</label>
-                <div class="grid grid-cols-2 gap-4">
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="hero-search-label mb-2 block text-[10px] font-bold uppercase tracking-[0.18em]">{{ __('Kilometer') }}</label>
                   <input name="kilometer" class="hero-search-field w-full rounded-xl px-4 py-3 text-[13px] font-medium" placeholder="{{ __('Kilometer') }}" inputmode="numeric" />
+                </div>
+                <div>
+                  <label class="hero-search-label mb-2 block text-[10px] font-bold uppercase tracking-[0.18em]">{{ __('Harga') }}</label>
                   <input name="price_target" class="hero-search-field w-full rounded-xl px-4 py-3 text-[13px] font-medium" placeholder="{{ __('Harga (contoh: 250 juta)') }}" inputmode="numeric" />
                 </div>
               </div>
