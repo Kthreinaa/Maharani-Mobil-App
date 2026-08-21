@@ -19,7 +19,8 @@ class ReportController extends Controller
     public function exportPdf(Request $request)
     {
         $report = SalesReportBuilder::build($request);
-        $pdf = Pdf::loadView('reports.pdf.sales', compact('report'));
+        $pdf = Pdf::loadView('reports.pdf.sales', compact('report'))
+            ->setPaper('a4', 'landscape');
         return $pdf->download('sales-report.pdf');
     }
 

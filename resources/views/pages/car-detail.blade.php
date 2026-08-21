@@ -163,6 +163,7 @@
                 <article class="rounded-2xl border border-outline-variant bg-surface p-5 md:p-6">
                     <h2 class="text-2xl font-extrabold text-primary leading-tight">{{ $carName !== '' ? $carName : 'Detail Unit' }}</h2>
                     <p class="mt-2 text-sm text-on-surface-variant">Kode Unit: {{ $car->kode_unit ?: '-' }}</p>
+                    <p class="mt-1 text-sm text-on-surface-variant">BM Unit: {{ $car->bm ?: '-' }}</p>
                     <p class="mt-1 text-sm">
                         <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold {{ $statusClass }}">
                             Status: {{ strtoupper($statusLabel) }}

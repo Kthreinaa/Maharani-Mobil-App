@@ -46,7 +46,7 @@
 
   <div class="mb-6 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
     <form id="supervisorCarFilterForm" class="flex flex-col gap-3 md:flex-row" method="GET" action="{{ route('supervisor.cars.index') }}">
-      <input id="supervisorCarSearch" class="rounded-full border-slate-200 bg-white/80 px-4 py-2.5 text-sm" name="q" placeholder="Cari mobil..." value="{{ $search }}" />
+      <input id="supervisorCarSearch" class="rounded-full border-slate-200 bg-white/80 px-4 py-2.5 text-sm" name="q" placeholder="Cari mobil, kode unit, atau BM..." value="{{ $search }}" />
       <select class="rounded-full border-slate-200 bg-white/80 px-4 py-2.5 text-sm font-semibold text-slate-700" name="status">
         @foreach ($statusOptions as $value => $label)
           <option value="{{ $value }}" @selected($status === $value)>{{ $label }}</option>
@@ -122,6 +122,7 @@
           <tr class="hover:bg-white/60">
             <td class="px-5 py-4">
               <p class="font-semibold text-slate-900">{{ $car->kode_unit }}</p>
+              <p class="mt-1 text-xs text-slate-500">BM {{ $car->bm ?: '-' }}</p>
               <p class="mt-1 text-xs text-slate-500">ID {{ $car->id }}</p>
             </td>
             <td class="px-5 py-4">

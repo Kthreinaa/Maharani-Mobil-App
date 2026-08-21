@@ -17,6 +17,7 @@ class Car extends Model
 
     protected $fillable = [
         'kode_unit',
+        'bm',
         'merk',
         'tipe',
         'tahun',
@@ -34,6 +35,19 @@ class Car extends Model
     protected $casts = [
         'photos' => 'array',
     ];
+
+    public static function normalizeBm(?string $value): ?string
+    {
+        $value = strtoupper(trim((string) $value));
+        $value = preg_replace('/\s+/', ' ', $value) ?: '';
+
+        return $value !== '' ? $value : null;
+    }
+
+    public function setBmAttribute(?string $value): void
+    {
+        $this->attributes['bm'] = self::normalizeBm($value);
+    }
 
     public function createdBy()
     {

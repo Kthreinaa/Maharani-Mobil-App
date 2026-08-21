@@ -16,7 +16,7 @@
         <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#f5a623]">{{ $workspace }}</p>
         <h2 class="mt-3 font-headline text-[28px] font-extrabold tracking-tight text-slate-900">Import Workbook Penjualan Excel</h2>
         <p class="mt-3 text-sm leading-7 text-slate-600">
-          Upload file `.xlsx` penjualan dari tahun mana pun. Sistem akan membaca setiap sheet, membentuk data mobil, customer, order, dan pembayaran secara otomatis dengan referensi import agar data duplikat tidak masuk dua kali. Penawaran dan test drive tidak dibuat dari file penjualan agar data tetap akurat.
+          Upload file `.xlsx` penjualan dari tahun mana pun. Sistem akan membaca setiap sheet, membentuk data mobil, customer, order, dan pembayaran secara otomatis dengan referensi import dan BM unit agar data duplikat tidak masuk dua kali. Jika file lama belum punya kolom BM, sistem juga akan mencoba membaca nomor plat dari teks seperti catatan, keterangan, atau nopol yang tertulis di baris Excel.
         </p>
       </div>
 
@@ -50,6 +50,7 @@
                 ['label' => 'Customer Import Dibuat', 'value' => $stats['customers_created'] ?? 0],
                 ['label' => 'Order Dibuat', 'value' => $stats['orders_created'] ?? 0],
                 ['label' => 'Pembayaran Dibuat', 'value' => $stats['payments_created'] ?? 0],
+                ['label' => 'Duplikat Kombinasi', 'value' => $stats['skipped_fingerprint_duplicates'] ?? 0],
                 ['label' => 'Baris Dilewati', 'value' => $stats['skipped'] ?? 0],
               ]
             : [
@@ -78,7 +79,7 @@
         <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f5a623]">Upload Workbook</p>
         <h3 class="mt-2 font-headline text-[24px] font-extrabold text-slate-900">Mulai Import Penjualan</h3>
         <p class="mt-2 text-sm leading-6 text-slate-500">
-          Gunakan file `.xlsx` dengan struktur kolom penjualan showroom. Satu workbook bisa memiliki banyak sheet, dan semuanya akan dibaca.
+          Gunakan file `.xlsx` dengan struktur kolom penjualan showroom. Jika tersedia, sertakan kolom `BM`, `Plat`, atau `Nopol` agar sistem bisa menolak unit duplikat dengan lebih akurat. Untuk file lama tanpa kolom khusus, tetap usahakan nomor plat tertulis jelas di kolom catatan atau keterangan.
         </p>
       </div>
 

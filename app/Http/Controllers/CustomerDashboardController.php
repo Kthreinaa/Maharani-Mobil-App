@@ -27,6 +27,11 @@ class CustomerDashboardController extends Controller
             ->get();
 
         $homeOverviewCars = $catalogCars->take(6);
+        $newCatalogCarIds = $catalogCars
+            ->take(6)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
         $dashboardNotifications = DashboardNotificationBuilder::customer($user);
         $featuredReviews = collect();
 
@@ -68,6 +73,7 @@ class CustomerDashboardController extends Controller
             'featuredReviews',
             'featuredReviewCount',
             'featuredReviewAverage',
+            'newCatalogCarIds',
             'customerSummary',
             'recentActivities'
         ));

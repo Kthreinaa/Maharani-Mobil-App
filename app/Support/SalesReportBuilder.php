@@ -135,6 +135,12 @@ class SalesReportBuilder
     private static function decorateRows(Collection $rows): Collection
     {
         return $rows->map(function ($row) {
+            $transactionAt = Carbon::parse($row->created_at);
+
+            $row->tanggal_label = $transactionAt->format('d-m-Y');
+            $row->tahun_transaksi = (int) $transactionAt->format('Y');
+            $row->jam_transaksi = $transactionAt->format('H:i:s');
+            $row->waktu_transaksi_label = $transactionAt->format('d-m-Y H:i:s');
             $row->metode_beli_label = TransactionLabelFormatter::purchaseMethod((string) $row->metode_pembayaran);
             $row->metode_bayar_label = TransactionLabelFormatter::paymentMethod($row->metode_bayar);
             $row->transaction_channel_label = TransactionLabelFormatter::transactionChannel((string) $row->transaction_channel);

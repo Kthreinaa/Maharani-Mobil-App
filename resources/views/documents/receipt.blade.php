@@ -67,6 +67,20 @@
     .summary-label { width: 34%; color: #64748b; }
     .signature-card { border: 1px solid #dbe3ef; padding: 8px 10px; min-height: 86px; margin-top: 8px; }
     .signature-head { font-weight: 800; color: #0b1a40; margin-bottom: 4px; text-transform: uppercase; font-size: 10px; letter-spacing: .08em; }
+    .materai-badge {
+      display: inline-block;
+      margin: 6px 0 4px;
+      padding: 8px 12px;
+      border: 2px dashed #dc2626;
+      border-radius: 10px;
+      color: #b91c1c;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      background: rgba(255, 245, 245, 0.96);
+      transform: rotate(-7deg);
+    }
     .signature-image { height: 34px; width: auto; max-width: 170px; margin: 5px 0 1px; }
     .signature-line { border-top: 1px solid #0f172a; margin-top: 4px; padding-top: 4px; }
     .footer-note { margin-top: 6px; font-size: 8px; color: #64748b; }
@@ -189,6 +203,7 @@
       <div class="signature-card">
         <div class="signature-head">Pihak Showroom</div>
         <div class="muted">Diterbitkan dan diotorisasi oleh:</div>
+        <div class="materai-badge">Materai Rp10.000</div>
         @if (!empty($profile['owner_signature_data_uri']))
           <img class="signature-image" src="{{ $profile['owner_signature_data_uri'] }}" alt="Tanda tangan owner">
         @endif

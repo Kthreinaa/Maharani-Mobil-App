@@ -72,7 +72,8 @@ class MarketingCarController extends Controller
             $query->where(function ($sub) use ($search) {
                 $sub->where('merk', 'like', '%' . $search . '%')
                     ->orWhere('tipe', 'like', '%' . $search . '%')
-                    ->orWhere('kode_unit', 'like', '%' . $search . '%');
+                    ->orWhere('kode_unit', 'like', '%' . $search . '%')
+                    ->orWhere('bm', 'like', '%' . $search . '%');
             });
         }
 

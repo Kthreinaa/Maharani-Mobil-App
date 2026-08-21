@@ -274,10 +274,12 @@
               <h2 class="mt-2 font-headline text-[24px] font-extrabold text-slate-900">Rincian Penjualan</h2>
             </div>
             <div class="overflow-x-auto">
-              <table class="mm-data-table w-full min-w-[1300px] border-collapse text-left text-sm">
+              <table class="mm-data-table w-full min-w-[1500px] border-collapse text-left text-sm">
                 <thead class="text-[11px] uppercase tracking-[0.18em] text-slate-500">
                   <tr>
                     <th class="px-5 py-4">Tanggal</th>
+                    <th class="px-5 py-4">Tahun</th>
+                    <th class="px-5 py-4">Jam</th>
                     <th class="px-5 py-4">Customer</th>
                     <th class="px-5 py-4">Unit</th>
                     <th class="px-5 py-4">Alur</th>
@@ -290,7 +292,9 @@
                 <tbody class="divide-y divide-slate-200/65">
                   @forelse($rows as $row)
                     <tr class="transition hover:bg-white/75">
-                      <td class="px-5 py-4 font-semibold text-slate-800">{{ $row->tanggal }}</td>
+                      <td class="px-5 py-4 font-semibold text-slate-800">{{ $row->tanggal_label }}</td>
+                      <td class="px-5 py-4 text-slate-700">{{ $row->tahun_transaksi }}</td>
+                      <td class="px-5 py-4 whitespace-nowrap text-slate-700">{{ $row->jam_transaksi }}</td>
                       <td class="px-5 py-4 text-slate-700">{{ $row->customer }}</td>
                       <td class="px-5 py-4">
                         <p class="font-semibold text-slate-800">{{ $row->mobil }}</p>
@@ -316,7 +320,7 @@
                     </tr>
                   @empty
                     <tr>
-                      <td class="px-5 py-10 text-center text-slate-500" colspan="8">Belum ada data penjualan untuk periode ini.</td>
+                      <td class="px-5 py-10 text-center text-slate-500" colspan="10">Belum ada data penjualan untuk periode ini.</td>
                     </tr>
                   @endforelse
                 </tbody>

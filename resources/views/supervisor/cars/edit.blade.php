@@ -35,6 +35,11 @@
         <p class="mt-2 text-xs text-slate-500"></p>
       </div>
       <div>
+        <label class="text-sm font-semibold">BM Unit</label>
+        <input class="mt-2 w-full rounded-lg border-slate-200" name="bm" placeholder="BM 1234 XYZ" value="{{ old('bm', $car->bm) }}" required/>
+        <p class="mt-2 text-xs text-slate-500">BM dipakai sebagai identitas unik mobil dan juga acuan cek duplikasi data.</p>
+      </div>
+      <div>
         <label class="text-sm font-semibold">Merk</label>
         <input class="mt-2 w-full rounded-lg border-slate-200" name="merk" value="{{ old('merk', $car->merk) }}" required/>
       </div>

@@ -6,6 +6,7 @@
      */
     $imageUrl = $imageUrl ?? 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1200&auto=format&fit=crop';
     $showFavorite = $showFavorite ?? true;
+    $showNewBadge = $showNewBadge ?? false;
 
     $statusKey = strtolower((string) ($car->status ?? 'available'));
     $statusLabelMap = [
@@ -51,6 +52,11 @@
         <span class="{{ $statusClass }} absolute left-4 top-4 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider">
             {{ $statusLabel }}
         </span>
+        @if ($showNewBadge)
+            <span class="absolute right-4 top-4 rounded-full bg-[#f5a623] px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.22em] text-[#0b1a40] shadow-[0_10px_24px_rgba(245,166,35,0.28)]">
+                New
+            </span>
+        @endif
     </a>
 
     <div class="flex flex-1 flex-col p-5">

@@ -8,6 +8,7 @@ use App\Support\CarUnitCodeSuggester;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\File;
 
 class SupervisorCarController extends Controller
@@ -80,7 +81,8 @@ class SupervisorCarController extends Controller
             $query->where(function ($sub) use ($search) {
                 $sub->where('merk', 'like', "%{$search}%")
                     ->orWhere('tipe', 'like', "%{$search}%")
-                    ->orWhere('kode_unit', 'like', "%{$search}%");
+                    ->orWhere('kode_unit', 'like', "%{$search}%")
+                    ->orWhere('bm', 'like', "%{$search}%");
             });
         }
 
@@ -256,6 +258,10 @@ class SupervisorCarController extends Controller
 
     private function validateCar(Request $request, ?Car $car = null): array
     {
+        $request->merge([
+            'bm' => Car::normalizeBm($request->input('bm')),
+        ]);
+
         $photoRules = $car
             ? ['nullable', 'array']
             : ['required', 'array', 'min:5'];
@@ -266,6 +272,7 @@ class SupervisorCarController extends Controller
 
         return $request->validate([
             'kode_unit' => ['required', 'string', 'max:50', 'unique:cars,kode_unit,' . $car?->id],
+            'bm' => ['required', 'string', 'max:50', Rule::unique('cars', 'bm')->ignore($car?->id)],
             'merk' => ['required', 'string', 'max:100'],
             'tipe' => ['required', 'string', 'max:100'],
             'tahun' => ['required', 'integer', 'min:1990', 'max:' . (date('Y') + 1)],
@@ -279,6 +286,8 @@ class SupervisorCarController extends Controller
             'photos' => $photoRules,
             'photos.*' => $photoItemRules,
         ], [
+            'bm.required' => 'BM unit wajib diisi agar tiap mobil punya identitas unik.',
+            'bm.unique' => 'BM unit sudah dipakai oleh mobil lain. Gunakan BM yang berbeda.',
             'photos.required' => 'Foto mobil wajib diunggah minimal 5 foto.',
             'photos.min' => 'Foto mobil minimal harus berjumlah 5 foto.',
             'photos.*.image' => 'Setiap file foto mobil harus berupa gambar yang valid.',

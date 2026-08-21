@@ -37,10 +37,13 @@ class Order extends Model
         'sales_flow',
         'notes',
         'cancel_reason',
+        'customer_cancellation_reason',
+        'customer_cancellation_requested_at',
         'follow_up_status',
         'next_follow_up_at',
         'import_source',
         'import_reference',
+        'import_file_hash',
         'handled_by',
         'handled_role',
         'handled_at',
@@ -53,6 +56,7 @@ class Order extends Model
         'handled_at' => 'datetime',
         'next_follow_up_at' => 'datetime',
         'approved_at' => 'datetime',
+        'customer_cancellation_requested_at' => 'datetime',
         'document_status' => 'array',
         'credit_dp_percentage' => 'decimal:2',
         'credit_dp_amount' => 'decimal:2',
@@ -321,6 +325,10 @@ class Order extends Model
             return 'Batal Membeli';
         }
 
+        if ($this->has_pending_cancellation_request) {
+            return 'Menunggu Persetujuan Pembatalan';
+        }
+
         if ($this->status === 'completed') {
             return 'Transaksi Selesai';
         }
@@ -370,6 +378,18 @@ class Order extends Model
     public function getReviewStatusLabelAttribute(): string
     {
         return $this->has_purchase_review ? 'Sudah di Review' : 'Review unit sekarang';
+    }
+
+    public function getHasPendingCancellationRequestAttribute(): bool
+    {
+        return $this->customer_cancellation_requested_at !== null
+            && !in_array((string) $this->status, ['cancelled', 'completed'], true);
+    }
+
+    public function getCanCustomerRequestCancellationAttribute(): bool
+    {
+        return in_array((string) $this->status, ['pending', 'confirmed', 'paid'], true)
+            && !$this->has_pending_cancellation_request;
     }
 
     public function getHandoverDocumentChecklistAttribute(): array

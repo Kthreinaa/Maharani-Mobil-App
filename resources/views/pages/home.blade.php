@@ -1,6 +1,7 @@
 @php
   $customerName = trim((string) (auth()->user()?->name ?? 'Customer'));
   $overviewCars = ($homeOverviewCars ?? collect())->take(6);
+  $newCatalogCarIds = collect($newCatalogCarIds ?? [])->map(fn ($id) => (int) $id)->all();
   $customerSummary = $customerSummary ?? ['favorites' => 0, 'orders' => 0, 'reviews' => 0, 'test_drives' => 0];
   $recentActivities = $recentActivities ?? collect();
   $overviewImages = [
@@ -151,6 +152,7 @@
                   'car' => $car,
                   'imageUrl' => $carImage,
                   'showFavorite' => true,
+                  'showNewBadge' => in_array((int) $car->id, $newCatalogCarIds, true),
                 ])
               </div>
             @endforeach

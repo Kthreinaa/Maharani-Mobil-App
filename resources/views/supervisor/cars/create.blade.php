@@ -31,6 +31,11 @@
         <p class="mt-2 text-xs text-slate-500">Nomor urut berikutnya: {{ str_pad((string) ($nextUnitSequence ?? 1), 3, '0', STR_PAD_LEFT) }}. Kode akan disarankan otomatis setelah tipe dan tahun diisi.</p>
       </div>
       <div>
+        <label class="text-sm font-semibold">BM Unit</label>
+        <input class="mt-2 w-full rounded-lg border-slate-200" name="bm" placeholder="BM 1234 XYZ" value="{{ old('bm') }}" required/>
+        <p class="mt-2 text-xs text-slate-500">BM dipakai sebagai identitas unik mobil untuk mencegah data unit ganda.</p>
+      </div>
+      <div>
         <label class="text-sm font-semibold">Merk</label>
         <input class="mt-2 w-full rounded-lg border-slate-200" name="merk" value="{{ old('merk') }}" required/>
       </div>

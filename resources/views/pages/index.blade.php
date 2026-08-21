@@ -86,18 +86,21 @@
                 </div>
                 <div>
                   <label class="hero-search-label mb-2 block text-[10px] font-bold uppercase tracking-[0.18em]">{{ __('Tahun (Min 2010)') }}</label>
-                  <input name="year_min" min="2010" inputmode="numeric" class="hero-search-field w-full rounded-xl px-4 py-3 text-[13px] font-medium" placeholder="2020" />
+                  <input name="year_min" min="2010" inputmode="numeric" pattern="[0-9]*" data-digits-only data-digits-label="Tahun" class="hero-search-field w-full rounded-xl px-4 py-3 text-[13px] font-medium" placeholder="2020" />
+                  <p data-digits-warning class="mt-2 hidden text-[11px] font-medium text-amber-300" aria-live="polite"></p>
                 </div>
               </div>
 
               <div class="grid grid-cols-2 gap-4">
                 <div>
                   <label class="hero-search-label mb-2 block text-[10px] font-bold uppercase tracking-[0.18em]">{{ __('Kilometer') }}</label>
-                  <input name="kilometer" class="hero-search-field w-full rounded-xl px-4 py-3 text-[13px] font-medium" placeholder="{{ __('Kilometer') }}" inputmode="numeric" />
+                  <input name="kilometer" class="hero-search-field w-full rounded-xl px-4 py-3 text-[13px] font-medium" placeholder="{{ __('Kilometer') }}" inputmode="numeric" pattern="[0-9]*" data-digits-only data-digits-label="Kilometer" />
+                  <p data-digits-warning class="mt-2 hidden text-[11px] font-medium text-amber-300" aria-live="polite"></p>
                 </div>
                 <div>
                   <label class="hero-search-label mb-2 block text-[10px] font-bold uppercase tracking-[0.18em]">{{ __('Harga') }}</label>
-                  <input name="price_target" class="hero-search-field w-full rounded-xl px-4 py-3 text-[13px] font-medium" placeholder="{{ __('Harga (contoh: 250 juta)') }}" inputmode="numeric" />
+                  <input name="price_target" class="hero-search-field w-full rounded-xl px-4 py-3 text-[13px] font-medium" placeholder="{{ __('Harga (contoh: 250 juta)') }}" inputmode="numeric" pattern="[0-9]*" data-digits-only data-digits-label="Harga" />
+                  <p data-digits-warning class="mt-2 hidden text-[11px] font-medium text-amber-300" aria-live="polite"></p>
                 </div>
               </div>
 

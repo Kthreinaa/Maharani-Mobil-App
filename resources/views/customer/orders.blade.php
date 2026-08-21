@@ -34,6 +34,12 @@
         </div>
       @endif
 
+      @if (session('error'))
+        <div class="mb-6 rounded-[1.2rem] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          {{ session('error') }}
+        </div>
+      @endif
+
       <div class="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
         <div class="overflow-x-auto">
         <table class="w-full min-w-[1720px] table-auto text-left text-sm">
@@ -46,7 +52,7 @@
             <col style="width: 220px;">
             <col style="width: 220px;">
             <col style="width: 300px;">
-            <col style="width: 150px;">
+            <col style="width: 260px;">
           </colgroup>
           <thead class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
             <tr>
@@ -110,7 +116,12 @@
                 </td>
                 <td class="px-6 py-4">
                   <span class="inline-flex min-w-[142px] items-center justify-center rounded-full bg-slate-100 px-3 py-1.5 text-center text-[11px] font-semibold uppercase leading-none tracking-[0.04em] text-primary whitespace-nowrap">{{ $order->customer_purchase_status_label }}</span>
-                  @if ($order->cancel_reason)
+                  @if ($order->has_pending_cancellation_request)
+                    <p class="mt-1 text-xs text-amber-700">Menunggu persetujuan supervisor.</p>
+                    @if ($order->customer_cancellation_reason)
+                      <p class="mt-1 text-xs text-amber-700">{{ $order->customer_cancellation_reason }}</p>
+                    @endif
+                  @elseif ($order->cancel_reason)
                     <p class="mt-1 text-xs text-rose-600">{{ $order->cancel_reason }}</p>
                   @endif
                 </td>
@@ -144,8 +155,22 @@
                   </div>
                 </td>
                 <td class="px-6 py-4 text-right">
-                  <div class="flex min-w-[126px] justify-end">
+                  <div class="flex min-w-[220px] flex-col items-end gap-2">
                     <a class="inline-flex items-center justify-center whitespace-nowrap rounded-xl border border-outline-variant px-4 py-2 text-center text-xs font-bold text-primary transition hover:bg-slate-50" href="{{ route('order.tracking', ['order' => $order->id]) }}">{{ __('Tracking') }}</a>
+                    @if ($order->can_customer_request_cancellation)
+                      <form method="POST" action="{{ route('customer.orders.requestCancellation', $order) }}" class="w-full max-w-[220px]" data-cancel-request-form>
+                        @csrf
+                        @method('PATCH')
+                        <input type="hidden" name="customer_cancellation_reason" value="" data-cancel-request-reason />
+                        <button type="button" class="inline-flex w-full items-center justify-center whitespace-nowrap rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-center text-xs font-bold text-rose-700 transition hover:bg-rose-100" data-cancel-request-trigger>
+                          Ajukan Pembatalan
+                        </button>
+                      </form>
+                    @elseif ($order->has_pending_cancellation_request)
+                      <span class="inline-flex w-full max-w-[220px] items-center justify-center whitespace-nowrap rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-center text-xs font-bold text-amber-700">
+                        Menunggu Approval Batal
+                      </span>
+                    @endif
                   </div>
                 </td>
               </tr>
@@ -164,5 +189,30 @@
   @include('components.public-site-footer')
   @include('components.whatsapp-float', ['message' => 'Halo Maharani Mobil, saya ingin menanyakan status pesanan saya.'])
   @include('components.ui-system-footer')
+  <script>
+    document.querySelectorAll('[data-cancel-request-trigger]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const form = button.closest('[data-cancel-request-form]');
+        const reasonField = form?.querySelector('[data-cancel-request-reason]');
+
+        if (!form || !reasonField) {
+          return;
+        }
+
+        const reason = window.prompt('Tulis alasan pembatalan pesanan ini. Boleh dikosongkan jika belum ada alasan khusus.', reasonField.value || '');
+        if (reason === null) {
+          return;
+        }
+
+        reasonField.value = reason.trim();
+
+        if (!window.confirm('Kirim permintaan pembatalan pesanan ini ke supervisor?')) {
+          return;
+        }
+
+        form.submit();
+      });
+    });
+  </script>
 </body>
 </html>

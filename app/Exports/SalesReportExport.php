@@ -145,7 +145,9 @@ class SalesReportExport implements WithMultipleSheets
     private function transactionRows(): array
     {
         $rows = [[
-            'Tanggal',
+            'Tanggal Pembelian',
+            'Tahun',
+            'Jam Pembelian',
             'Customer',
             'Kode Unit',
             'Mobil',
@@ -164,7 +166,9 @@ class SalesReportExport implements WithMultipleSheets
         $transactions = $this->report['rows'];
         foreach ($transactions as $row) {
             $rows[] = [
-                (string) $row->tanggal,
+                (string) $row->tanggal_label,
+                (int) $row->tahun_transaksi,
+                (string) $row->jam_transaksi,
                 (string) $row->customer,
                 (string) $row->kode_unit,
                 (string) $row->mobil,

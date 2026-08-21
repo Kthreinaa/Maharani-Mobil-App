@@ -20,6 +20,7 @@
   $paidAmount = (float) ($order->payment?->amount ?? 0);
   $remainingAmount = max((float) $order->total - $paidAmount, 0);
   $documentsReady = $order->areTransactionDocumentsReady();
+  $hasPendingCancellationRequest = $order->has_pending_cancellation_request;
   $transactionPurchaseMethod = old('purchase_method', $order->is_credit_purchase ? 'credit' : 'cash');
   $transactionPaymentMethod = old(
     'payment_method',
@@ -38,6 +39,7 @@
       ? 'border-sky-200 bg-sky-50/90 text-sky-700'
       : 'border-slate-200 bg-slate-50/90 text-slate-600');
   $isCreditDpRecorded = $order->is_credit_purchase && $paidAmount > 0 && $paidAmount < (float) $order->total;
+  $statusCancelReason = old('cancel_reason', $order->cancel_reason ?: $order->customer_cancellation_reason);
 @endphp
 
 @section('content')
@@ -185,6 +187,22 @@
       <article class="rounded-[2rem] border border-white/70 bg-[rgba(255,255,255,0.72)] p-6 shadow-[0_24px_70px_rgba(15,23,42,0.10)] backdrop-blur-[24px]">
         <h3 class="font-headline text-xl font-extrabold text-slate-900">Kelola Status Pesanan</h3>
         <p class="mt-2 text-sm text-slate-500">Pastikan status sesuai progres transaksi agar dashboard dan laporan tetap konsisten.</p>
+        @if ($hasPendingCancellationRequest)
+          <div class="mt-4 rounded-[1.2rem] border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-800">
+            <p class="font-bold">Customer mengajukan pembatalan pesanan.</p>
+            <p class="mt-1">Diajukan pada {{ $order->customer_cancellation_requested_at?->format('d M Y H:i') ?? '-' }}.</p>
+            @if ($order->customer_cancellation_reason)
+              <p class="mt-1">Alasan customer: {{ $order->customer_cancellation_reason }}</p>
+            @endif
+            <form class="mt-4" method="POST" action="{{ route('supervisor.orders.approveCancellation', $order) }}">
+              @csrf
+              @method('PATCH')
+              <button class="inline-flex items-center justify-center rounded-full bg-rose-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-700" type="submit" onclick="return confirm('Setujui pembatalan pesanan ini? Stok mobil akan kembali tersedia jika tidak ada order aktif lain.');">
+                Setujui Pembatalan Customer
+              </button>
+            </form>
+          </div>
+        @endif
         <form class="mt-5 space-y-4" method="POST" action="{{ route('supervisor.orders.updateStatus', $order) }}" data-save-lock-form>
           @csrf
           @method('PATCH')
@@ -196,7 +214,7 @@
           </select>
           <div>
             <label class="mb-2 block text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Alasan batal / catatan follow-up</label>
-            <input class="w-full rounded-xl border-slate-200" name="cancel_reason" value="{{ old('cancel_reason', $order->cancel_reason) }}" placeholder="Contoh: dana belum cukup, masih membandingkan showroom lain" />
+            <input class="w-full rounded-xl border-slate-200" name="cancel_reason" value="{{ $statusCancelReason }}" placeholder="Contoh: dana belum cukup, masih membandingkan showroom lain" />
           </div>
           <div>
             <label class="mb-2 block text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Jadwal follow-up berikutnya</label>

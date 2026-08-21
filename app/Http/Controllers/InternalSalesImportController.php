@@ -71,11 +71,12 @@ class InternalSalesImportController extends Controller
         }
 
         $successMessage = sprintf(
-            'Import Excel selesai. %d mobil, %d order, dan %d pembayaran berhasil diproses. %d baris duplikat dilewati.',
+            'Import Excel selesai. %d mobil, %d order, dan %d pembayaran berhasil diproses. %d baris duplikat atau tidak valid dilewati, termasuk %d duplikat hasil pencocokan kombinasi data unit. Nama file dan isi file yang sudah pernah diimport akan otomatis ditolak.',
             (int) ($stats['cars_created'] ?? 0),
             (int) ($stats['orders_created'] ?? 0),
             (int) ($stats['payments_created'] ?? 0),
-            (int) ($stats['skipped'] ?? 0)
+            (int) ($stats['skipped'] ?? 0),
+            (int) ($stats['skipped_fingerprint_duplicates'] ?? 0)
         );
 
         return redirect()
@@ -161,10 +162,10 @@ class InternalSalesImportController extends Controller
         }
 
         if ($exception instanceof RuntimeException) {
-            return 'File Excel tidak dapat diproses. Pastikan struktur workbook sesuai data penjualan yang ingin diarsipkan.';
+            return 'File Excel tidak dapat diproses. Pastikan file yang diunggah belum pernah digunakan sebelumnya dan struktur workbook sesuai dengan data penjualan yang akan diarsipkan.';
         }
 
-        return 'Import gagal diproses. Silakan cek kembali file Excel yang diunggah.';
+        return 'Import tidak dapat diproses saat ini. Silakan periksa kembali file Excel yang diunggah dan coba lagi.';
     }
 
     private function buildPurgeTargetLabel(?int $year, ?string $sourceName): string

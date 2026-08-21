@@ -107,5 +107,87 @@
                 }
             });
         }
+
+        const digitOnlySelector = '[data-digits-only]';
+        const sanitizeDigits = (value) => String(value ?? '').replace(/\D+/g, '');
+
+        document.querySelectorAll(digitOnlySelector).forEach((input) => {
+            const warning = input.parentElement?.querySelector('[data-digits-warning]');
+            const label = input.getAttribute('data-digits-label') || 'Kolom ini';
+
+            const showWarning = (message) => {
+                if (!warning) {
+                    return;
+                }
+
+                warning.textContent = message;
+                warning.classList.remove('hidden');
+            };
+
+            const hideWarning = () => {
+                if (!warning) {
+                    return;
+                }
+
+                warning.textContent = '';
+                warning.classList.add('hidden');
+            };
+
+            const normalize = () => {
+                const rawValue = input.value;
+                const sanitized = sanitizeDigits(input.value);
+                const hadInvalidChars = rawValue !== sanitized;
+
+                if (hadInvalidChars) {
+                    input.value = sanitized;
+                    input.dataset.invalidAttempt = '1';
+                    showWarning(`${label} hanya boleh diisi angka.`);
+                    return;
+                }
+
+                if (input.value !== '' || input.dataset.invalidAttempt !== '1') {
+                    input.dataset.invalidAttempt = '0';
+                    hideWarning();
+                }
+            };
+
+            input.addEventListener('input', normalize);
+            input.addEventListener('blur', normalize);
+            input.addEventListener('focus', () => {
+                if (input.value === '' && input.dataset.invalidAttempt === '1') {
+                    input.dataset.invalidAttempt = '0';
+                    hideWarning();
+                }
+            });
+            normalize();
+        });
+
+        document.querySelectorAll('form').forEach((form) => {
+            if (!form.querySelector(digitOnlySelector)) {
+                return;
+            }
+
+            form.addEventListener('submit', (event) => {
+                let blockedInput = null;
+
+                form.querySelectorAll(digitOnlySelector).forEach((input) => {
+                    input.value = sanitizeDigits(input.value);
+
+                    if (!blockedInput && input.dataset.invalidAttempt === '1' && input.value === '') {
+                        blockedInput = input;
+                    }
+                });
+
+                if (blockedInput) {
+                    const warning = blockedInput.parentElement?.querySelector('[data-digits-warning]');
+                    if (warning) {
+                        warning.textContent = `${blockedInput.getAttribute('data-digits-label') || 'Kolom ini'} harus diisi dengan angka yang benar.`;
+                        warning.classList.remove('hidden');
+                    }
+                    blockedInput.focus();
+                    event.preventDefault();
+                }
+            });
+        });
     })();
 </script>

@@ -123,16 +123,100 @@ class HomeController extends Controller
         return $user;
     }
 
+    private function normalizeDigitsInput(mixed $value): ?int
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $digits = preg_replace('/\D+/', '', (string) $value);
+
+        if ($digits === '') {
+            return null;
+        }
+
+        return (int) $digits;
+    }
+
+    private function normalizePriceInput(mixed $value): ?int
+    {
+        $amount = $this->normalizeDigitsInput($value);
+
+        if ($amount === null || $amount <= 0) {
+            return null;
+        }
+
+        if ($amount < 1000000) {
+            return $amount * 1000000;
+        }
+
+        return $amount;
+    }
+
+    private function hasAlphabeticCharacters(mixed $value): bool
+    {
+        return is_string($value)
+            ? preg_match('/[a-zA-Z]/', $value) === 1
+            : preg_match('/[a-zA-Z]/', (string) $value) === 1;
+    }
+
+    private function hasDigits(mixed $value): bool
+    {
+        return preg_match('/\d/', (string) $value) === 1;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function catalogInputWarnings(Request $request): array
+    {
+        $warnings = [];
+
+        $yearMinInput = $request->input('year_min', $request->input('year'));
+        if ($yearMinInput !== null && trim((string) $yearMinInput) !== '' && $this->hasAlphabeticCharacters($yearMinInput)) {
+            $warnings[] = 'Tahun minimum hanya boleh diisi angka. Huruf akan diabaikan oleh sistem.';
+        }
+
+        $kmInput = $request->input('kilometer', $request->input('km_max', $request->input('km')));
+        if ($kmInput !== null && trim((string) $kmInput) !== '' && $this->hasAlphabeticCharacters($kmInput)) {
+            $warnings[] = 'Kilometer maksimum hanya boleh diisi angka. Huruf akan diabaikan oleh sistem.';
+        }
+
+        $priceFields = [
+            'price_min' => 'Harga minimum',
+            'price_max' => 'Harga maksimal',
+            'price_target' => 'Harga target',
+        ];
+
+        foreach ($priceFields as $field => $label) {
+            $priceInput = $field === 'price_target'
+                ? $request->input('price_target', $request->input('price'))
+                : $request->input($field);
+
+            if ($priceInput === null || trim((string) $priceInput) === '') {
+                continue;
+            }
+
+            if ($this->hasAlphabeticCharacters($priceInput) && !$this->hasDigits($priceInput)) {
+                $warnings[] = $label . ' harus memuat angka. Contoh: 250000000 atau 250 juta.';
+            }
+        }
+
+        return array_values(array_unique($warnings));
+    }
+
     public function catalog(Request $request)
     {
         if (!$this->hasCarsTable()) {
             return view('pages.catalog', [
                 'catalogCars' => collect(),
                 'brandOptions' => collect(),
+                'newCatalogCarIds' => [],
                 'catalogState' => [
                     'sort' => 'latest',
                     'hasFilters' => false,
                     'activeFilters' => [],
+                    'warnings' => [],
                 ],
             ]);
         }
@@ -141,6 +225,7 @@ class HomeController extends Controller
             ->where('status', 'available');
 
         $activeFilters = [];
+        $catalogWarnings = $this->catalogInputWarnings($request);
 
         if ($request->filled('brand') && $request->input('brand') !== 'all') {
             $brand = trim((string) $request->input('brand'));
@@ -158,8 +243,8 @@ class HomeController extends Controller
         }
 
         $yearMinInput = $request->input('year_min', $request->input('year'));
-        if ($yearMinInput !== null && $yearMinInput !== '') {
-            $yearMin = (int) $yearMinInput;
+        $yearMin = $this->normalizeDigitsInput($yearMinInput);
+        if ($yearMin !== null) {
             if ($yearMin >= 2010) {
                 $catalogQuery->where('tahun', '>=', $yearMin);
                 $activeFilters['year_min'] = $yearMin;
@@ -167,34 +252,15 @@ class HomeController extends Controller
         }
 
         $kmInput = $request->input('kilometer', $request->input('km_max', $request->input('km')));
-        if ($kmInput !== null && $kmInput !== '') {
-            $kmMax = (int) preg_replace('/[^\d]/', '', (string) $kmInput);
-            if ($kmMax > 0) {
-                $catalogQuery->whereNotNull('kilometer')
-                    ->where('kilometer', '<=', $kmMax);
-                $activeFilters['kilometer'] = $kmMax;
-            }
+        $kmMax = $this->normalizeDigitsInput($kmInput);
+        if ($kmMax !== null && $kmMax > 0) {
+            $catalogQuery->whereNotNull('kilometer')
+                ->where('kilometer', '<=', $kmMax);
+            $activeFilters['kilometer'] = $kmMax;
         }
 
-        $normalizePrice = function ($value) {
-            if ($value === null || $value === '') {
-                return null;
-            }
-
-            $num = (float) $value;
-            if ($num <= 0) {
-                return null;
-            }
-
-            if ($num < 1000000) {
-                return (int) round($num * 1000000);
-            }
-
-            return (int) round($num);
-        };
-
-        $priceMin = $normalizePrice($request->input('price_min'));
-        $priceMax = $normalizePrice($request->input('price_max'));
+        $priceMin = $this->normalizePriceInput($request->input('price_min'));
+        $priceMax = $this->normalizePriceInput($request->input('price_max'));
         if ($priceMin !== null) {
             $catalogQuery->where('harga', '>=', $priceMin);
             $activeFilters['price_min'] = $priceMin;
@@ -204,7 +270,7 @@ class HomeController extends Controller
             $activeFilters['price_max'] = $priceMax;
         }
 
-        $priceTarget = $normalizePrice($request->input('price_target', $request->input('price')));
+        $priceTarget = $this->normalizePriceInput($request->input('price_target', $request->input('price')));
         if ($priceTarget !== null) {
             $catalogQuery->orderByRaw('ABS(harga - ?) asc', [$priceTarget]);
             $activeFilters['price_target'] = $priceTarget;
@@ -256,13 +322,21 @@ class HomeController extends Controller
 
         $catalogCars = $catalogQuery->get();
         $brandOptions = $this->brandOptions();
+        $newCatalogCarIds = Car::query()
+            ->where('status', 'available')
+            ->latest('created_at')
+            ->take(6)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
         $catalogState = [
             'sort' => $sort,
             'hasFilters' => !empty($activeFilters),
             'activeFilters' => $activeFilters,
+            'warnings' => $catalogWarnings,
         ];
 
-        return view('pages.catalog', compact('catalogCars', 'brandOptions', 'catalogState'));
+        return view('pages.catalog', compact('catalogCars', 'brandOptions', 'catalogState', 'newCatalogCarIds'));
     }
 
     public function carDetail($id)

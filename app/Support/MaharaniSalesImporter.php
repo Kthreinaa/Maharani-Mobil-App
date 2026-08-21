@@ -42,12 +42,17 @@ class MaharaniSalesImporter
             'offers_created' => 0,
             'test_drives_created' => 0,
             'skipped' => 0,
+            'skipped_fingerprint_duplicates' => 0,
         ];
 
         $sourceName = $importSourceName ?: basename($xlsxPath);
+        $fileHash = self::computeWorkbookHash($xlsxPath);
+        self::guardAgainstDuplicateWorkbook($sourceName, $fileHash);
         $workbookYearHint = self::inferWorkbookYear($sourceName, $xlsxPath);
 
-        $runner = function () use ($xlsxPath, $internalUserId, $sheets, $sourceName, $workbookYearHint, &$stats) {
+        $runner = function () use ($xlsxPath, $internalUserId, $sheets, $sourceName, $fileHash, $workbookYearHint, &$stats) {
+            self::backfillMissingBmFromExistingData();
+
             foreach ($sheets as $sheet) {
                 $sheetName = $sheet['name'];
                 $rows = XlsxReader::readSheet($xlsxPath, $sheet['path']);
@@ -59,19 +64,33 @@ class MaharaniSalesImporter
                         continue;
                     }
 
+                    $brand = trim((string) ($row['merek'] ?? ''));
+                    $modelType = trim((string) ($row['model_tipe'] ?? ''));
+                    $year = (int) self::parseNumber($row['tahun_mobil'] ?? ($row['tahun mobil'] ?? ''));
+                    $price = self::parseMoney($row['harga_jual'] ?? ($row['harga jual'] ?? ''));
+
                     $date = WorkbookSheetDateResolver::alignToSheetMonth(
                         self::parseExcelDate($row['tanggal_transaksi'] ?? '', $workbookYearHint),
                         $sheetName
                     );
-                    $brand = trim((string) ($row['merek'] ?? ''));
-                    $modelType = trim((string) ($row['model_tipe'] ?? ''));
-                    $year = (int) self::parseNumber($row['tahun_mobil'] ?? ($row['tahun mobil'] ?? ''));
                     $color = trim((string) ($row['warna'] ?? '')) ?: null;
                     $transmission = trim((string) ($row['transmisi'] ?? '')) ?: null;
-                    $price = self::parseMoney($row['harga_jual'] ?? ($row['harga jual'] ?? ''));
 
                     if (!$date || $brand === '' || $modelType === '' || $price <= 0) {
                         $stats['skipped']++;
+                        continue;
+                    }
+
+                    $effectiveYear = $year > 1900 ? $year : (int) $date->year;
+                    $bm = self::extractBm($row);
+                    if ($bm !== null && Car::where('bm', $bm)->exists()) {
+                        $stats['skipped']++;
+                        continue;
+                    }
+
+                    if ($bm === null && self::hasImportedArchiveFingerprintDuplicate($brand, $modelType, $effectiveYear, $price)) {
+                        $stats['skipped']++;
+                        $stats['skipped_fingerprint_duplicates']++;
                         continue;
                     }
 
@@ -90,9 +109,10 @@ class MaharaniSalesImporter
 
                     $car = Car::create([
                         'kode_unit' => $kodeUnit,
+                        'bm' => $bm,
                         'merk' => $brand,
                         'tipe' => $modelType,
-                        'tahun' => $year > 1900 ? $year : (int) $date->year,
+                        'tahun' => $effectiveYear,
                         'harga' => $price,
                         'kilometer' => null,
                         'transmisi' => $transmission,
@@ -121,6 +141,7 @@ class MaharaniSalesImporter
                         'follow_up_status' => 'closed_won',
                         'import_source' => $sourceName,
                         'import_reference' => $reference,
+                        'import_file_hash' => $fileHash,
                         'handled_by' => $internalUserId,
                         'handled_role' => 'supervisor',
                         'handled_at' => $date,
@@ -168,6 +189,212 @@ class MaharaniSalesImporter
         });
 
         return $stats + ['dry_run' => false];
+    }
+
+    private static function computeWorkbookHash(string $xlsxPath): string
+    {
+        $hash = hash_file('sha256', $xlsxPath);
+
+        if (!is_string($hash) || $hash === '') {
+            throw new RuntimeException('File Excel gagal dibaca untuk proses validasi import.');
+        }
+
+        return $hash;
+    }
+
+    private static function guardAgainstDuplicateWorkbook(string $sourceName, string $fileHash): void
+    {
+        $normalizedSourceName = trim($sourceName);
+        if ($normalizedSourceName !== '' && self::importedOrdersQuery()->where('import_source', $normalizedSourceName)->exists()) {
+            throw new RuntimeException("Import tidak dapat diproses karena nama file {$normalizedSourceName} sudah pernah digunakan pada data import sebelumnya.");
+        }
+
+        if (self::importedOrdersQuery()->where('import_file_hash', $fileHash)->exists()) {
+            throw new RuntimeException('Import tidak dapat diproses karena isi file Excel yang diunggah terdeteksi sama dengan data import yang sudah tersimpan sebelumnya.');
+        }
+    }
+
+    public static function bmCoverageSnapshot(): array
+    {
+        return [
+            'total_units' => Car::count(),
+            'units_with_bm' => Car::whereNotNull('bm')->count(),
+            'units_without_bm' => Car::whereNull('bm')->count(),
+            'imported_units_without_bm' => self::importedCarsQuery()->whereNull('bm')->count(),
+        ];
+    }
+
+    public static function backfillMissingBmFromExistingData(): array
+    {
+        $stats = [
+            'checked' => 0,
+            'updated' => 0,
+            'conflicts' => 0,
+            'unresolved' => 0,
+        ];
+
+        Car::query()
+            ->whereNull('bm')
+            ->with(['orders:id,car_id,notes'])
+            ->orderBy('id')
+            ->chunkById(100, function ($cars) use (&$stats) {
+                foreach ($cars as $car) {
+                    $stats['checked']++;
+                    $bm = null;
+
+                    foreach (self::backfillBmSources($car) as $source) {
+                        $bm = self::extractBmFromText($source);
+                        if ($bm !== null) {
+                            break;
+                        }
+                    }
+
+                    if ($bm === null) {
+                        $stats['unresolved']++;
+                        continue;
+                    }
+
+                    $hasConflict = Car::query()
+                        ->where('bm', $bm)
+                        ->where('id', '!=', $car->id)
+                        ->exists();
+
+                    if ($hasConflict) {
+                        $stats['conflicts']++;
+                        continue;
+                    }
+
+                    $car->update(['bm' => $bm]);
+                    $stats['updated']++;
+                }
+            });
+
+        return $stats;
+    }
+
+    private static function extractBm(array $row): ?string
+    {
+        foreach ([
+            'bm',
+            'plat',
+            'plat_nomor',
+            'plat_no',
+            'nopol',
+            'no_polisi',
+            'nomor_polisi',
+            'nomor_plat',
+        ] as $key) {
+            $value = Car::normalizeBm($row[$key] ?? null);
+            if ($value !== null) {
+                return $value;
+            }
+        }
+
+        foreach (self::prioritizedBmTextSources($row) as $text) {
+            $value = self::extractBmFromText($text);
+            if ($value !== null) {
+                return $value;
+            }
+        }
+
+        foreach ($row as $value) {
+            $candidate = self::extractBmFromText((string) $value);
+            if ($candidate !== null) {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private static function backfillBmSources(Car $car): array
+    {
+        $sources = [];
+
+        if (filled($car->deskripsi)) {
+            $sources[] = (string) $car->deskripsi;
+        }
+
+        foreach ($car->orders as $order) {
+            if (filled($order->notes)) {
+                $sources[] = (string) $order->notes;
+            }
+        }
+
+        return $sources;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private static function prioritizedBmTextSources(array $row): array
+    {
+        $sources = [];
+
+        foreach ([
+            'keterangan',
+            'catatan',
+            'deskripsi',
+            'notes',
+            'note',
+            'remarks',
+            'remark',
+            'detail',
+            'informasi_tambahan',
+        ] as $key) {
+            $value = trim((string) ($row[$key] ?? ''));
+            if ($value !== '') {
+                $sources[] = $value;
+            }
+        }
+
+        return $sources;
+    }
+
+    private static function extractBmFromText(string $text): ?string
+    {
+        $text = strtoupper(trim($text));
+        if ($text === '') {
+            return null;
+        }
+
+        $keywordPatterns = [
+            '/(?:PLAT|NOPOL|NO\.?\s*POL(?:ISI)?|NOMOR\s*POLISI|NO\.?\s*POLISI)\s*[:\-]?\s*([A-Z]{1,2}\s*\d{1,4}\s*[A-Z]{0,3})\b/u',
+            '/\bBM\s*[:\-]?\s*([A-Z]{1,2}\s*\d{1,4}\s*[A-Z]{0,3})\b/u',
+        ];
+
+        foreach ($keywordPatterns as $pattern) {
+            if (preg_match($pattern, $text, $matches) === 1) {
+                return Car::normalizeBm($matches[1] ?? null);
+            }
+        }
+
+        if (preg_match('/\b([A-Z]{1,2}\s*\d{1,4}\s*[A-Z]{0,3})\b/u', $text, $matches) === 1) {
+            return Car::normalizeBm($matches[1] ?? null);
+        }
+
+        return null;
+    }
+
+    private static function hasImportedArchiveFingerprintDuplicate(string $brand, string $modelType, int $year, float $price): bool
+    {
+        return self::importedCarsQuery()
+            ->whereRaw('LOWER(merk) = ?', [self::normalizeFingerprintText($brand)])
+            ->whereRaw('LOWER(tipe) = ?', [self::normalizeFingerprintText($modelType)])
+            ->where('tahun', $year)
+            ->where('harga', $price)
+            ->exists();
+    }
+
+    private static function normalizeFingerprintText(string $value): string
+    {
+        $value = mb_strtolower(trim($value));
+        $value = preg_replace('/\s+/', ' ', $value) ?: '';
+
+        return $value;
     }
 
     public static function importedDataSnapshot(): array

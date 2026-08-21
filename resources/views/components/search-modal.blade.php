@@ -38,18 +38,21 @@
         </div>
         <div>
           <label class="mb-2 block text-[10px] font-bold uppercase tracking-[0.18em] text-white/80">{{ __('Tahun (Min 2010)') }}</label>
-          <input name="year_min" min="2010" inputmode="numeric" class="w-full rounded-xl border border-white/10 bg-[#071538]/85 px-4 py-3 text-[13px] font-medium text-white placeholder:text-white/50 focus:border-[#f5a623] focus:ring-[#f5a623]" placeholder="2020" />
+          <input name="year_min" min="2010" inputmode="numeric" pattern="[0-9]*" data-digits-only data-digits-label="Tahun" class="w-full rounded-xl border border-white/10 bg-[#071538]/85 px-4 py-3 text-[13px] font-medium text-white placeholder:text-white/50 focus:border-[#f5a623] focus:ring-[#f5a623]" placeholder="2020" />
+          <p data-digits-warning class="mt-2 hidden text-[11px] font-medium text-amber-300" aria-live="polite"></p>
         </div>
       </div>
 
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="mb-2 block text-[10px] font-bold uppercase tracking-[0.18em] text-white/80">{{ __('Kilometer') }}</label>
-          <input name="kilometer" class="w-full rounded-xl border border-white/10 bg-[#071538]/85 px-4 py-3 text-[13px] font-medium text-white placeholder:text-white/50 focus:border-[#f5a623] focus:ring-[#f5a623]" placeholder="{{ __('Kilometer') }}" inputmode="numeric" />
+          <input name="kilometer" class="w-full rounded-xl border border-white/10 bg-[#071538]/85 px-4 py-3 text-[13px] font-medium text-white placeholder:text-white/50 focus:border-[#f5a623] focus:ring-[#f5a623]" placeholder="{{ __('Kilometer') }}" inputmode="numeric" pattern="[0-9]*" data-digits-only data-digits-label="Kilometer" />
+          <p data-digits-warning class="mt-2 hidden text-[11px] font-medium text-amber-300" aria-live="polite"></p>
         </div>
         <div>
           <label class="mb-2 block text-[10px] font-bold uppercase tracking-[0.18em] text-white/80">{{ __('Harga') }}</label>
-          <input name="price_target" class="w-full rounded-xl border border-white/10 bg-[#071538]/85 px-4 py-3 text-[13px] font-medium text-white placeholder:text-white/50 focus:border-[#f5a623] focus:ring-[#f5a623]" placeholder="{{ __('Harga (contoh: 250 juta)') }}" inputmode="numeric" />
+          <input name="price_target" class="w-full rounded-xl border border-white/10 bg-[#071538]/85 px-4 py-3 text-[13px] font-medium text-white placeholder:text-white/50 focus:border-[#f5a623] focus:ring-[#f5a623]" placeholder="{{ __('Harga (contoh: 250 juta)') }}" inputmode="numeric" pattern="[0-9]*" data-digits-only data-digits-label="Harga" />
+          <p data-digits-warning class="mt-2 hidden text-[11px] font-medium text-amber-300" aria-live="polite"></p>
         </div>
       </div>
 

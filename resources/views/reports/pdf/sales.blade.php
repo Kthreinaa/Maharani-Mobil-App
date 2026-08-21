@@ -4,6 +4,10 @@
   <meta charset="utf-8"/>
   <title>Laporan Penjualan Maharani Mobil</title>
   <style>
+    @page {
+      size: A4 landscape;
+      margin: 12px 14px;
+    }
     body {
       margin: 0;
       font-family: DejaVu Sans, sans-serif;
@@ -14,11 +18,11 @@
     .page {
       position: relative;
       z-index: 1;
-      padding: 18px 20px 22px;
+      padding: 8px 10px 12px;
     }
     .report-shell {
       width: 100%;
-      max-width: 690px;
+      max-width: none;
       margin: 0 auto;
     }
     .watermark-layer {
@@ -72,7 +76,7 @@
     }
     .section {
       margin-top: 16px;
-      padding: 14px;
+      padding: 12px;
       border: 1px solid #dbe5f3;
       border-radius: 14px;
       background: rgba(255,255,255,0.96);
@@ -183,39 +187,58 @@
       width: 100%;
       border-collapse: collapse;
     }
+    thead {
+      display: table-header-group;
+    }
+    tr {
+      page-break-inside: avoid;
+    }
     th, td {
       border: 1px solid #dbe5f3;
-      padding: 7px 8px;
+      padding: 6px 7px;
       text-align: left;
       vertical-align: top;
-      line-height: 1.55;
-      word-break: break-word;
-      overflow-wrap: anywhere;
+      line-height: 1.45;
+      word-break: normal;
+      overflow-wrap: break-word;
     }
     th {
       background: #eff5ff;
       color: #334155;
       text-transform: uppercase;
-      font-size: 9px;
-      letter-spacing: 1px;
+      font-size: 8px;
+      letter-spacing: 0.8px;
     }
     .detail-table {
       table-layout: fixed;
-      font-size: 10px;
+      font-size: 9px;
     }
-    .detail-date { width: 11%; }
-    .detail-customer { width: 14%; }
-    .detail-unit { width: 19%; }
-    .detail-flow { width: 15%; }
-    .detail-method { width: 11%; }
-    .detail-value { width: 15%; }
-    .detail-status { width: 11%; }
-    .detail-handler { width: 14%; }
+    .detail-time { width: 13%; }
+    .detail-customer { width: 12%; }
+    .detail-unit { width: 17%; }
+    .detail-flow { width: 14%; }
+    .detail-method { width: 13%; }
+    .detail-value { width: 11%; }
+    .detail-status { width: 10%; }
+    .detail-handler { width: 10%; }
     .table-caption {
       margin-bottom: 10px;
       font-size: 10px;
       line-height: 1.6;
       color: #64748b;
+    }
+    .stacked-meta {
+      line-height: 1.45;
+    }
+    .stacked-meta strong {
+      display: block;
+      color: #0f172a;
+      margin-bottom: 2px;
+    }
+    .stacked-meta span {
+      display: block;
+      color: #64748b;
+      font-size: 8.5px;
     }
   </style>
 </head>
@@ -362,11 +385,11 @@
       <div class="section">
         <h2>Rincian Penjualan</h2>
         <div class="table-caption">
-          Rincian berikut merangkum customer, unit, alur pembelian, metode beli, metode bayar, nominal transaksi, dan pengelola internal pada periode laporan.
+          Rincian berikut merangkum tanggal, tahun, jam pembelian, customer, unit, alur pembelian, metode beli, metode bayar, nominal transaksi, dan pengelola internal pada periode laporan.
         </div>
         <table class="detail-table">
           <colgroup>
-            <col class="detail-date">
+            <col class="detail-time">
             <col class="detail-customer">
             <col class="detail-unit">
             <col class="detail-flow">
@@ -377,7 +400,7 @@
           </colgroup>
           <thead>
             <tr>
-              <th>Tanggal</th>
+              <th>Waktu Transaksi</th>
               <th>Customer</th>
               <th>Unit</th>
               <th>Alur</th>
@@ -390,7 +413,13 @@
           <tbody>
             @forelse ($rows as $row)
               <tr>
-                <td>{{ $row->tanggal }}</td>
+                <td>
+                  <div class="stacked-meta">
+                    <strong>{{ $row->tanggal_label }}</strong>
+                    <span>Tahun {{ $row->tahun_transaksi }}</span>
+                    <span>Jam {{ $row->jam_transaksi }}</span>
+                  </div>
+                </td>
                 <td>{{ $row->customer }}</td>
                 <td>
                   {{ $row->mobil }}<br>

@@ -2,6 +2,7 @@
   $car = $order->car;
   $carName = trim(($car?->merk ?? '') . ' ' . ($car?->tipe ?? '') . ' ' . ($car?->tahun ?? ''));
   $isCreditPurchase = $order->is_credit_purchase;
+  $hasPendingCancellationRequest = $order->has_pending_cancellation_request;
 
   $paymentStatus = $payment?->status ?? 'pending';
   $handoverReady = $order->isHandoverNoteReady();
@@ -47,12 +48,14 @@
     };
   }
 
-  $statusBadgeClass = match ($order->status) {
-    'completed' => 'bg-emerald-100 text-emerald-700',
-    'paid' => 'bg-blue-100 text-blue-700',
-    'cancelled' => 'bg-rose-100 text-rose-700',
-    default => 'bg-amber-100 text-amber-700',
-  };
+  $statusBadgeClass = $hasPendingCancellationRequest
+    ? 'bg-amber-100 text-amber-700'
+    : match ($order->status) {
+        'completed' => 'bg-emerald-100 text-emerald-700',
+        'paid' => 'bg-blue-100 text-blue-700',
+        'cancelled' => 'bg-rose-100 text-rose-700',
+        default => 'bg-amber-100 text-amber-700',
+      };
   $documentsReady = $order->areTransactionDocumentsReady();
   $paidAmount = (float) ($payment?->amount ?? 0);
   $remainingAmount = max((float) $order->total - $paidAmount, 0);
@@ -128,7 +131,14 @@
                   <li>{{ $loop->iteration }}. {{ $stepText }}</li>
                 @endforeach
               </ol>
-              @if ($order->status === 'cancelled')
+              @if ($hasPendingCancellationRequest)
+                <p class="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700">
+                  Permintaan pembatalan sedang menunggu persetujuan supervisor.
+                  @if ($order->customer_cancellation_reason)
+                    Alasan: {{ $order->customer_cancellation_reason }}
+                  @endif
+                </p>
+              @elseif ($order->status === 'cancelled')
                 <p class="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700">Customer batal membeli. Data tetap disimpan agar marketing bisa follow-up kembali.</p>
               @endif
             </div>
@@ -244,14 +254,19 @@
                 @endif
               </div>
               <div class="mt-5 space-y-3">
-                @if (!$isCreditPurchase)
+                @if (!$isCreditPurchase && !$hasPendingCancellationRequest)
                   <a class="inline-flex w-full items-center justify-center rounded-xl border border-white/15 bg-white/10 px-5 py-3 text-sm font-semibold text-white" href="{{ route('payment.page', ['order' => $order->id]) }}">Lihat Pembayaran</a>
                 @endif
-                @if (!$isCreditPurchase && $gatewayPending)
+                @if (!$isCreditPurchase && $gatewayPending && !$hasPendingCancellationRequest)
                   <a class="inline-flex w-full items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-primary" href="{{ $gatewayCheckoutUrl }}" target="_blank" rel="noopener noreferrer">Lanjutkan Pembayaran Aman</a>
                 @endif
-                @if ($isCreditPurchase && $order->status !== 'pending' && !$hasVerifiedCreditDp)
+                @if ($isCreditPurchase && $order->status !== 'pending' && !$hasVerifiedCreditDp && !$hasPendingCancellationRequest)
                   <a class="inline-flex w-full items-center justify-center rounded-xl border border-white/15 bg-white/10 px-5 py-3 text-sm font-semibold text-white" href="{{ route('payment.page', ['order' => $order->id]) }}">Lanjutkan Pembayaran DP Kredit</a>
+                @endif
+                @if ($hasPendingCancellationRequest)
+                  <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-700">
+                    Order ini sedang menunggu persetujuan pembatalan, jadi aksi pembayaran sementara dinonaktifkan.
+                  </div>
                 @endif
               </div>
             </div>

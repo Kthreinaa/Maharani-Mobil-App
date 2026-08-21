@@ -118,6 +118,7 @@ Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer
     Route::delete('/favorites/{car}', [FavoriteController::class, 'destroy'])->name('favorites.destroy');
 
     Route::get('/orders', [CustomerOrderController::class, 'index'])->name('orders.index');
+    Route::patch('/orders/{order}/request-cancellation', [CustomerOrderController::class, 'requestCancellation'])->name('orders.requestCancellation');
     Route::get('/test-drives', [CustomerTestDriveController::class, 'index'])->name('test-drives.index');
     Route::get('/reviews/create', [ProductReviewController::class, 'create'])->name('reviews.create');
     Route::get('/settings', [CustomerSettingsController::class, 'edit'])->name('settings.edit');
@@ -176,6 +177,7 @@ Route::middleware(['auth', 'role:supervisor'])->prefix('supervisor')->name('supe
     Route::post('/orders', [SupervisorOrderController::class, 'store'])->name('orders.store');
     Route::get('/orders/{order}', [SupervisorOrderController::class, 'show'])->name('orders.show');
     Route::patch('/orders/{order}/status', [SupervisorOrderController::class, 'updateStatus'])->name('orders.updateStatus');
+    Route::patch('/orders/{order}/approve-cancellation', [SupervisorOrderController::class, 'approveCancellation'])->name('orders.approveCancellation');
     Route::patch('/orders/{order}/payment', [SupervisorOrderController::class, 'syncPayment'])->name('orders.syncPayment');
     Route::get('/imports/sales', [InternalSalesImportController::class, 'create'])->name('imports.sales.create');
     Route::post('/imports/sales', [InternalSalesImportController::class, 'store'])->name('imports.sales.store');

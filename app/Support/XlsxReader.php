@@ -281,6 +281,7 @@ class XlsxReader
             if ($k === 'harga' || $k === 'harga_jual') $k = 'harga_jual';
             if ($k === 'model' || $k === 'tipe' || $k === 'modeltipe' || $k === 'model_tipe') $k = 'model_tipe';
             if ($k === 'tenor_bulan' || $k === 'tenor__bulan' || $k === 'tenor_(bulan)') $k = 'tenor_(bulan)';
+            if (in_array($k, ['bm', 'plat', 'plat_nomor', 'plat_no', 'nopol', 'no_polisi', 'nomor_polisi', 'nomor_plat'], true)) $k = 'bm';
 
             $headings[$i] = $k;
         }

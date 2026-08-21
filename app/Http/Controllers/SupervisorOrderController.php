@@ -113,9 +113,11 @@ class SupervisorOrderController extends Controller
         ];
 
         if ($validated['status'] === 'cancelled') {
-            $payload['cancel_reason'] = $validated['cancel_reason'] ?? null;
+            $payload['cancel_reason'] = $validated['cancel_reason'] ?: $order->customer_cancellation_reason;
             $payload['follow_up_status'] = !empty($validated['next_follow_up_at']) ? 'needs_follow_up' : 'closed_lost';
             $payload['next_follow_up_at'] = $validated['next_follow_up_at'] ?? null;
+            $payload['customer_cancellation_reason'] = null;
+            $payload['customer_cancellation_requested_at'] = null;
         } elseif ($validated['status'] === 'completed') {
             $payload['follow_up_status'] = 'closed_won';
             $payload['approved_by'] = $request->user()->id;
@@ -138,6 +140,29 @@ class SupervisorOrderController extends Controller
         $this->syncCarStatus($order, (string) $order->status);
 
         return back()->with('success', 'Status pesanan diperbarui.');
+    }
+
+    public function approveCancellation(Request $request, Order $order)
+    {
+        if (!$order->has_pending_cancellation_request) {
+            return back()->with('error', 'Tidak ada permintaan pembatalan yang menunggu persetujuan.');
+        }
+
+        $order->update($this->stampActor($request, [
+            'status' => 'cancelled',
+            'cancel_reason' => $order->customer_cancellation_reason,
+            'customer_cancellation_reason' => null,
+            'customer_cancellation_requested_at' => null,
+            'follow_up_status' => 'closed_lost',
+            'next_follow_up_at' => null,
+            'approved_by' => $request->user()->id,
+            'approved_at' => now(),
+        ]));
+
+        $order->refresh();
+        $this->syncCarStatus($order, (string) $order->status);
+
+        return back()->with('success', 'Pembatalan pesanan disetujui. Status order dibatalkan dan stok mobil sudah dikembalikan.');
     }
 
     public function syncPayment(Request $request, Order $order)

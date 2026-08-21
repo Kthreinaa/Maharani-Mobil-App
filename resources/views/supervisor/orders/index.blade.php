@@ -60,6 +60,9 @@
             </td>
             <td class="px-5 py-4">
               <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-bold uppercase text-slate-700">{{ $order->status }}</span>
+              @if ($order->has_pending_cancellation_request)
+                <p class="mt-2 text-xs font-semibold text-amber-700">Customer meminta pembatalan pesanan.</p>
+              @endif
             </td>
             <td class="px-5 py-4">
               <span class="inline-flex rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] {{ $roleTone }}">{{ $roleLabel }}</span>

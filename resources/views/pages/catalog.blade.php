@@ -20,10 +20,13 @@
       $brandOptions = $brandOptions ?? collect();
       $selectedBrand = request('brand', 'all');
       $availableCars = $catalogCars ?? collect();
+      $newCatalogCarIds = collect($newCatalogCarIds ?? [])->map(fn ($id) => (int) $id)->all();
       $catalogState = $catalogState ?? ['sort' => 'latest', 'hasFilters' => false, 'activeFilters' => []];
       $selectedSort = $catalogState['sort'] ?? 'latest';
       $hasFilters = $catalogState['hasFilters'] ?? false;
       $activeFilters = $catalogState['activeFilters'] ?? [];
+      $catalogWarnings = $catalogState['warnings'] ?? [];
+      $sanitizeDigits = fn ($value) => preg_replace('/\D+/', '', (string) $value);
       $homeUrl = auth()->check() && auth()->user()->role === 'customer'
         ? route('customer.home')
         : route('landing');
@@ -93,6 +96,17 @@
             @endif
           </div>
 
+          @if (!empty($catalogWarnings))
+            <div class="mb-5 rounded-[1.35rem] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 shadow-sm">
+              <p class="font-bold">Periksa kembali input filter Anda.</p>
+              <ul class="mt-2 list-disc space-y-1 pl-5 text-[13px] leading-6">
+                @foreach ($catalogWarnings as $warning)
+                  <li>{{ $warning }}</li>
+                @endforeach
+              </ul>
+            </div>
+          @endif
+
           <form method="GET" action="{{ route('catalog') }}" class="space-y-5">
             <input type="hidden" name="sort" value="{{ $selectedSort }}" />
 
@@ -114,22 +128,26 @@
             <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
               <div>
                 <label class="mb-3 block text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">{{ __('Tahun Minimum') }}</label>
-                <input name="year_min" min="2010" inputmode="numeric" value="{{ request('year_min', request('year')) }}" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#0b1a40] focus:ring-0" placeholder="2018" />
+                <input name="year_min" min="2010" inputmode="numeric" pattern="[0-9]*" data-digits-only data-digits-label="Tahun minimum" value="{{ $sanitizeDigits(request('year_min', request('year'))) }}" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#0b1a40] focus:ring-0" placeholder="2018" />
+                <p data-digits-warning class="mt-2 hidden text-xs font-medium text-amber-600" aria-live="polite"></p>
               </div>
               <div>
                 <label class="mb-3 block text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">{{ __('Kilometer Maksimum') }}</label>
-                <input name="kilometer" inputmode="numeric" value="{{ request('kilometer', request('km_max')) }}" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#0b1a40] focus:ring-0" placeholder="60000" />
+                <input name="kilometer" inputmode="numeric" pattern="[0-9]*" data-digits-only data-digits-label="Kilometer maksimum" value="{{ $sanitizeDigits(request('kilometer', request('km_max'))) }}" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#0b1a40] focus:ring-0" placeholder="60000" />
+                <p data-digits-warning class="mt-2 hidden text-xs font-medium text-amber-600" aria-live="polite"></p>
               </div>
             </div>
 
             <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
               <div>
                 <label class="mb-3 block text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">{{ __('Harga Maksimal') }}</label>
-                <input name="price_max" inputmode="numeric" value="{{ request('price_max') }}" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#0b1a40] focus:ring-0" placeholder="{{ __('250 (juta)') }}" />
+                <input name="price_max" inputmode="numeric" pattern="[0-9]*" data-digits-only data-digits-label="Harga maksimal" value="{{ $sanitizeDigits(request('price_max')) }}" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#0b1a40] focus:ring-0" placeholder="{{ __('250 (juta)') }}" />
+                <p data-digits-warning class="mt-2 hidden text-xs font-medium text-amber-600" aria-live="polite"></p>
               </div>
               <div>
                 <label class="mb-3 block text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">{{ __('Harga Target') }}</label>
-                <input name="price_target" inputmode="numeric" value="{{ request('price_target', request('price')) }}" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#0b1a40] focus:ring-0" placeholder="{{ __('300 (juta)') }}" />
+                <input name="price_target" inputmode="numeric" pattern="[0-9]*" data-digits-only data-digits-label="Harga target" value="{{ $sanitizeDigits(request('price_target', request('price'))) }}" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#0b1a40] focus:ring-0" placeholder="{{ __('300 (juta)') }}" />
+                <p data-digits-warning class="mt-2 hidden text-xs font-medium text-amber-600" aria-live="polite"></p>
                 <p class="mt-2 text-xs leading-5 text-slate-500">{{ __('Jika diisi, hasil akan diprioritaskan ke harga yang paling dekat dengan target Anda.') }}</p>
               </div>
             </div>
@@ -160,10 +178,10 @@
             <form method="GET" action="{{ route('catalog') }}" class="w-full rounded-[1.6rem] border border-slate-200 bg-slate-50/90 p-4 shadow-sm lg:w-[280px]">
               <input type="hidden" name="brand" value="{{ request('brand', 'all') }}" />
               <input type="hidden" name="q" value="{{ request('q') }}" />
-              <input type="hidden" name="year_min" value="{{ request('year_min', request('year')) }}" />
-              <input type="hidden" name="kilometer" value="{{ request('kilometer', request('km_max')) }}" />
-              <input type="hidden" name="price_max" value="{{ request('price_max') }}" />
-              <input type="hidden" name="price_target" value="{{ request('price_target', request('price')) }}" />
+              <input type="hidden" name="year_min" value="{{ $sanitizeDigits(request('year_min', request('year'))) }}" />
+              <input type="hidden" name="kilometer" value="{{ $sanitizeDigits(request('kilometer', request('km_max'))) }}" />
+              <input type="hidden" name="price_max" value="{{ $sanitizeDigits(request('price_max')) }}" />
+              <input type="hidden" name="price_target" value="{{ $sanitizeDigits(request('price_target', request('price'))) }}" />
 
               <label class="mb-3 block text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">{{ __('Urutkan Hasil') }}</label>
               <select
@@ -212,6 +230,7 @@
                   'car' => $car,
                   'imageUrl' => $carImage,
                   'showFavorite' => true,
+                  'showNewBadge' => in_array((int) $car->id, $newCatalogCarIds, true),
                 ])
               </div>
             @endforeach
