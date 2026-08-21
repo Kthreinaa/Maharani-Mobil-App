@@ -76,16 +76,21 @@
     }
     .section {
       margin-top: 16px;
+    }
+    .section-title {
+      margin: 0 0 10px;
+      padding: 0 2px;
+      font-size: 15px;
+      color: #102a63;
+      letter-spacing: 0.4px;
+      font-weight: bold;
+    }
+    .section-shell {
       padding: 12px;
       border: 1px solid #dbe5f3;
       border-radius: 14px;
       background: rgba(255,255,255,0.96);
-    }
-    .section h2 {
-      margin: 0 0 10px;
-      font-size: 15px;
-      color: #102a63;
-      letter-spacing: 0.4px;
+      page-break-inside: avoid;
     }
     .muted {
       color: #64748b;
@@ -96,6 +101,7 @@
       border: 1px solid #dbe5f3;
       border-radius: 12px;
       background: #f8fbff;
+      page-break-inside: avoid;
     }
     .card .label {
       font-size: 10px;
@@ -140,6 +146,10 @@
       border: 1px solid #dbe5f3;
       border-radius: 12px;
       background: #ffffff;
+      page-break-inside: avoid;
+    }
+    .box:last-child {
+      margin-bottom: 0;
     }
     .box-header-table {
       width: 100%;
@@ -182,6 +192,12 @@
     }
     .bar-blue {
       background: #2563eb;
+    }
+    .table-frame {
+      border: 1px solid #dbe5f3;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #ffffff;
     }
     table {
       width: 100%;
@@ -226,6 +242,10 @@
       font-size: 10px;
       line-height: 1.6;
       color: #64748b;
+    }
+    .analysis-list,
+    .brand-list {
+      page-break-inside: auto;
     }
     .stacked-meta {
       line-height: 1.45;
@@ -273,177 +293,189 @@
       </div>
 
       <div class="section">
-        <table class="kpi-table">
-          <tr>
-            <td>
-              <div class="card">
-                <div class="label">Total Transaksi</div>
-                <div class="value">{{ number_format((int) $summary['total_orders']) }}</div>
-                <div class="note">Jumlah transaksi pada periode ini.</div>
-              </div>
-            </td>
-            <td>
-              <div class="card">
-                <div class="label">Omzet</div>
-                <div class="value value-money">{{ \App\Support\CurrencyFormatter::rupiah($summary['omzet']) }}</div>
-                <div class="note">Total nilai penjualan.</div>
-              </div>
-            </td>
-            <td>
-              <div class="card">
-                <div class="label">Rata-rata</div>
-                <div class="value value-money">{{ \App\Support\CurrencyFormatter::rupiah($summary['average_order']) }}</div>
-                <div class="note">Rata-rata nilai transaksi.</div>
-              </div>
-            </td>
-            <td>
-              <div class="card">
-                <div class="label">Tingkat Selesai</div>
-                <div class="value">{{ $summary['completion_rate'] }}%</div>
-                <div class="note">Transaksi yang sudah selesai penuh.</div>
-              </div>
-            </td>
-          </tr>
-        </table>
-      </div>
-
-      <div class="section">
-        <h2>Ringkasan Aktivitas Pembelian</h2>
-        <table class="kpi-table">
-          <tr>
-            @foreach ($report['crm_overview'] as $item)
+        <div class="section-shell">
+          <table class="kpi-table">
+            <tr>
               <td>
                 <div class="card">
-                  <div class="label">{{ $item['label'] }}</div>
-                  <div class="value">{{ $item['value'] }}</div>
-                  <div class="note">{{ $item['note'] }}</div>
+                  <div class="label">Total Transaksi</div>
+                  <div class="value">{{ number_format((int) $summary['total_orders']) }}</div>
+                  <div class="note">Jumlah transaksi pada periode ini.</div>
                 </div>
               </td>
-            @endforeach
-          </tr>
-        </table>
-      </div>
-
-      <div class="section">
-        <h2>Ringkasan Periode Ini</h2>
-        @foreach ($report['analysis'] as $item)
-          <div class="box">
-            <strong>{{ $item['title'] }}</strong>
-            <div class="muted" style="margin-top:6px; line-height:1.6;">{{ $item['detail'] }}</div>
-          </div>
-        @endforeach
-      </div>
-
-      <div class="section">
-        <h2>Merk Mobil Paling Laris</h2>
-        @forelse ($report['brand_performance'] as $item)
-          <div class="box">
-            <table class="box-header-table">
-              <tr>
-                <td><div class="box-header-title">{{ $item['brand'] }}</div></td>
-                <td class="box-header-meta"><span class="pill">{{ $item['share'] }}%</span></td>
-              </tr>
-            </table>
-            <div class="bar-wrap">
-              <div class="bar bar-blue" style="width: {{ min(100, max(8, round($item['share']))) }}%;"></div>
-            </div>
-            <div class="muted" style="margin-top:8px;">
-              {{ $item['units'] }} unit | {{ \App\Support\CurrencyFormatter::rupiah($item['revenue']) }}
-            </div>
-          </div>
-        @empty
-          <div class="box muted">Belum ada data merk pada periode ini.</div>
-        @endforelse
-      </div>
-
-      <div class="section">
-        <h2>Tren Penjualan</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Periode</th>
-              <th>Jumlah Order</th>
-              <th>Omzet</th>
+              <td>
+                <div class="card">
+                  <div class="label">Omzet</div>
+                  <div class="value value-money">{{ \App\Support\CurrencyFormatter::rupiah($summary['omzet']) }}</div>
+                  <div class="note">Total nilai penjualan.</div>
+                </div>
+              </td>
+              <td>
+                <div class="card">
+                  <div class="label">Rata-rata</div>
+                  <div class="value value-money">{{ \App\Support\CurrencyFormatter::rupiah($summary['average_order']) }}</div>
+                  <div class="note">Rata-rata nilai transaksi.</div>
+                </div>
+              </td>
+              <td>
+                <div class="card">
+                  <div class="label">Tingkat Selesai</div>
+                  <div class="value">{{ $summary['completion_rate'] }}%</div>
+                  <div class="note">Transaksi yang sudah selesai penuh.</div>
+                </div>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            @forelse ($report['trend'] as $item)
-              <tr>
-                <td>{{ $item['label'] }}</td>
-                <td>{{ $item['orders'] }}</td>
-                <td>{{ \App\Support\CurrencyFormatter::rupiah($item['revenue']) }}</td>
-              </tr>
-            @empty
-              <tr>
-                <td colspan="3" class="muted">Belum ada data tren penjualan.</td>
-              </tr>
-            @endforelse
-          </tbody>
-        </table>
+          </table>
+        </div>
       </div>
 
       <div class="section">
-        <h2>Rincian Penjualan</h2>
+        <div class="section-title">Ringkasan Aktivitas Pembelian</div>
+        <div class="section-shell">
+          <table class="kpi-table">
+            <tr>
+              @foreach ($report['crm_overview'] as $item)
+                <td>
+                  <div class="card">
+                    <div class="label">{{ $item['label'] }}</div>
+                    <div class="value">{{ $item['value'] }}</div>
+                    <div class="note">{{ $item['note'] }}</div>
+                  </div>
+                </td>
+              @endforeach
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Ringkasan Periode Ini</div>
+        <div class="analysis-list">
+          @foreach ($report['analysis'] as $item)
+            <div class="box">
+              <strong>{{ $item['title'] }}</strong>
+              <div class="muted" style="margin-top:6px; line-height:1.6;">{{ $item['detail'] }}</div>
+            </div>
+          @endforeach
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Merk Mobil Paling Laris</div>
+        <div class="brand-list">
+          @forelse ($report['brand_performance'] as $item)
+            <div class="box">
+              <table class="box-header-table">
+                <tr>
+                  <td><div class="box-header-title">{{ $item['brand'] }}</div></td>
+                  <td class="box-header-meta"><span class="pill">{{ $item['share'] }}%</span></td>
+                </tr>
+              </table>
+              <div class="bar-wrap">
+                <div class="bar bar-blue" style="width: {{ min(100, max(8, round($item['share']))) }}%;"></div>
+              </div>
+              <div class="muted" style="margin-top:8px;">
+                {{ $item['units'] }} unit | {{ \App\Support\CurrencyFormatter::rupiah($item['revenue']) }}
+              </div>
+            </div>
+          @empty
+            <div class="box muted">Belum ada data merk pada periode ini.</div>
+          @endforelse
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Tren Penjualan</div>
+        <div class="table-frame">
+          <table>
+            <thead>
+              <tr>
+                <th>Periode</th>
+                <th>Jumlah Order</th>
+                <th>Omzet</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse ($report['trend'] as $item)
+                <tr>
+                  <td>{{ $item['label'] }}</td>
+                  <td>{{ $item['orders'] }}</td>
+                  <td>{{ \App\Support\CurrencyFormatter::rupiah($item['revenue']) }}</td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="3" class="muted">Belum ada data tren penjualan.</td>
+                </tr>
+              @endforelse
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Rincian Penjualan</div>
         <div class="table-caption">
           Rincian berikut merangkum tanggal, tahun, jam pembelian, customer, unit, alur pembelian, metode beli, metode bayar, nominal transaksi, dan pengelola internal pada periode laporan.
         </div>
-        <table class="detail-table">
-          <colgroup>
-            <col class="detail-time">
-            <col class="detail-customer">
-            <col class="detail-unit">
-            <col class="detail-flow">
-            <col class="detail-method">
-            <col class="detail-value">
-            <col class="detail-status">
-            <col class="detail-handler">
-          </colgroup>
-          <thead>
-            <tr>
-              <th>Waktu Transaksi</th>
-              <th>Customer</th>
-              <th>Unit</th>
-              <th>Alur</th>
-              <th>Metode Beli</th>
-              <th>Nominal</th>
-              <th>Status</th>
-              <th>Pengelola</th>
-            </tr>
-          </thead>
-          <tbody>
-            @forelse ($rows as $row)
+        <div class="table-frame">
+          <table class="detail-table">
+            <colgroup>
+              <col class="detail-time">
+              <col class="detail-customer">
+              <col class="detail-unit">
+              <col class="detail-flow">
+              <col class="detail-method">
+              <col class="detail-value">
+              <col class="detail-status">
+              <col class="detail-handler">
+            </colgroup>
+            <thead>
               <tr>
-                <td>
-                  <div class="stacked-meta">
-                    <strong>{{ $row->tanggal_label }}</strong>
-                    <span>Tahun {{ $row->tahun_transaksi }}</span>
-                    <span>Jam {{ $row->jam_transaksi }}</span>
-                  </div>
-                </td>
-                <td>{{ $row->customer }}</td>
-                <td>
-                  {{ $row->mobil }}<br>
-                  <span class="muted">{{ $row->kode_unit }}</span>
-                </td>
-                <td>
-                  {{ $row->transaction_channel_label }}<br>
-                  <span class="muted">{{ $row->sales_flow_label }}</span>
-                </td>
-                <td>{{ $row->metode_beli_label }}<br><span class="muted">Dibayar dengan {{ $row->metode_bayar_label }}</span></td>
-                <td>{{ \App\Support\CurrencyFormatter::rupiah($row->nominal) }}</td>
-                <td>{{ $row->status_order }} / {{ $row->status_pembayaran }}</td>
-                <td>
-                  {{ $row->handled_role === 'marketing' ? 'Marketing' : ($row->handled_role === 'supervisor' ? 'Supervisor' : 'Belum Ditandai') }}<br>
-                  <span class="muted">{{ $row->handled_by_name ?: '-' }}</span>
-                </td>
+                <th>Waktu Transaksi</th>
+                <th>Customer</th>
+                <th>Unit</th>
+                <th>Alur</th>
+                <th>Metode Beli</th>
+                <th>Nominal</th>
+                <th>Status</th>
+                <th>Pengelola</th>
               </tr>
-            @empty
-              <tr>
-                <td colspan="8" class="muted">Belum ada data penjualan untuk periode ini.</td>
-              </tr>
-            @endforelse
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              @forelse ($rows as $row)
+                <tr>
+                  <td>
+                    <div class="stacked-meta">
+                      <strong>{{ $row->tanggal_label }}</strong>
+                      <span>Tahun {{ $row->tahun_transaksi }}</span>
+                      <span>Jam {{ $row->jam_transaksi }}</span>
+                    </div>
+                  </td>
+                  <td>{{ $row->customer }}</td>
+                  <td>
+                    {{ $row->mobil }}<br>
+                    <span class="muted">{{ $row->kode_unit }}</span>
+                  </td>
+                  <td>
+                    {{ $row->transaction_channel_label }}<br>
+                    <span class="muted">{{ $row->sales_flow_label }}</span>
+                  </td>
+                  <td>{{ $row->metode_beli_label }}<br><span class="muted">Dibayar dengan {{ $row->metode_bayar_label }}</span></td>
+                  <td>{{ \App\Support\CurrencyFormatter::rupiah($row->nominal) }}</td>
+                  <td>{{ $row->status_order }} / {{ $row->status_pembayaran }}</td>
+                  <td>
+                    {{ $row->handled_role === 'marketing' ? 'Marketing' : ($row->handled_role === 'supervisor' ? 'Supervisor' : 'Belum Ditandai') }}<br>
+                    <span class="muted">{{ $row->handled_by_name ?: '-' }}</span>
+                  </td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="8" class="muted">Belum ada data penjualan untuk periode ini.</td>
+                </tr>
+              @endforelse
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
