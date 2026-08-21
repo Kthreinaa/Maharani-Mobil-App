@@ -9,7 +9,6 @@
   $gatewayCheckoutUrl = $payment?->gateway_checkout_url ?? null;
   $gatewayPending = filled($gatewayCheckoutUrl) && ($payment?->status ?? 'pending') !== 'verified';
   $isCreditPurchase = $isCreditPurchase ?? ($order?->is_credit_purchase ?? false);
-  $localSimulationEnabled = app()->environment(['local', 'testing']) && ! $xenditEnabled && ! $isCreditPurchase;
   $selectedPaymentPlan = $selectedPaymentPlan ?? 'booking';
   $fullPaymentAmount = (float) ($orderTotal ?? ($order?->total ?? 0));
   $bookingPaymentAmount = (float) $bookingFee;
@@ -248,11 +247,6 @@
     class="inline-flex items-center justify-center rounded-[1.2rem] border border-slate-200 bg-white px-6 py-4 text-sm font-bold text-primary transition hover:bg-slate-50">
     Check Status
 </button>
-                @if ($localSimulationEnabled && $draftToken)
-                  <button class="inline-flex items-center justify-center rounded-[1.2rem] border border-slate-200 bg-white px-6 py-4 text-sm font-bold text-primary transition hover:bg-slate-50" id="simulate-pay-button" type="button">
-                    Simulasi Berhasil
-                  </button>
-                @endif
               </div>
             @endif
           </div>
@@ -358,7 +352,6 @@
 
   <script>
     const payButton = document.getElementById('pay-button');
-const simulatePayButton = document.getElementById('simulate-pay-button');
 const checkStatusButton = document.getElementById('check-status-button');
 
 const draftToken = @json($draftToken);
@@ -520,35 +513,6 @@ if (checkStatusButton) {
 
     checkStatusButton.addEventListener('click', function () {
         checkPaymentStatus();
-    });
-}
-
-if (simulatePayButton && draftToken) {
-
-    simulatePayButton.addEventListener('click', function () {
-
-        fetch('{{ route("customer.payments.simulate-success") }}', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                draft_token: draftToken
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-
-            if (data.redirect) {
-                window.location.href = data.redirect;
-            }
-
-        })
-        .catch(error => {
-            console.error(error);
-        });
     });
 }
   </script>

@@ -148,7 +148,6 @@ Route::middleware(['action.auth', 'auth', 'role:customer'])->prefix('customer')-
     Route::post('/favorites/{car}', [FavoriteController::class, 'store'])->name('favorites.store');
     Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
     Route::post('/payments', [PaymentController::class, 'store'])->name('payments.store');
-    Route::post('/payments/simulate-success', [PaymentController::class, 'simulateSuccess'])->name('payments.simulate-success');
     Route::post('/payments/upload', [PaymentController::class, 'upload'])->name('payments.upload');
     Route::patch('/offers/{offer}/respond', [OfferController::class, 'respond'])->name('offers.respond');
     Route::post('/reviews', [ProductReviewController::class, 'store'])->name('reviews.store');

@@ -7,7 +7,6 @@ use App\Models\Payment;
 use App\Services\CheckoutDraftService;
 use App\Services\XenditPaymentLinkService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\App;
 use Midtrans\Snap;
 use Midtrans\Notification;
 use Midtrans\Transaction;
@@ -167,58 +166,6 @@ class PaymentController extends Controller
         return redirect()
             ->route('order.tracking', ['order' => $order->id])
             ->with('error', 'Customer tidak perlu mengunggah bukti bayar. Validasi pembayaran dilakukan oleh supervisor melalui sistem.');
-    }
-
-    public function simulateSuccess(Request $request)
-    {
-        abort_unless(App::environment(['local', 'testing']), 404);
-
-        $validated = $request->validate([
-            'order_id' => ['nullable', 'integer'],
-            'draft_token' => ['nullable', 'string'],
-        ]);
-
-        if (!empty($validated['draft_token'])) {
-            return $this->completeDraftPayment($request, (string) $validated['draft_token'], 'local_demo', 'PAID');
-        }
-
-        $order = Order::query()
-            ->with(['payment', 'car'])
-            ->where('id', $validated['order_id'])
-            ->where('user_id', $request->user()->id)
-            ->firstOrFail();
-
-        $payment = Payment::updateOrCreate(
-            ['order_id' => $order->id],
-            [
-                'method' => 'transfer',
-                'gateway_provider' => 'local_demo',
-                'gateway_reference' => 'LOCAL-DEMO-' . $order->id,
-                'gateway_external_id' => 'local-demo-order-' . $order->id,
-                'gateway_status' => 'PAID',
-                'gateway_channel' => 'BANK_TRANSFER',
-                'amount' => (float) $order->total,
-                'status' => 'verified',
-                'handled_role' => 'gateway',
-                'handled_at' => now(),
-                'verified_at' => now(),
-                'paid_at' => now(),
-            ]
-        );
-
-        $order->update([
-            'payment_method' => 'transfer',
-            'status' => 'paid',
-        ]);
-        $order->issueSettlementDocuments();
-
-        if ($order->car && $order->car->status !== 'sold') {
-            $order->car->update(['status' => 'reserved']);
-        }
-
-        return redirect()
-            ->route('order.tracking', ['order' => $order->id])
-            ->with('success', 'Simulasi pembayaran lokal berhasil. Faktur, kwitansi digital, dan BAST sekarang sudah aktif untuk order ini.');
     }
 
     private function resolveCashPaymentPlan(Order $order): string
