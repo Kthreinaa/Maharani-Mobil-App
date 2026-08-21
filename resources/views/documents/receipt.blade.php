@@ -79,7 +79,16 @@
       letter-spacing: .08em;
       text-transform: uppercase;
       background: rgba(255, 245, 245, 0.96);
-      transform: rotate(-7deg);
+    }
+    .signature-placeholder {
+      margin-top: 10px;
+      min-height: 48px;
+      border-bottom: 1px solid #0f172a;
+    }
+    .signature-note {
+      margin-top: 6px;
+      font-size: 8px;
+      color: #64748b;
     }
     .signature-image { height: 34px; width: auto; max-width: 170px; margin: 5px 0 1px; }
     .signature-line { border-top: 1px solid #0f172a; margin-top: 4px; padding-top: 4px; }
@@ -204,9 +213,8 @@
         <div class="signature-head">Pihak Showroom</div>
         <div class="muted">Diterbitkan dan diotorisasi oleh:</div>
         <div class="materai-badge">Materai Rp10.000</div>
-        @if (!empty($profile['owner_signature_data_uri']))
-          <img class="signature-image" src="{{ $profile['owner_signature_data_uri'] }}" alt="Tanda tangan owner">
-        @endif
+        <div class="signature-placeholder"></div>
+        <div class="signature-note">Area ini disiapkan untuk tanda tangan manual showroom yang dibubuhkan langsung di atas materai.</div>
         <div class="signature-line">
           <strong>{{ $profile['owner_name'] ?? 'Rarendra' }}</strong><br>
           {{ $profile['owner_title'] ?? 'Pemilik Maharani Mobil' }}
