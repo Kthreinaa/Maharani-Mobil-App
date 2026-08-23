@@ -7,11 +7,14 @@ use App\Models\Order;
 use App\Models\ProductReview;
 use App\Models\TestDrive;
 use App\Support\ReviewPhotoWatermarker;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 
 class ProductReviewController extends Controller
 {
+    private const REVIEW_WINDOW_DAYS = 7;
+
     public function index(Request $request)
     {
         $reviewsTableExists = Schema::hasTable('product_reviews');
@@ -83,10 +86,13 @@ class ProductReviewController extends Controller
             'media.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
         ]);
 
+        $latestReviewSource = $this->latestReviewSourceForCar($request->user()->id, (int) $validated['car_id']);
         $eligibleSource = $this->resolveEligibleSource($request->user()->id, (int) $validated['car_id']);
         if (!$eligibleSource) {
             return back()->withErrors([
-                'car_id' => 'Anda hanya bisa menulis ulasan untuk unit yang sudah Anda beli atau test drive.',
+                'car_id' => $latestReviewSource
+                    ? 'Batas waktu review untuk unit ini sudah lewat. Review hanya bisa dikirim maksimal 7 hari setelah pembelian atau test drive selesai.'
+                    : 'Anda hanya bisa menulis ulasan untuk unit yang sudah Anda beli atau test drive.',
             ])->withInput();
         }
 
@@ -161,18 +167,12 @@ class ProductReviewController extends Controller
             ->all();
 
         $purchasedCars = Order::query()
-            ->with('car')
+            ->with(['car', 'payment'])
             ->where('user_id', $userId)
             ->whereIn('status', ['paid', 'completed'])
             ->get()
-            ->map(function ($order) {
-                return [
-                    'car' => $order->car,
-                    'source_type' => 'purchase',
-                    'source_id' => $order->id,
-                    'label' => 'Pembelian terverifikasi',
-                ];
-            })
+            ->map(fn (Order $order) => $this->purchaseReviewOption($order))
+            ->filter()
             ->reject(fn (array $item) => in_array($item['source_type'] . ':' . $item['source_id'], $reviewedSources, true));
 
         $testDriveCars = TestDrive::query()
@@ -180,53 +180,134 @@ class ProductReviewController extends Controller
             ->where('user_id', $userId)
             ->whereIn('status', ['approved', 'completed'])
             ->get()
-            ->map(function ($testDrive) {
-                return [
-                    'car' => $testDrive->car,
-                    'source_type' => 'test_drive',
-                    'source_id' => $testDrive->id,
-                    'label' => 'Test drive terverifikasi',
-                ];
-            })
+            ->map(fn (TestDrive $testDrive) => $this->testDriveReviewOption($testDrive))
+            ->filter()
             ->reject(fn (array $item) => in_array($item['source_type'] . ':' . $item['source_id'], $reviewedSources, true));
 
         return $purchasedCars
             ->merge($testDriveCars)
             ->filter(fn ($item) => $item['car'] !== null)
+            ->sortByDesc(fn (array $item) => $item['started_at']->getTimestamp())
             ->unique(fn ($item) => $item['car']->id)
             ->values();
     }
 
     private function resolveEligibleSource(int $userId, int $carId): ?array
     {
+        $candidate = $this->latestReviewSourceForCar($userId, $carId);
+
+        if (!$candidate || !$candidate['within_window']) {
+            return null;
+        }
+
+        return [
+            'source_type' => $candidate['source_type'],
+            'source_id' => $candidate['source_id'],
+        ];
+    }
+
+    private function latestReviewSourceForCar(int $userId, int $carId): ?array
+    {
         $purchase = Order::query()
+            ->with('payment')
             ->where('user_id', $userId)
             ->where('car_id', $carId)
             ->whereIn('status', ['paid', 'completed'])
-            ->latest()
+            ->get()
+            ->map(fn (Order $order) => $this->purchaseReviewCandidate($order))
+            ->filter()
+            ->sortByDesc(fn (array $item) => $item['started_at']->getTimestamp())
             ->first();
-
-        if ($purchase) {
-            return [
-                'source_type' => 'purchase',
-                'source_id' => $purchase->id,
-            ];
-        }
 
         $testDrive = TestDrive::query()
             ->where('user_id', $userId)
             ->where('car_id', $carId)
             ->whereIn('status', ['approved', 'completed'])
-            ->latest()
+            ->get()
+            ->map(fn (TestDrive $item) => $this->testDriveReviewCandidate($item))
+            ->filter()
+            ->sortByDesc(fn (array $item) => $item['started_at']->getTimestamp())
             ->first();
 
-        if ($testDrive) {
-            return [
-                'source_type' => 'test_drive',
-                'source_id' => $testDrive->id,
-            ];
+        return collect([$purchase, $testDrive])
+            ->filter()
+            ->sortByDesc(fn (array $item) => $item['started_at']->getTimestamp())
+            ->first();
+    }
+
+    private function purchaseReviewOption(Order $order): ?array
+    {
+        $candidate = $this->purchaseReviewCandidate($order);
+        if (!$candidate || !$candidate['within_window']) {
+            return null;
         }
 
-        return null;
+        return [
+            'car' => $order->car,
+            'source_type' => 'purchase',
+            'source_id' => $order->id,
+            'label' => 'Pembelian terverifikasi',
+            'started_at' => $candidate['started_at'],
+            'deadline_at' => $candidate['deadline_at'],
+            'deadline_label' => 'Batas review sampai ' . $candidate['deadline_at']->translatedFormat('d M Y'),
+        ];
+    }
+
+    private function testDriveReviewOption(TestDrive $testDrive): ?array
+    {
+        $candidate = $this->testDriveReviewCandidate($testDrive);
+        if (!$candidate || !$candidate['within_window']) {
+            return null;
+        }
+
+        return [
+            'car' => $testDrive->car,
+            'source_type' => 'test_drive',
+            'source_id' => $testDrive->id,
+            'label' => 'Test drive terverifikasi',
+            'started_at' => $candidate['started_at'],
+            'deadline_at' => $candidate['deadline_at'],
+            'deadline_label' => 'Batas review sampai ' . $candidate['deadline_at']->translatedFormat('d M Y'),
+        ];
+    }
+
+    private function purchaseReviewCandidate(Order $order): ?array
+    {
+        $startedAt = $order->purchase_review_started_at;
+        if (!$startedAt) {
+            return null;
+        }
+
+        $deadlineAt = Carbon::parse($startedAt)->copy()->addDays(self::REVIEW_WINDOW_DAYS)->endOfDay();
+
+        return [
+            'source_type' => 'purchase',
+            'source_id' => $order->id,
+            'started_at' => Carbon::parse($startedAt),
+            'deadline_at' => $deadlineAt,
+            'within_window' => now()->lessThanOrEqualTo($deadlineAt),
+        ];
+    }
+
+    private function testDriveReviewCandidate(TestDrive $testDrive): ?array
+    {
+        $startedAt = $testDrive->handled_at
+            ?? $testDrive->updated_at
+            ?? ($testDrive->booking_date?->copy()->startOfDay())
+            ?? $testDrive->created_at;
+
+        if (!$startedAt) {
+            return null;
+        }
+
+        $deadlineAt = Carbon::parse($startedAt)->copy()->addDays(self::REVIEW_WINDOW_DAYS)->endOfDay();
+
+        return [
+            'source_type' => 'test_drive',
+            'source_id' => $testDrive->id,
+            'started_at' => Carbon::parse($startedAt),
+            'deadline_at' => $deadlineAt,
+            'within_window' => now()->lessThanOrEqualTo($deadlineAt),
+        ];
     }
 }

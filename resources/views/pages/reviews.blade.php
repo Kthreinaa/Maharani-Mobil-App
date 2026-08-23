@@ -29,6 +29,9 @@
         <p class="mt-4 text-[15px] leading-7 text-slate-200">
           Lihat review langsung dari customer Maharani Mobil tentang kondisi unit, pengalaman pembelian, dan pelayanan showroom. Semua review di halaman ini berasal dari customer terverifikasi.
         </p>
+        <p class="mt-3 text-[13px] leading-6 text-slate-200/90">
+          Customer hanya bisa mengirim review maksimal 7 hari setelah pembelian selesai atau test drive disetujui.
+        </p>
       </div>
     </section>
 
@@ -81,6 +84,7 @@
                     </option>
                   @endforeach
                 </select>
+                <p class="mt-2 text-xs text-slate-500">Review hanya tersedia selama 7 hari sejak transaksi atau test drive selesai.</p>
               </div>
               <div>
                 <label class="mb-1 block text-sm font-semibold text-slate-600">Rating</label>
@@ -103,7 +107,7 @@
             </form>
           @elseif (auth()->user()->role === 'customer')
             <div class="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-700">
-              Anda baru bisa mengirim review setelah pembelian selesai atau test drive disetujui.
+              Anda baru bisa mengirim review setelah pembelian selesai atau test drive disetujui, dan review hanya tersedia selama 7 hari.
             </div>
           @else
             <div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-600">
@@ -204,7 +208,7 @@
           <ul class="mt-4 space-y-3 text-sm leading-6 text-slate-600">
             <li>Review di halaman ini berasal dari customer yang sudah membeli unit atau sudah menyelesaikan test drive.</li>
             <li>Customer dapat menambahkan foto review agar calon pembeli lain bisa melihat dokumentasi pengalaman membeli mobil bekas di Maharani.</li>
-            <li></li>
+            <li>Batas waktu pengiriman review adalah maksimal 7 hari setelah pembelian selesai atau test drive disetujui.</li>
           </ul>
         </section>
       </aside>

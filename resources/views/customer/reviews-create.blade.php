@@ -27,6 +27,9 @@
               <p class="mt-4 max-w-[640px] text-[15px] leading-7 text-slate-200">
                 Tulis review jujur tentang kondisi unit, pelayanan showroom, dan pengalaman transaksi Anda. Review akan langsung tampil di halaman ulasan customer.
               </p>
+              <p class="mt-3 max-w-[640px] text-[13px] leading-6 text-slate-200/90">
+                Review hanya bisa dikirim maksimal 7 hari setelah pembelian selesai atau test drive disetujui.
+              </p>
               <div class="mt-7 flex flex-wrap gap-3">
                 <a class="inline-flex items-center gap-2 rounded-full bg-[#f5a623] px-5 py-3 text-[13px] font-bold text-[#111827] shadow-[0_14px_34px_rgba(245,166,35,0.24)] transition hover:brightness-105" href="{{ route('reviews.page') }}">
                   <span class="material-symbols-outlined text-[18px]">visibility</span>
@@ -95,6 +98,7 @@
                       </option>
                     @endforeach
                   </select>
+                  <p class="mt-2 text-xs text-slate-500">Review hanya aktif selama 7 hari. {{ $selectedCarOption['deadline_label'] ?? 'Pilih unit yang masih dalam batas waktu review.' }}</p>
                 </div>
 
                 <div>
@@ -124,7 +128,7 @@
               </form>
             @else
               <div class="mt-6 rounded-[1.4rem] border border-amber-200 bg-amber-50 px-5 py-5 text-sm leading-7 text-amber-700">
-                Semua unit yang bisa direview sudah Anda review.
+                Tidak ada unit yang masih bisa direview. Kemungkinan semua unit sudah Anda review atau batas waktu 7 harinya sudah lewat.
               </div>
             @endif
           </section>
@@ -137,6 +141,7 @@
                 <li>Ceritakan kondisi unit saat diterima atau setelah test drive.</li>
                 <li>Jelaskan pelayanan tim showroom, proses transaksi, dan kesesuaian informasi unit.</li>
                 <li>Tambahkan foto review agar calon pembeli lain bisa melihat dokumentasi pengalaman Anda.</li>
+                <li>Review hanya dapat dikirim maksimal 7 hari setelah pembelian selesai atau test drive disetujui.</li>
               </ul>
             </section>
 

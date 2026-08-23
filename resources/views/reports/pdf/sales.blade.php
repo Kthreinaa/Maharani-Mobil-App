@@ -85,6 +85,15 @@
       letter-spacing: 0.4px;
       font-weight: bold;
     }
+    .section-head {
+      margin-bottom: 10px;
+      padding: 12px 14px;
+      border: 1px solid #dbe5f3;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.96);
+      page-break-after: avoid;
+      page-break-inside: avoid;
+    }
     .section-shell {
       padding: 12px;
       border: 1px solid #dbe5f3;
@@ -150,6 +159,29 @@
     }
     .box:last-child {
       margin-bottom: 0;
+    }
+    .panel-table {
+      width: 100%;
+      margin-bottom: 10px;
+      border: 1px solid #dbe5f3;
+      border-radius: 12px;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: #ffffff;
+      page-break-inside: avoid;
+    }
+    .panel-table:last-child {
+      margin-bottom: 0;
+    }
+    .panel-table td {
+      border: 0;
+      padding: 12px 14px;
+    }
+    .panel-title {
+      font-size: 12px;
+      font-weight: bold;
+      color: #0f172a;
+      margin-bottom: 6px;
     }
     .box-header-table {
       width: 100%;
@@ -349,43 +381,67 @@
       </div>
 
       <div class="section">
-        <div class="section-title">Ringkasan Periode Ini</div>
+        <div class="section-head">
+          <div class="section-title" style="margin-bottom:0;">Ringkasan Periode Ini</div>
+        </div>
         <div class="analysis-list">
           @foreach ($report['analysis'] as $item)
-            <div class="box">
-              <strong>{{ $item['title'] }}</strong>
-              <div class="muted" style="margin-top:6px; line-height:1.6;">{{ $item['detail'] }}</div>
-            </div>
+            <table class="panel-table">
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="panel-title">{{ $item['title'] }}</div>
+                    <div class="muted" style="line-height:1.6;">{{ $item['detail'] }}</div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           @endforeach
         </div>
       </div>
 
       <div class="section">
-        <div class="section-title">Merk Mobil Paling Laris</div>
+        <div class="section-head">
+          <div class="section-title" style="margin-bottom:0;">Merk Mobil Paling Laris</div>
+        </div>
         <div class="brand-list">
           @forelse ($report['brand_performance'] as $item)
-            <div class="box">
-              <table class="box-header-table">
+            <table class="panel-table">
+              <tbody>
                 <tr>
-                  <td><div class="box-header-title">{{ $item['brand'] }}</div></td>
-                  <td class="box-header-meta"><span class="pill">{{ $item['share'] }}%</span></td>
+                  <td>
+                    <table class="box-header-table">
+                      <tr>
+                        <td><div class="box-header-title">{{ $item['brand'] }}</div></td>
+                        <td class="box-header-meta"><span class="pill">{{ $item['share'] }}%</span></td>
+                      </tr>
+                    </table>
+                    <div class="bar-wrap">
+                      <div class="bar bar-blue" style="width: {{ min(100, max(8, round($item['share']))) }}%;"></div>
+                    </div>
+                    <div class="muted" style="margin-top:8px;">
+                      {{ $item['units'] }} unit | {{ \App\Support\CurrencyFormatter::rupiah($item['revenue']) }}
+                    </div>
+                  </td>
                 </tr>
-              </table>
-              <div class="bar-wrap">
-                <div class="bar bar-blue" style="width: {{ min(100, max(8, round($item['share']))) }}%;"></div>
-              </div>
-              <div class="muted" style="margin-top:8px;">
-                {{ $item['units'] }} unit | {{ \App\Support\CurrencyFormatter::rupiah($item['revenue']) }}
-              </div>
-            </div>
+              </tbody>
+            </table>
           @empty
-            <div class="box muted">Belum ada data merk pada periode ini.</div>
+            <table class="panel-table">
+              <tbody>
+                <tr>
+                  <td class="muted">Belum ada data merk pada periode ini.</td>
+                </tr>
+              </tbody>
+            </table>
           @endforelse
         </div>
       </div>
 
       <div class="section">
-        <div class="section-title">Tren Penjualan</div>
+        <div class="section-head">
+          <div class="section-title" style="margin-bottom:0;">Tren Penjualan</div>
+        </div>
         <div class="table-frame">
           <table>
             <thead>
@@ -413,9 +469,11 @@
       </div>
 
       <div class="section">
-        <div class="section-title">Rincian Penjualan</div>
-        <div class="table-caption">
-          Rincian berikut merangkum tanggal, tahun, jam pembelian, customer, unit, alur pembelian, metode beli, metode bayar, nominal transaksi, dan pengelola internal pada periode laporan.
+        <div class="section-head">
+          <div class="section-title" style="margin-bottom:8px;">Rincian Penjualan</div>
+          <div class="table-caption" style="margin-bottom:0;">
+            Rincian berikut merangkum tanggal, tahun, jam pembelian, customer, unit, alur pembelian, metode beli, metode bayar, nominal transaksi, dan pengelola internal pada periode laporan.
+          </div>
         </div>
         <div class="table-frame">
           <table class="detail-table">

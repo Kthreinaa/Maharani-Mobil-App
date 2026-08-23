@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Support\OrderCodeFormatter;
 use App\Support\TransactionLabelFormatter;
+use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +12,8 @@ use Illuminate\Database\Eloquent\Model;
 class Order extends Model
 {
     use HasFactory;
+
+    public const REVIEW_WINDOW_DAYS = 7;
 
     public const HANDOVER_DOCUMENT_TEMPLATES = [
         'invoice' => 'Faktur / invoice pembelian',
@@ -377,7 +380,66 @@ class Order extends Model
 
     public function getReviewStatusLabelAttribute(): string
     {
-        return $this->has_purchase_review ? 'Sudah di Review' : 'Review unit sekarang';
+        if ($this->has_purchase_review) {
+            return 'Sudah di Review';
+        }
+
+        if (!in_array((string) $this->status, ['paid', 'completed'], true)) {
+            return 'Menunggu Selesai';
+        }
+
+        if ($this->can_submit_purchase_review) {
+            return 'Review unit sekarang';
+        }
+
+        if ($this->review_window_expired) {
+            return 'Batas review habis';
+        }
+
+        return 'Review belum tersedia';
+    }
+
+    public function getPurchaseReviewStartedAtAttribute(): ?CarbonInterface
+    {
+        if (!in_array((string) $this->status, ['paid', 'completed'], true)) {
+            return null;
+        }
+
+        $this->loadMissing('payment');
+
+        return $this->approved_at
+            ?? $this->payment?->verified_at
+            ?? $this->payment?->paid_at
+            ?? $this->updated_at
+            ?? $this->created_at;
+    }
+
+    public function getPurchaseReviewDeadlineAtAttribute(): ?CarbonInterface
+    {
+        $startedAt = $this->purchase_review_started_at;
+        if (!$startedAt) {
+            return null;
+        }
+
+        return Carbon::parse($startedAt)->copy()->addDays(self::REVIEW_WINDOW_DAYS)->endOfDay();
+    }
+
+    public function getCanSubmitPurchaseReviewAttribute(): bool
+    {
+        $deadlineAt = $this->purchase_review_deadline_at;
+
+        return !$this->has_purchase_review
+            && $deadlineAt !== null
+            && now()->lessThanOrEqualTo($deadlineAt);
+    }
+
+    public function getReviewWindowExpiredAttribute(): bool
+    {
+        $deadlineAt = $this->purchase_review_deadline_at;
+
+        return !$this->has_purchase_review
+            && $deadlineAt !== null
+            && now()->greaterThan($deadlineAt);
     }
 
     public function getHasPendingCancellationRequestAttribute(): bool

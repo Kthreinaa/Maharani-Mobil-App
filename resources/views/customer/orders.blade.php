@@ -131,10 +131,14 @@
                       <span class="inline-flex items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-center text-[11px] font-bold uppercase tracking-[0.04em] text-emerald-700 whitespace-nowrap">
                         {{ $order->review_status_label }}
                       </span>
-                    @elseif (in_array($order->status, ['paid', 'completed'], true))
+                    @elseif ($order->can_submit_purchase_review)
                       <a class="inline-flex items-center justify-center rounded-full border border-amber-200 bg-amber-50 px-3 py-2 text-center text-[11px] font-bold uppercase tracking-[0.04em] text-amber-700 whitespace-nowrap transition hover:bg-amber-100" href="{{ route('customer.reviews.create', ['car' => $order->car_id]) }}">
                         {{ $order->review_status_label }}
                       </a>
+                    @elseif ($order->review_window_expired)
+                      <span class="inline-flex items-center justify-center rounded-full border border-rose-200 bg-rose-50 px-3 py-2 text-center text-[11px] font-bold uppercase tracking-[0.04em] text-rose-700 whitespace-nowrap">
+                        {{ $order->review_status_label }}
+                      </span>
                     @else
                       <span class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-center text-[11px] font-bold uppercase tracking-[0.04em] text-slate-500 whitespace-nowrap">
                         Menunggu Selesai
