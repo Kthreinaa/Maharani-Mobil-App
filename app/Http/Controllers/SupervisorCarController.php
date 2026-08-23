@@ -8,6 +8,7 @@ use App\Support\CarUnitCodeSuggester;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\File;
 
@@ -81,8 +82,11 @@ class SupervisorCarController extends Controller
             $query->where(function ($sub) use ($search) {
                 $sub->where('merk', 'like', "%{$search}%")
                     ->orWhere('tipe', 'like', "%{$search}%")
-                    ->orWhere('kode_unit', 'like', "%{$search}%")
-                    ->orWhere('bm', 'like', "%{$search}%");
+                    ->orWhere('kode_unit', 'like', "%{$search}%");
+
+                if (Car::hasBmColumn()) {
+                    $sub->orWhere('bm', 'like', "%{$search}%");
+                }
             });
         }
 
@@ -115,6 +119,10 @@ class SupervisorCarController extends Controller
         $photos = $validated['photos'];
         unset($validated['photos']);
 
+        if (!Car::hasBmColumn()) {
+            unset($validated['bm']);
+        }
+
         $validated['created_by'] = $request->user()->id;
         $car = Car::create($validated);
 
@@ -140,6 +148,10 @@ class SupervisorCarController extends Controller
         if (array_key_exists('photos', $validated)) {
             $newPhotos = $validated['photos'];
             unset($validated['photos']);
+        }
+
+        if (!Car::hasBmColumn()) {
+            unset($validated['bm']);
         }
 
         $car->update($validated);
@@ -258,9 +270,11 @@ class SupervisorCarController extends Controller
 
     private function validateCar(Request $request, ?Car $car = null): array
     {
-        $request->merge([
-            'bm' => Car::normalizeBm($request->input('bm')),
-        ]);
+        if (Car::hasBmColumn()) {
+            $request->merge([
+                'bm' => Car::normalizeBm($request->input('bm')),
+            ]);
+        }
 
         $photoRules = $car
             ? ['nullable', 'array']
@@ -270,9 +284,8 @@ class SupervisorCarController extends Controller
             ? ['image', 'mimes:jpg,jpeg,png,webp', 'max:4096']
             : ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'];
 
-        return $request->validate([
+        $rules = [
             'kode_unit' => ['required', 'string', 'max:50', 'unique:cars,kode_unit,' . $car?->id],
-            'bm' => ['required', 'string', 'max:50', Rule::unique('cars', 'bm')->ignore($car?->id)],
             'merk' => ['required', 'string', 'max:100'],
             'tipe' => ['required', 'string', 'max:100'],
             'tahun' => ['required', 'integer', 'min:1990', 'max:' . (date('Y') + 1)],
@@ -285,7 +298,15 @@ class SupervisorCarController extends Controller
             'deskripsi' => ['nullable', 'string'],
             'photos' => $photoRules,
             'photos.*' => $photoItemRules,
-        ], [
+        ];
+
+        if (Car::hasBmColumn()) {
+            $rules['bm'] = ['required', 'string', 'max:50', Rule::unique('cars', 'bm')->ignore($car?->id)];
+        } else {
+            $rules['bm'] = ['nullable', 'string', 'max:50'];
+        }
+
+        $validated = $request->validate($rules, [
             'bm.required' => 'BM unit wajib diisi agar tiap mobil punya identitas unik.',
             'bm.unique' => 'BM unit sudah dipakai oleh mobil lain. Gunakan BM yang berbeda.',
             'photos.required' => 'Foto mobil wajib diunggah minimal 5 foto.',
@@ -294,5 +315,9 @@ class SupervisorCarController extends Controller
             'photos.*.mimes' => 'Format foto mobil hanya boleh JPG, JPEG, PNG, atau WEBP.',
             'photos.*.max' => 'Ukuran setiap foto mobil maksimal 4MB.',
         ]);
+
+        return Car::hasBmColumn()
+            ? $validated
+            : Arr::except($validated, ['bm']);
     }
 }

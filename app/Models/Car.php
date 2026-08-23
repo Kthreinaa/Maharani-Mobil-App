@@ -5,10 +5,13 @@ namespace App\Models;
 use App\Support\CarUnitCodeSuggester;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Schema;
 
 class Car extends Model
 {
     use HasFactory;
+
+    private static ?bool $bmColumnExists = null;
 
     public const IMPORT_ARCHIVE_DESCRIPTIONS = [
         'Unit arsip hasil import penjualan Excel.',
@@ -35,6 +38,15 @@ class Car extends Model
     protected $casts = [
         'photos' => 'array',
     ];
+
+    public static function hasBmColumn(): bool
+    {
+        if (self::$bmColumnExists === null) {
+            self::$bmColumnExists = Schema::hasColumn('cars', 'bm');
+        }
+
+        return self::$bmColumnExists;
+    }
 
     public static function normalizeBm(?string $value): ?string
     {
