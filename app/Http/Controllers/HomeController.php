@@ -36,7 +36,7 @@ class HomeController extends Controller
         }
 
         $newestCars = Car::query()
-            ->whereIn('status', ['available', 'reserved'])
+            ->where('status', 'available')
             ->latest()
             ->take(3)
             ->get();
