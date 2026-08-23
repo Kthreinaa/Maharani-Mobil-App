@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Support\CarUnitCodeSuggester;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
 
 class Car extends Model
@@ -109,6 +110,15 @@ class Car extends Model
     public function getStatusDisplayLabelAttribute(): string
     {
         return strtoupper((string) $this->status);
+    }
+
+    public function getIsNewArrivalAttribute(): bool
+    {
+        if (!$this->created_at instanceof Carbon) {
+            return false;
+        }
+
+        return $this->created_at->greaterThanOrEqualTo(now()->subMonth());
     }
 
     public function scopeImportedArchive($query)

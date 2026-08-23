@@ -27,8 +27,8 @@ class CustomerDashboardController extends Controller
             ->get();
 
         $homeOverviewCars = $catalogCars->take(6);
-        $newCatalogCarIds = $catalogCars
-            ->take(6)
+        $newCatalogCarIds = $homeOverviewCars
+            ->filter(fn (Car $car) => $car->is_new_arrival)
             ->pluck('id')
             ->map(fn ($id) => (int) $id)
             ->all();

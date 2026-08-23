@@ -9,6 +9,7 @@ use App\Models\ProductReview;
 use App\Models\User;
 use App\Services\CheckoutDraftService;
 use App\Support\CreditSimulationCatalog;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
@@ -85,6 +86,11 @@ class HomeController extends Controller
             ->get();
 
         $homeOverviewCars = $catalogCars->take(6);
+        $newCatalogCarIds = $homeOverviewCars
+            ->filter(fn (Car $car) => $car->is_new_arrival)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
         $featuredReviews = collect();
         if (Schema::hasTable('product_reviews')) {
             $featuredReviews = ProductReview::query()
@@ -104,7 +110,7 @@ class HomeController extends Controller
             ? round((float) ProductReview::query()->where('status', 'approved')->avg('rating'), 1)
             : 0.0;
 
-        return view('pages.home', compact('catalogCars', 'homeOverviewCars', 'featuredReviews', 'featuredReviewCount', 'featuredReviewAverage'));
+        return view('pages.home', compact('catalogCars', 'homeOverviewCars', 'featuredReviews', 'featuredReviewCount', 'featuredReviewAverage', 'newCatalogCarIds'));
     }
 
     /**
@@ -324,8 +330,7 @@ class HomeController extends Controller
         $brandOptions = $this->brandOptions();
         $newCatalogCarIds = Car::query()
             ->where('status', 'available')
-            ->latest('created_at')
-            ->take(6)
+            ->where('created_at', '>=', Carbon::now()->subMonth())
             ->pluck('id')
             ->map(fn ($id) => (int) $id)
             ->all();

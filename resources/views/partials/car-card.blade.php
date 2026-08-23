@@ -6,7 +6,7 @@
      */
     $imageUrl = $imageUrl ?? 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1200&auto=format&fit=crop';
     $showFavorite = $showFavorite ?? true;
-    $showNewBadge = $showNewBadge ?? false;
+    $showNewBadge = $showNewBadge ?? (bool) ($car->is_new_arrival ?? false);
 
     $statusKey = strtolower((string) ($car->status ?? 'available'));
     $statusLabelMap = [

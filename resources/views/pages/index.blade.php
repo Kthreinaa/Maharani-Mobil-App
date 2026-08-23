@@ -156,6 +156,7 @@
                 $badgeClass = $statusKey === 'reserved'
                   ? 'bg-[#f5a623] text-[#121826]'
                   : 'bg-emerald-400 text-emerald-950';
+                $showNewBadge = (bool) ($car->is_new_arrival ?? false);
 
                 $title = trim(($car->merk ?? '') . ' ' . ($car->tipe ?? ''));
                 $subtitleParts = array_values(array_filter([
@@ -180,6 +181,11 @@
                 <a class="relative block aspect-[16/9] overflow-hidden" href="{{ $detailUrl }}" aria-label="Lihat detail {{ $title !== '' ? $title : ('Unit #' . $car->id) }}">
                   <img alt="{{ $title !== '' ? $title : 'Unit mobil' }}" class="h-full w-full object-cover transition duration-700 group-hover:scale-110" src="{{ $image }}" />
                   <span class="absolute left-4 top-4 rounded-full px-3 py-1 text-[10px] font-bold {{ $badgeClass }}">{{ $badgeText }}</span>
+                  @if ($showNewBadge)
+                    <span class="absolute right-4 top-4 rounded-full bg-[#f5a623] px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.22em] text-[#0b1a40] shadow-[0_10px_24px_rgba(245,166,35,0.28)]">
+                      New
+                    </span>
+                  @endif
                 </a>
 
                 <div class="p-7">

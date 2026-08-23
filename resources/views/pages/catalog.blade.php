@@ -230,7 +230,7 @@
                   'car' => $car,
                   'imageUrl' => $carImage,
                   'showFavorite' => true,
-                  'showNewBadge' => in_array((int) $car->id, $newCatalogCarIds, true),
+                  'showNewBadge' => (bool) ($car->is_new_arrival ?? false) || in_array((int) $car->id, $newCatalogCarIds, true),
                 ])
               </div>
             @endforeach
